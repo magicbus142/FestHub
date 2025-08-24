@@ -1,3 +1,4 @@
+// Supabase database functions for donations management
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Donation {
