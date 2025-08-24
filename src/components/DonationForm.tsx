@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Donation, SponsorshipType, ChandaType, addDonation, updateDonation } from '@/lib/database';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { X } from 'lucide-react';
 
 interface DonationFormProps {
@@ -25,14 +26,15 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
   const [category, setCategory] = useState<'chanda' | 'sponsorship'>(donation?.category || 'chanda');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!name.trim() || !amount || !type) {
       toast({
-        title: "దోషం",
-        description: "దయచేసి అన్ని ఫీల్డులను పూరించండి",
+        title: t("దోషం", "Error"),
+        description: t("దయచేసి అన్ని ఫీల్డులను పూరించండి", "Please fill all fields"),
         variant: "destructive"
       });
       return;
@@ -51,14 +53,14 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
       if (donation?.id) {
         await updateDonation(donation.id, donationData);
         toast({
-          title: "విజయవంతం",
-          description: "దానం విజయవంతంగా అప్డేట్ చేయబడింది"
+          title: t("విజయవంతం", "Success"),
+          description: t("దానం విజయవంతంగా అప్డేట్ చేయబడింది", "Donation updated successfully")
         });
       } else {
         await addDonation(donationData);
         toast({
-          title: "విజయవంతం",
-          description: "కొత్త దానం విజయవంతంగా జోడించబడింది"
+          title: t("విజయవంతం", "Success"),
+          description: t("కొత్త దానం విజయవంతంగా జోడించబడింది", "New donation added successfully")
         });
       }
       
@@ -70,8 +72,8 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
       setCategory('chanda');
     } catch (error) {
       toast({
-        title: "దోషం",
-        description: "దానం సేవ్ చేయడంలో దోషం",
+        title: t("దోషం", "Error"),
+        description: t("దానం సేవ్ చేయడంలో దోషం", "Error saving donation"),
         variant: "destructive"
       });
     } finally {
@@ -96,7 +98,7 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
       <DialogContent className="bg-card border-border max-w-md">
         <DialogHeader className="relative">
           <DialogTitle className="text-festival-blue text-xl font-bold text-center">
-            {donation ? 'దానం ఎడిట్ చేయండి' : 'కొత్త దానం జోడించండి'}
+            {donation ? t('దానం ఎడిట్ చేయండి', 'Edit Donation') : t('కొత్త దానం జోడించండి', 'Add New Donation')}
           </DialogTitle>
           <Button
             variant="ghost"
@@ -111,38 +113,38 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="category" className="text-foreground font-medium">
-              వర్గం
+              {t('వర్గం', 'Category')}
             </Label>
             <Select value={category} onValueChange={(value: 'chanda' | 'sponsorship') => {
               setCategory(value);
               setType(''); // Reset type when category changes
             }}>
               <SelectTrigger>
-                <SelectValue placeholder="వర్గం ఎంచుకోండి" />
+                <SelectValue placeholder={t("వర్గం ఎంచుకోండి", "Select category")} />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border">
-                <SelectItem value="chanda">చందాలు / Chandas</SelectItem>
-                <SelectItem value="sponsorship">స్పాన్సర్‌షిప్స్ / Sponsorships</SelectItem>
+                <SelectItem value="chanda">{t('చందాలు', 'Chandas')}</SelectItem>
+                <SelectItem value="sponsorship">{t('స్పాన్సర్‌షిప్స్', 'Sponsorships')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="name" className="text-foreground font-medium">
-              పేరు
+              {t('పేరు', 'Name')}
             </Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="దాత పేరు"
+              placeholder={t("దాత పేరు", "Donor name")}
               className="bg-background border-border"
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="amount" className="text-foreground font-medium">
-              మొత్తం (₹)
+              {t('మొత్తం (₹)', 'Amount (₹)')}
             </Label>
             <Input
               id="amount"
@@ -158,11 +160,11 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
 
           <div className="space-y-2">
             <Label htmlFor="type" className="text-foreground font-medium">
-              రకం
+              {t('రకం', 'Type')}
             </Label>
             <Select value={type} onValueChange={setType}>
               <SelectTrigger>
-                <SelectValue placeholder="రకం ఎంచుకోండి" />
+                <SelectValue placeholder={t("రకం ఎంచుకోండి", "Select type")} />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border">
                 {getTypeOptions().map((option) => (
@@ -182,14 +184,14 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
               className="flex-1"
               disabled={loading}
             >
-              రద్దు చేయండి
+              {t('రద్దు చేయండి', 'Cancel')}
             </Button>
             <Button
               type="submit"
               className="flex-1 bg-gradient-festive hover:opacity-90 text-white font-medium"
               disabled={loading}
             >
-              {loading ? 'సేవ్ చేస్తోంది...' : donation ? 'అప్డేట్ చేయండి' : 'జోడించండి'}
+              {loading ? t('సేవ్ చేస్తోంది...', 'Saving...') : donation ? t('అప్డేట్ చేయండి', 'Update') : t('జోడించండి', 'Add')}
             </Button>
           </div>
         </form>
