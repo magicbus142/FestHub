@@ -94,8 +94,10 @@ export const getTotalAmount = async (): Promise<number> => {
     .select('amount');
 
   if (error) throw error;
-  const sum = (data as any[]).reduce((acc, row) => acc + Number(row.amount || 0), 0);
-  return sum;
+  
+  return (data || []).reduce((acc, row) => {
+    return acc + (Number(row.amount) || 0);
+  }, 0);
 };
 
 export const getTotalByCategory = async (category: 'chanda' | 'sponsorship'): Promise<number> => {
@@ -105,6 +107,8 @@ export const getTotalByCategory = async (category: 'chanda' | 'sponsorship'): Pr
     .eq('category', category);
 
   if (error) throw error;
-  const sum = (data as any[]).reduce((acc, row) => acc + Number(row.amount || 0), 0);
-  return sum;
+  
+  return (data || []).reduce((acc, row) => {
+    return acc + (Number(row.amount) || 0);
+  }, 0);
 };
