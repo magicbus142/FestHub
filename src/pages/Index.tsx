@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Plus, IndianRupee, Languages, Shield, LogOut } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -33,6 +34,8 @@ const Index = () => {
   const [chandaTotal, setChandaTotal] = useState(0);
   const [sponsorshipTotal, setSponsorshipTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [donationToDelete, setDonationToDelete] = useState<string | null>(null);
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
   const { isAuthenticated, logout } = useAuth();
@@ -100,14 +103,21 @@ const Index = () => {
     setIsAuthOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     if (!isAuthenticated) {
       setIsAuthOpen(true);
       return;
     }
     
+    setDonationToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!donationToDelete) return;
+    
     try {
-      await deleteDonation(id);
+      await deleteDonation(donationToDelete);
       await loadData();
       toast({
         title: t("విజయవంతం", "Success"),
@@ -119,6 +129,9 @@ const Index = () => {
         description: t("దానం తీసివేయడంలో దోషం", "Error deleting donation"),
         variant: "destructive"
       });
+    } finally {
+      setDeleteConfirmOpen(false);
+      setDonationToDelete(null);
     }
   };
 
@@ -317,6 +330,23 @@ const Index = () => {
         onClose={() => setIsAuthOpen(false)}
         onSuccess={() => setIsAuthOpen(false)}
       />
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('దానం తీసివేయండి', 'Delete Donation')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('మీరు ఖచ్చితంగా ఈ దానాన్ని తీసివేయాలనుకుంటున్నారా? ఈ చర్య రద్దు చేయబడదు.', 'Are you sure you want to delete this donation? This action cannot be undone.')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('రద్దు', 'Cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
+              {t('తీసివేయండి', 'Delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
