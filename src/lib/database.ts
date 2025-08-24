@@ -91,18 +91,20 @@ export const searchDonations = async (searchTerm: string): Promise<Donation[]> =
 export const getTotalAmount = async (): Promise<number> => {
   const { data, error } = await supabase
     .from('donations')
-    .select('amount.sum()');
+    .select('amount');
 
   if (error) throw error;
-  return Number(data?.[0]?.sum) || 0;
+  const sum = (data as any[]).reduce((acc, row) => acc + Number(row.amount || 0), 0);
+  return sum;
 };
 
 export const getTotalByCategory = async (category: 'chanda' | 'sponsorship'): Promise<number> => {
   const { data, error } = await supabase
     .from('donations')
-    .select('amount.sum()')
+    .select('amount')
     .eq('category', category);
 
   if (error) throw error;
-  return Number(data?.[0]?.sum) || 0;
+  const sum = (data as any[]).reduce((acc, row) => acc + Number(row.amount || 0), 0);
+  return sum;
 };

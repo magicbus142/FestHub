@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Donation, SponsorshipType, ChandaType, addDonation, updateDonation } from '@/lib/database';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -100,6 +100,9 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
           <DialogTitle className="text-festival-blue text-xl font-bold text-center">
             {donation ? t('దానం ఎడిట్ చేయండి', 'Edit Donation') : t('కొత్త దానం జోడించండి', 'Add New Donation')}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            {t('దానం జోడించడానికి లేదా మార్చడానికి ఈ ఫారంని ఉపయోగించండి', 'Use this form to add or edit a donation')}
+          </DialogDescription>
           <Button
             variant="ghost"
             size="sm"

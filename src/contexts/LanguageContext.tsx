@@ -23,7 +23,7 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider = ({ children }: LanguageProviderProps) => {
-  const [language, setLanguage] = useState<Language>('telugu');
+  const [language, setLanguage] = useState<Language>('english');
   
   const t = (telugu: string, english: string) => {
     return language === 'telugu' ? telugu : english;
