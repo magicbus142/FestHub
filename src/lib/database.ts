@@ -90,25 +90,16 @@ export const searchDonations = async (searchTerm: string): Promise<Donation[]> =
 
 export const getTotalAmount = async (): Promise<number> => {
   const { data, error } = await supabase
-    .from('donations')
-    .select('amount');
+    .rpc('get_total_amount');
 
   if (error) throw error;
-  
-  return (data || []).reduce((acc, row) => {
-    return acc + (Number(row.amount) || 0);
-  }, 0);
+  return Number(data) || 0;
 };
 
 export const getTotalByCategory = async (category: 'chanda' | 'sponsorship'): Promise<number> => {
   const { data, error } = await supabase
-    .from('donations')
-    .select('amount')
-    .eq('category', category);
+    .rpc('get_total_by_category', { category_param: category });
 
   if (error) throw error;
-  
-  return (data || []).reduce((acc, row) => {
-    return acc + (Number(row.amount) || 0);
-  }, 0);
+  return Number(data) || 0;
 };
