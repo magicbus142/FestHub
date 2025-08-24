@@ -14,10 +14,7 @@ interface DonationCardProps {
 
 export const DonationCard = ({ donation, onEdit, onDelete, onAuthRequired }: DonationCardProps) => {
   const { isAuthenticated } = useAuth();
-  const { language, t } = useLanguage();
-
-  // Display appropriate name based on language selection
-  const displayName = language === 'telugu' && donation.name_telugu ? donation.name_telugu : donation.name;
+  const { t } = useLanguage();
 
   const handleEdit = () => {
     if (isAuthenticated) {
@@ -39,7 +36,7 @@ export const DonationCard = ({ donation, onEdit, onDelete, onAuthRequired }: Don
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-2">
           <div className="flex-1">
-            <h3 className="font-semibold text-foreground text-lg">{displayName}</h3>
+            <h3 className="font-semibold text-foreground text-lg">{donation.name}</h3>
             <p className="text-festival-orange text-xl font-bold">₹{donation.amount.toLocaleString('en-IN')}</p>
           </div>
           <div className="flex gap-2">

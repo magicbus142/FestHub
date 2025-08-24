@@ -21,7 +21,6 @@ export type Database = {
           created_at: string
           id: string
           name: string
-          name_telugu: string | null
           type: string
           updated_at: string
         }
@@ -31,7 +30,6 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
-          name_telugu?: string | null
           type: string
           updated_at?: string
         }
@@ -41,7 +39,6 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
-          name_telugu?: string | null
           type?: string
           updated_at?: string
         }

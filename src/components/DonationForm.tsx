@@ -7,7 +7,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Donation, SponsorshipType, ChandaType, addDonation, updateDonation } from '@/lib/database';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { supabase } from '@/integrations/supabase/client';
 import { X } from 'lucide-react';
 
 interface DonationFormProps {
@@ -44,27 +43,8 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
     setLoading(true);
     
     try {
-      // Translate name to Telugu if creating new donation
-      let teluguName = donation?.name_telugu;
-      
-      if (!donation?.id) {
-        try {
-          const { data: translationData } = await supabase.functions.invoke('translate-name', {
-            body: { name: name.trim() }
-          });
-          
-          if (translationData?.teluguName) {
-            teluguName = translationData.teluguName;
-          }
-        } catch (translationError) {
-          console.warn('Translation failed:', translationError);
-          // Continue without translation if it fails
-        }
-      }
-
       const donationData = {
         name: name.trim(),
-        name_telugu: teluguName,
         amount: parseFloat(amount),
         type,
         category
