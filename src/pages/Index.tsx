@@ -12,8 +12,7 @@ import {
   deleteDonation, 
   getTotalAmount,
   getTotalByCategory,
-  searchDonations,
-  initDatabase
+  searchDonations
 } from '@/lib/database';
 import { DonationForm } from '@/components/DonationForm';
 import { DonationCard } from '@/components/DonationCard';
@@ -52,7 +51,6 @@ const Index = () => {
 
   const loadData = async () => {
     try {
-      await initDatabase();
       const [allDonations, chandaData, sponsorshipData, total, chandaSum, sponsorshipSum] = 
         await Promise.all([
           getAllDonations(),
@@ -102,7 +100,7 @@ const Index = () => {
     setIsAuthOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!isAuthenticated) {
       setIsAuthOpen(true);
       return;

@@ -8,7 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 interface DonationCardProps {
   donation: Donation;
   onEdit: (donation: Donation) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   onAuthRequired: () => void;
 }
 
