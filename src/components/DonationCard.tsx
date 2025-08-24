@@ -37,7 +37,9 @@ export const DonationCard = ({ donation, onEdit, onDelete, onAuthRequired }: Don
         <div className="flex justify-between items-start mb-2">
           <div className="flex-1">
             <h3 className="font-semibold text-foreground text-lg">{donation.name}</h3>
-            <p className="text-festival-orange text-xl font-bold">₹{donation.amount.toLocaleString('en-IN')}</p>
+            {donation.category === 'chanda' && (
+              <p className="text-festival-orange text-xl font-bold">₹{donation.amount.toLocaleString('en-IN')}</p>
+            )}
           </div>
           <div className="flex gap-2">
             <Button

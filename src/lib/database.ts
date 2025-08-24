@@ -11,8 +11,8 @@ export interface Donation {
   updated_at?: string;
 }
 
-export type SponsorshipType = 'విగ్రహం' | 'లాడు' | 'Day1-భోజనం' | 'Day2-భోజనం' | 'Day3-భోజనం' | 'Day1-టిఫిన్' | 'Day2-టిఫిన్' | 'Day3-టిఫిన్';
-export type ChandaType = 'చందా' | 'విఘ్రహందాత' | 'ప్రసాదం' | 'వస్త్రం' | 'పుష్పం' | 'ఇతర';
+export type SponsorshipType = 'విగ్రహం' | 'లాడు' | 'Day1-భోజనం' | 'Day2-భోజనం' | 'Day3-భోజనం' | 'Day1-టిఫిన్' | 'Day2-టిఫిన్' | 'Day3-టిఫిన్' | 'ఇతర';
+export type ChandaType = 'చందా';
 
 export const addDonation = async (donation: Omit<Donation, 'id' | 'created_at' | 'updated_at'>) => {
   const { data, error } = await supabase
