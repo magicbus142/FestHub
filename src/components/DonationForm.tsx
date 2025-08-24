@@ -16,7 +16,7 @@ interface DonationFormProps {
   onSave: () => void;
 }
 
-const sponsorshipTypes: SponsorshipType[] = ['విగ్రహం', 'లాడు', 'భోజనం', 'టిఫిన్'];
+const sponsorshipTypes: SponsorshipType[] = ['విగ్రహం', 'లాడు', 'Day1-భోజనం', 'Day2-భోజనం', 'Day3-భోజనం', 'Day1-టిఫిన్', 'Day2-టిఫిన్', 'Day3-టిఫిన్'];
 const chandaTypes: ChandaType[] = ['చందా', 'విఘ్రహందాత', 'ప్రసాదం', 'వస్త్రం', 'పుష్పం', 'ఇతర'];
 
 export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationFormProps) => {
