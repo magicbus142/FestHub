@@ -187,17 +187,17 @@ const Index = () => {
           <Tabs defaultValue="chandas" className="space-y-4">
             <TabsList className="grid w-full grid-cols-2 bg-card/95 backdrop-blur">
               <TabsTrigger value="chandas" className="data-[state=active]:bg-festival-orange data-[state=active]:text-white">
-                చందాలు (₹{chandaTotal.toLocaleString('en-IN')})
+                చందాలు / Chandas (₹{chandaTotal.toLocaleString('en-IN')})
               </TabsTrigger>
               <TabsTrigger value="sponsorships" className="data-[state=active]:bg-festival-blue data-[state=active]:text-white">
-                స్పాన్సర్‌షిప్స్ (₹{sponsorshipTotal.toLocaleString('en-IN')})
+                స్పాన్సర్‌షిప్స్ / Sponsorships (₹{sponsorshipTotal.toLocaleString('en-IN')})
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="chandas">
               <Card className="bg-card/95 backdrop-blur border-0">
                 <CardHeader>
-                  <CardTitle className="text-festival-orange">సాధారణ చందాలు</CardTitle>
+                  <CardTitle className="text-festival-orange">సాధారణ చందాలు / General Chandas</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {chandas.length > 0 ? (
@@ -223,7 +223,7 @@ const Index = () => {
             <TabsContent value="sponsorships">
               <Card className="bg-card/95 backdrop-blur border-0">
                 <CardHeader>
-                  <CardTitle className="text-festival-blue">స్పాన్సర్‌షిప్స్ & ఆఫరింగ్స్</CardTitle>
+                  <CardTitle className="text-festival-blue">స్పాన్సర్‌షిప్స్ & ఆఫరింగ్స్ / Sponsorships & Offerings</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {sponsorships.length > 0 ? (

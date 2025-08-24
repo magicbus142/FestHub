@@ -42,7 +42,7 @@ export const DonationCard = ({ donation, onEdit, onDelete }: DonationCardProps) 
             {donation.type}
           </span>
           <span className="text-xs text-muted-foreground">
-            {donation.category === 'chanda' ? 'చందా' : 'స్పాన్సర్‌షిప్'}
+            {donation.category === 'chanda' ? 'చందా / Chanda' : 'స్పాన్సర్‌షిప్ / Sponsorship'}
           </span>
         </div>
       </CardContent>

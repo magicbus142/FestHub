@@ -121,8 +121,8 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
                 <SelectValue placeholder="వర్గం ఎంచుకోండి" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border">
-                <SelectItem value="chanda">చందాలు</SelectItem>
-                <SelectItem value="sponsorship">స్పాన్సర్‌షిప్స్</SelectItem>
+                <SelectItem value="chanda">చందాలు / Chandas</SelectItem>
+                <SelectItem value="sponsorship">స్పాన్సర్‌షిప్స్ / Sponsorships</SelectItem>
               </SelectContent>
             </Select>
           </div>
