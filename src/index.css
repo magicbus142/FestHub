@@ -8,35 +8,46 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 35 25% 96%;
+    --foreground: 20 14.3% 4.1%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 20 14.3% 4.1%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 20 14.3% 4.1%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 24 90% 53%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 35 25% 88%;
+    --secondary-foreground: 20 14.3% 4.1%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 35 25% 92%;
+    --muted-foreground: 20 5.9% 45.1%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 35 86% 85%;
+    --accent-foreground: 20 14.3% 4.1%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 35 25% 88%;
+    --input: 35 25% 88%;
+    --ring: 24 90% 53%;
 
-    --radius: 0.5rem;
+    --festival-gold: 45 100% 55%;
+    --festival-orange: 24 90% 53%;
+    --festival-deep-orange: 16 100% 50%;
+    --festival-red: 0 72% 50%;
+    --festival-blue: 210 100% 40%;
+    --festival-cream: 35 25% 96%;
+
+    --gradient-festive: linear-gradient(135deg, hsl(var(--festival-orange)), hsl(var(--festival-gold)));
+    --gradient-header: linear-gradient(135deg, hsl(var(--festival-blue)), hsl(var(--festival-deep-orange)));
+    --shadow-festive: 0 10px 30px -10px hsl(var(--festival-orange) / 0.3);
+
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -56,33 +67,44 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 20 14.3% 4.1%;
+    --foreground: 35 25% 96%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 20 14.3% 4.1%;
+    --card-foreground: 35 25% 96%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 20 14.3% 4.1%;
+    --popover-foreground: 35 25% 96%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 24 90% 53%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 15 7.1% 15.9%;
+    --secondary-foreground: 35 25% 96%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 15 7.1% 15.9%;
+    --muted-foreground: 24 5.4% 63.9%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 15 7.1% 15.9%;
+    --accent-foreground: 35 25% 96%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 15 7.1% 15.9%;
+    --input: 15 7.1% 15.9%;
+    --ring: 24 90% 53%;
+
+    --festival-gold: 45 100% 65%;
+    --festival-orange: 24 90% 63%;
+    --festival-deep-orange: 16 100% 60%;
+    --festival-red: 0 72% 60%;
+    --festival-blue: 210 100% 50%;
+    --festival-cream: 20 14.3% 4.1%;
+
+    --gradient-festive: linear-gradient(135deg, hsl(var(--festival-orange)), hsl(var(--festival-gold)));
+    --gradient-header: linear-gradient(135deg, hsl(var(--festival-blue)), hsl(var(--festival-deep-orange)));
+    --shadow-festive: 0 10px 30px -10px hsl(var(--festival-orange) / 0.4);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;

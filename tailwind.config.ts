@@ -52,6 +52,14 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				festival: {
+					gold: 'hsl(var(--festival-gold))',
+					orange: 'hsl(var(--festival-orange))',
+					'deep-orange': 'hsl(var(--festival-deep-orange))',
+					red: 'hsl(var(--festival-red))',
+					blue: 'hsl(var(--festival-blue))',
+					cream: 'hsl(var(--festival-cream))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -67,6 +75,13 @@ export default {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			backgroundImage: {
+				'gradient-festive': 'var(--gradient-festive)',
+				'gradient-header': 'var(--gradient-header)'
+			},
+			boxShadow: {
+				'festive': 'var(--shadow-festive)'
 			},
 			keyframes: {
 				'accordion-down': {
