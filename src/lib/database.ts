@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface Donation {
   id?: string;
   name: string;
+  name_telugu?: string;
   amount: number;
   type: string;
   category: 'chanda' | 'sponsorship';
@@ -19,6 +20,7 @@ export const addDonation = async (donation: Omit<Donation, 'id' | 'created_at' |
     .from('donations')
     .insert([{
       name: donation.name,
+      name_telugu: donation.name_telugu,
       amount: donation.amount,
       type: donation.type,
       category: donation.category
@@ -35,6 +37,7 @@ export const updateDonation = async (id: string, donation: Omit<Donation, 'id' |
     .from('donations')
     .update({
       name: donation.name,
+      name_telugu: donation.name_telugu,
       amount: donation.amount,
       type: donation.type,
       category: donation.category
