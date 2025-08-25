@@ -21,6 +21,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          name_telugu: string | null
           type: string
           updated_at: string
         }
@@ -30,6 +31,7 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          name_telugu?: string | null
           type: string
           updated_at?: string
         }
@@ -39,8 +41,72 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          name_telugu?: string | null
           type?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      expenses: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          type: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      images: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_path: string
+          image_url: string
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_path: string
+          image_url: string
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_path?: string
+          image_url?: string
+          title?: string
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -55,6 +121,10 @@ export type Database = {
       }
       get_total_by_category: {
         Args: { category_param: string }
+        Returns: number
+      }
+      get_user_total_expenses: {
+        Args: { user_uuid?: string }
         Returns: number
       }
     }
