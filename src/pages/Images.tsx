@@ -282,16 +282,36 @@ export default function Images() {
                           {format(new Date(selectedImage.created_at || ''), 'MMM dd, yyyy')}
                         </div>
                         <div className="flex items-center gap-2">
-                          <Button variant="outline" asChild>
-                            <a
-                              href={selectedImage.image_url}
-                              download
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <Download className="h-4 w-4 mr-2" />
-                              {t('డౌన్‌లోడ్', 'Download')}
-                            </a>
+                          <Button 
+                            variant="outline"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                const response = await fetch(selectedImage.image_url);
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                const filename = selectedImage.title ? 
+                                  `${selectedImage.title}.${blob.type.split('/')[1] || 'jpg'}` : 
+                                  `image-${selectedImage.id}.${blob.type.split('/')[1] || 'jpg'}`;
+                                a.href = url;
+                                a.download = filename;
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(a);
+                              } catch (error) {
+                                console.error('Download failed:', error);
+                                toast({
+                                  title: t('లోపం', 'Error'),
+                                  description: t('డౌన్‌లోడ్ విఫలమైంది', 'Download failed'),
+                                  variant: 'destructive',
+                                });
+                              }
+                            }}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            {t('డౌన్‌లోడ్', 'Download')}
                           </Button>
                           {isAuthenticated && (
                             <Button
