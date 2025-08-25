@@ -2,11 +2,13 @@ import { Home, Receipt, Image, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 
 export const Navigation = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useSupabaseAuth();
 
   const navItems = [
     { 
@@ -51,6 +53,11 @@ export const Navigation = () => {
             </Button>
           );
         })}
+        {!user && (
+          <Button variant={location.pathname === '/auth' ? 'default' : 'ghost'} size="sm" onClick={() => navigate('/auth')}>
+            {t('లాగిన్', 'Login')}
+          </Button>
+        )}
       </div>
     </nav>
   );

@@ -4,13 +4,16 @@ import App from "./App.tsx";
 import "./index.css";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { SupabaseAuthProvider } from "./contexts/SupabaseAuthContext";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <LanguageProvider>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <SupabaseAuthProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </SupabaseAuthProvider>
     </LanguageProvider>
   </StrictMode>,
 );

@@ -8,6 +8,8 @@ import Chandas from "./pages/Chandas";
 import Expenses from "./pages/Expenses";
 import Images from "./pages/Images";
 import NotFound from "./pages/NotFound";
+import AuthPage from "./pages/Auth";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -18,11 +20,12 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/auth" element={<AuthPage />} />
           <Route path="/" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/chandas" element={<Chandas />} />
-          <Route path="/expenses" element={<Expenses />} />
-          <Route path="/images" element={<Images />} />
+          <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
+          <Route path="/images" element={<ProtectedRoute><Images /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
