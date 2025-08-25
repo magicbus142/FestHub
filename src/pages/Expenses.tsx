@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { addExpense, getUserExpenses, getUserTotalExpenses, deleteExpense, type Expense } from '@/lib/expenses';
+import { addExpense, getExpenses, getTotalExpenses, deleteExpense, type Expense } from '@/lib/expenses';
 import { Plus, Trash2, Receipt } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
@@ -26,12 +26,12 @@ export default function Expenses() {
 
   const { data: expenses = [] } = useQuery({
     queryKey: ['user-expenses'],
-    queryFn: getUserExpenses,
+    queryFn: getExpenses,
   });
 
   const { data: totalExpenses = 0 } = useQuery({
     queryKey: ['total-expenses'],
-    queryFn: getUserTotalExpenses,
+    queryFn: getTotalExpenses,
   });
 
   const addExpenseMutation = useMutation({

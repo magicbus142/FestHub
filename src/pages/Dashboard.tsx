@@ -6,8 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart3, Receipt, Image, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getTotalAmount } from '@/lib/database';
-import { getUserTotalExpenses } from '@/lib/expenses';
-import { getUserImages } from '@/lib/images';
+import { getTotalExpenses, getExpenses } from '@/lib/expenses';
+import { getImages } from '@/lib/images';
 
 export default function Dashboard() {
   const { t, language, setLanguage } = useLanguage();
@@ -20,12 +20,12 @@ export default function Dashboard() {
 
   const { data: totalExpenses = 0 } = useQuery({
     queryKey: ['total-expenses'],
-    queryFn: getUserTotalExpenses,
+    queryFn: getTotalExpenses,
   });
 
   const { data: images = [] } = useQuery({
     queryKey: ['user-images'],
-    queryFn: getUserImages,
+    queryFn: getImages,
   });
 
   const dashboardCards = [

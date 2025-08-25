@@ -13,12 +13,9 @@ export interface ImageRecord {
 }
 
 export const uploadImage = async (file: File, title: string, description?: string) => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('User not authenticated');
-
   // Upload file to storage
   const fileExt = file.name.split('.').pop();
-  const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+  const fileName = `public/${Date.now()}.${fileExt}`;
   
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from('user-images')
@@ -35,7 +32,6 @@ export const uploadImage = async (file: File, title: string, description?: strin
   const { data, error } = await supabase
     .from('images')
     .insert([{
-      user_id: user.id,
       title,
       description,
       image_url: publicUrl,
@@ -48,7 +44,7 @@ export const uploadImage = async (file: File, title: string, description?: strin
   return data;
 };
 
-export const getUserImages = async (): Promise<ImageRecord[]> => {
+export const getImages = async (): Promise<ImageRecord[]> => {
   const { data, error } = await supabase
     .from('images')
     .select('*')

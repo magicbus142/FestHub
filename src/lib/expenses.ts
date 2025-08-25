@@ -12,13 +12,9 @@ export interface Expense {
 }
 
 export const addExpense = async (expense: Omit<Expense, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('User not authenticated');
-
   const { data, error } = await supabase
     .from('expenses')
     .insert([{
-      user_id: user.id,
       type: expense.type,
       amount: expense.amount,
       description: expense.description
@@ -30,7 +26,7 @@ export const addExpense = async (expense: Omit<Expense, 'id' | 'user_id' | 'crea
   return data;
 };
 
-export const getUserExpenses = async (): Promise<Expense[]> => {
+export const getExpenses = async (): Promise<Expense[]> => {
   const { data, error } = await supabase
     .from('expenses')
     .select('*')
@@ -40,12 +36,13 @@ export const getUserExpenses = async (): Promise<Expense[]> => {
   return (data || []) as Expense[];
 };
 
-export const getUserTotalExpenses = async (): Promise<number> => {
+export const getTotalExpenses = async (): Promise<number> => {
   const { data, error } = await supabase
-    .rpc('get_user_total_expenses');
+    .from('expenses')
+    .select('amount');
 
   if (error) throw error;
-  return Number(data) || 0;
+  return (data || []).reduce((sum, expense) => sum + expense.amount, 0);
 };
 
 export const deleteExpense = async (id: string) => {

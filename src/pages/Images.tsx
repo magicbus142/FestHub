@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { uploadImage, getUserImages, deleteImage, type ImageRecord } from '@/lib/images';
+import { uploadImage, getImages, deleteImage, type ImageRecord } from '@/lib/images';
 import { Plus, Trash2, Image as ImageIcon, Upload } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
@@ -26,7 +26,7 @@ export default function Images() {
 
   const { data: images = [] } = useQuery({
     queryKey: ['user-images'],
-    queryFn: getUserImages,
+    queryFn: getImages,
   });
 
   const uploadImageMutation = useMutation({
