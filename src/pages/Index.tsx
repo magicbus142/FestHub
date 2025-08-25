@@ -14,7 +14,7 @@ import {
   deleteDonation, 
   getTotalAmount,
   getTotalByCategory,
-  searchDonations
+  searchDonationsWithTranslation
 } from '@/lib/database';
 import { DonationForm } from '@/components/DonationForm';
 import { DonationCard } from '@/components/DonationCard';
@@ -66,7 +66,7 @@ const Index = () => {
 
   useEffect(() => {
     if (searchTerm.trim()) {
-      searchDonations(searchTerm).then(setFilteredDonations);
+      searchDonationsWithTranslation(searchTerm).then(setFilteredDonations);
     } else {
       setFilteredDonations(donations);
     }
