@@ -318,7 +318,7 @@ export default function Images() {
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
-        </Dialog>
+        </AlertDialog>
 
         {/* Navigation */}
         <Navigation />
