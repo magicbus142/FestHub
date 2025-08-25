@@ -6,18 +6,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { addExpense, getExpenses, getTotalExpenses, deleteExpense, type Expense } from '@/lib/expenses';
 import { Plus, Trash2, Receipt } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useAuth } from '@/contexts/AuthContext';
+import { AuthDialog } from '@/components/AuthDialog';
 
 export default function Expenses() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [formData, setFormData] = useState({
     type: '',
     amount: '',
@@ -107,13 +111,20 @@ export default function Expenses() {
             </p>
           </div>
 
+          <Button
+            className="flex items-center gap-2"
+            onClick={() => {
+              if (isAuthenticated) {
+                setIsDialogOpen(true);
+              } else {
+                setIsAuthOpen(true);
+              }
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            {t('జోడించు', 'Add')}
+          </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                {t('జోడించు', 'Add')}
-              </Button>
-            </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>{t('కొత్త ఖర్చు జోడించండి', 'Add New Expense')}</DialogTitle>
@@ -254,6 +265,11 @@ export default function Expenses() {
 
         {/* Navigation */}
         <Navigation />
+        <AuthDialog
+          isOpen={isAuthOpen}
+          onClose={() => setIsAuthOpen(false)}
+          onSuccess={() => setIsAuthOpen(false)}
+        />
       </div>
     </div>
   );

@@ -1,24 +1,28 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { uploadImage, getImages, deleteImage, type ImageRecord } from '@/lib/images';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+ 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Navigation } from '@/components/Navigation';
-import { Upload, Image as ImageIcon, Calendar, Trash2, X } from 'lucide-react';
+import { Upload, Image as ImageIcon, Calendar, Trash2, X, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { useAuth } from '@/contexts/AuthContext';
+import { AuthDialog } from '@/components/AuthDialog';
 
 export default function Images() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -103,10 +107,10 @@ export default function Images() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedFile || !formData.title) {
+    if (!selectedFile) {
       toast({
         title: t('లోపం', 'Error'),
-        description: t('దయచేసి చిత్రం మరియు టైటిల్‌ను ఎంచుకోండి', 'Please select an image and enter title'),
+        description: t('దయచేసి చిత్రం ఫైల్‌ను ఎంచుకోండి', 'Please select an image file'),
         variant: 'destructive',
       });
       return;
@@ -114,7 +118,7 @@ export default function Images() {
 
     uploadImageMutation.mutate({
       file: selectedFile,
-      title: formData.title,
+      title: formData.title || '',
       description: formData.description
     });
   };
@@ -123,7 +127,7 @@ export default function Images() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 pb-20 md:pb-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex items-start justify-between gap-4 flex-wrap mb-6">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
               {t('చిత్రాలు', 'Images')}
@@ -133,13 +137,20 @@ export default function Images() {
             </p>
           </div>
 
+          <Button
+            className="flex items-center gap-2"
+            onClick={() => {
+              if (isAuthenticated) {
+                setIsDialogOpen(true);
+              } else {
+                setIsAuthOpen(true);
+              }
+            }}
+          >
+            <Upload className="h-4 w-4" />
+            {t('అప్‌లోడ్', 'Upload')}
+          </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
-                <Upload className="h-4 w-4" />
-                {t('అప్‌లోడ్', 'Upload')}
-              </Button>
-            </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>{t('కొత్త చిత్రం అప్‌లోడ్ చేయండి', 'Upload New Image')}</DialogTitle>
@@ -161,13 +172,12 @@ export default function Images() {
                   )}
                 </div>
                 <div>
-                  <Label htmlFor="title">{t('టైటిల్', 'Title')} *</Label>
+                  <Label htmlFor="title">{t('టైటిల్ (ఐచ్ఛికం)', 'Title (optional)')}</Label>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder={t('చిత్రం టైటిల్', 'Image title')}
-                    required
+                    placeholder={t('చిత్రం టైటిల్ (ఐచ్ఛికం)', 'Image title (optional)')}
                   />
                 </div>
                 <div>
@@ -198,130 +208,147 @@ export default function Images() {
               </form>
             </DialogContent>
           </Dialog>
-        </div>
 
-        {/* Images List */}
-        <div className="space-y-4">
-          {images.map((image) => (
-            <Card key={image.id} className="overflow-hidden">
-              <div className="flex gap-4 p-4">
-                <div 
-                  className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={() => setSelectedImage(image)}
-                >
-                  <img 
-                    src={image.image_url} 
-                    alt={image.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-lg truncate">{image.title}</h3>
-                  {image.description && (
-                    <p className="text-muted-foreground line-clamp-2 mt-1">
-                      {image.description}
-                    </p>
-                  )}
-                  <div className="flex items-center justify-between mt-3">
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      {format(new Date(image.created_at || ''), 'MMM dd, yyyy')}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setDeletingImageId(image.id || null)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+          {/* Images Grid (image-only) */}
+          <div className="max-w-6xl mx-auto">
+            {images.length === 0 ? (
+              <div className="border rounded-lg p-8 text-center text-muted-foreground">
+                {t('ఇంకా చిత్రాలు లేవు. అప్‌లోడ్ చేయండి!', 'No images yet. Upload one!')}
               </div>
-            </Card>
-          ))}
-        </div>
-
-        {/* Image Modal */}
-        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-          <DialogContent className="max-w-4xl w-full max-h-[90vh] p-0">
-            <div className="relative">
-              <Button
-                variant="outline"
-                size="sm"
-                className="absolute top-4 right-4 z-10 bg-background/80 backdrop-blur-sm"
-                onClick={() => setSelectedImage(null)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-              {selectedImage && (
-                <div className="space-y-4">
-                  <div className="relative">
-                    <img 
-                      src={selectedImage.image_url} 
-                      alt={selectedImage.title}
-                      className="w-full max-h-[70vh] object-contain"
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                {images.map((image) => (
+                  <div
+                    key={image.id}
+                    className="relative group cursor-pointer rounded-lg overflow-hidden bg-muted border shadow-sm hover:shadow-md transition-shadow"
+                    onClick={() => setSelectedImage(image)}
+                  >
+                    <img
+                      src={image.image_url}
+                      alt={image.title || 'Image'}
+                      loading="lazy"
+                      className="aspect-square w-full h-auto object-cover transition-transform duration-200 group-hover:scale-105"
                     />
-                  </div>
-                  <div className="p-6 space-y-4">
-                    <div>
-                      <h2 className="text-2xl font-bold">{selectedImage.title}</h2>
-                      {selectedImage.description && (
-                        <p className="text-muted-foreground mt-2">{selectedImage.description}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        {format(new Date(selectedImage.created_at || ''), 'MMM dd, yyyy')}
-                      </div>
+                    {isAuthenticated && (
                       <Button
-                        variant="destructive"
-                        onClick={() => {
-                          setDeletingImageId(selectedImage.id || null);
-                          setSelectedImage(null);
+                        variant="outline"
+                        size="icon"
+                        className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeletingImageId(image.id || null);
                         }}
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        {t('తొలగించు', 'Delete')}
+                        <Trash2 className="h-4 w-4" />
                       </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Image Modal */}
+          <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+            <DialogContent className="max-w-4xl w-full max-h-[90vh] p-0">
+              <div className="relative">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="absolute top-4 right-4 z-10 bg-background/80 backdrop-blur-sm"
+                  onClick={() => setSelectedImage(null)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+                {selectedImage && (
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <img 
+                        src={selectedImage.image_url} 
+                        alt={selectedImage.title}
+                        className="w-full max-h-[70vh] object-contain"
+                      />
+                    </div>
+                    <div className="p-6 space-y-4">
+                      <div>
+                        <h2 className="text-2xl font-bold">{selectedImage.title}</h2>
+                        {selectedImage.description && (
+                          <p className="text-muted-foreground mt-2">{selectedImage.description}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Calendar className="h-4 w-4 mr-1" />
+                          {format(new Date(selectedImage.created_at || ''), 'MMM dd, yyyy')}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" asChild>
+                            <a
+                              href={selectedImage.image_url}
+                              download
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              {t('డౌన్‌లోడ్', 'Download')}
+                            </a>
+                          </Button>
+                          {isAuthenticated && (
+                            <Button
+                              variant="destructive"
+                              onClick={() => {
+                                setDeletingImageId(selectedImage.id || null);
+                                setSelectedImage(null);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              {t('తొలగించు', 'Delete')}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
 
-        {/* Delete Confirmation */}
-        <AlertDialog open={!!deletingImageId} onOpenChange={() => setDeletingImageId(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t('చిత్రం తొలగించు', 'Delete Image')}</AlertDialogTitle>
-              <AlertDialogDescription>
-                {t('మీరు ఈ చిత్రాన్ని తొలగించాలని ఖచ్చితంగా అనుకుంటున్నారా?', 'Are you sure you want to delete this image?')}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>{t('రద్దు', 'Cancel')}</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  const image = images.find(img => img.id === deletingImageId);
-                  if (image) {
-                    deleteImageMutation.mutate({ id: image.id!, imagePath: image.image_path });
-                  }
-                  setDeletingImageId(null);
-                }}
-                className="bg-destructive text-destructive-foreground"
-              >
-                {t('తొలగించు', 'Delete')}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          {/* Delete Confirmation */}
+          <AlertDialog open={!!deletingImageId} onOpenChange={() => setDeletingImageId(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('చిత్రం తొలగించు', 'Delete Image')}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t('మీరు ఈ చిత్రాన్ని తొలగించాలని ఖచ్చితంగా అనుకుంటున్నారా?', 'Are you sure you want to delete this image?')}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('రద్దు', 'Cancel')}</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    const image = images.find(img => img.id === deletingImageId);
+                    if (image) {
+                      deleteImageMutation.mutate({ id: image.id!, imagePath: image.image_path });
+                    }
+                    setDeletingImageId(null);
+                  }}
+                  className="bg-destructive text-destructive-foreground"
+                >
+                  {t('తొలగించు', 'Delete')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
-        {/* Navigation */}
-        <Navigation />
+          {/* Navigation */}
+          <Navigation />
+          <AuthDialog
+            isOpen={isAuthOpen}
+            onClose={() => setIsAuthOpen(false)}
+            onSuccess={() => setIsAuthOpen(false)}
+          />
+        </div>
       </div>
     </div>
   );

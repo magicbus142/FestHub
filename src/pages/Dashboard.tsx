@@ -78,6 +78,44 @@ export default function Dashboard() {
           </Button>
         </div>
 
+        {/* Quick Stats */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              {t('సంక్షిప్త గణాంకాలు', 'Quick Stats')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-blue-600">
+                  ₹{totalDonations.toLocaleString()}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {t('మొత్తం చందాలు', 'Total Donations')}
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-red-600">
+                  ₹{totalExpenses.toLocaleString()}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {t('మొత్తం ఖర్చులు', 'Total Expenses')}
+                </p>
+              </div>
+              <div className="text-center md:col-span-1 col-span-2">
+                <p className="text-2xl font-bold text-green-600">
+                  ₹{(totalDonations - totalExpenses).toLocaleString()}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {t('మిగిలిన మొత్తం', 'Balance')}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Dashboard Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {dashboardCards.map((card) => {
@@ -132,7 +170,7 @@ export default function Dashboard() {
                       {card.value}
                     </p>
                     <Button 
-                      variant="outline" 
+                      variant="default" 
                       size="sm" 
                       className="w-full"
                       onClick={(e) => {
@@ -168,7 +206,7 @@ export default function Dashboard() {
                     {card.value}
                   </p>
                   <Button 
-                    variant="outline" 
+                    variant="default" 
                     size="sm" 
                     className="mt-3 w-full"
                     onClick={(e) => {
@@ -183,44 +221,6 @@ export default function Dashboard() {
             );
           })}
         </div>
-
-        {/* Quick Stats */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              {t('సంక్షిప్త గణాంకాలు', 'Quick Stats')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-blue-600">
-                  ₹{totalDonations.toLocaleString()}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {t('మొత్తం చందాలు', 'Total Donations')}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-red-600">
-                  ₹{totalExpenses.toLocaleString()}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {t('మొత్తం ఖర్చులు', 'Total Expenses')}
-                </p>
-              </div>
-              <div className="text-center md:col-span-1 col-span-2">
-                <p className="text-2xl font-bold text-green-600">
-                  ₹{(totalDonations - totalExpenses).toLocaleString()}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {t('మిగిలిన మొత్తం', 'Balance')}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Navigation */}
         <Navigation />

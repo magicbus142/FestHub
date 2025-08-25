@@ -62,11 +62,7 @@ export default function Chandas() {
     const [sortKey, sortDir] = sortOption.split('-');
     let cmp = 0;
     
-    if (sortKey === 'date') {
-      const at = new Date(a.created_at || 0).getTime();
-      const bt = new Date(b.created_at || 0).getTime();
-      cmp = at - bt;
-    } else if (sortKey === 'amount') {
+    if (sortKey === 'amount') {
       cmp = a.amount - b.amount;
     } else if (sortKey === 'name') {
       cmp = (a.name || '').localeCompare(b.name || '');
@@ -194,8 +190,8 @@ export default function Chandas() {
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value)}
               >
-                <option value="date-desc">{t('తేదీ ↓', 'Date ↓')}</option>
-                <option value="date-asc">{t('తేదీ ↑', 'Date ↑')}</option>
+                {/* <option value="date-desc">{t('తేదీ ↓', 'Date ↓')}</option>
+                <option value="date-asc">{t('తేదీ ↑', 'Date ↑')}</option> */}
                 <option value="amount-desc">{t('మొత్తం ↓', 'Amount ↓')}</option>
                 <option value="amount-asc">{t('మొత్తం ↑', 'Amount ↑')}</option>
                 <option value="name-asc">{t('పేరు ↑', 'Name ↑')}</option>
