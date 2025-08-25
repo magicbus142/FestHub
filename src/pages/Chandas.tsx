@@ -7,11 +7,11 @@ import { SearchBar } from '@/components/SearchBar';
 import { AuthDialog } from '@/components/AuthDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigation } from '@/components/Navigation';
-import { BarChart3, Users, DollarSign, Gift, Plus } from 'lucide-react';
+import { BarChart3, DollarSign, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
@@ -20,7 +20,12 @@ export default function Chandas() {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeCategory, setActiveCategory] = useState<'all' | 'chanda' | 'sponsorship'>('all');
+  const [activeCategory, setActiveCategory] = useState<'chanda' | 'sponsorship'>('chanda');
+  // Filters and sorting
+  const [filterType, setFilterType] = useState<'none' | 'minAmount'>('none');
+  const [minAmount, setMinAmount] = useState<string>('');
+  const [sortKey, setSortKey] = useState<'date' | 'amount' | 'name'>('date');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [isDonationFormOpen, setIsDonationFormOpen] = useState(false);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [editingDonation, setEditingDonation] = useState<Donation | undefined>(undefined);
@@ -46,10 +51,33 @@ export default function Chandas() {
     queryFn: () => getTotalByCategory('sponsorship'),
   });
 
-  const filteredDonations = donations.filter(donation => {
-    if (activeCategory === 'all') return true;
-    return donation.category === activeCategory;
-  });
+  // Counts for tabs
+  const chandaCount = donations.filter(d => d.category === 'chanda').length;
+  const sponsorshipCount = donations.filter(d => d.category === 'sponsorship').length;
+
+  // Apply category, filter and sort
+  const processedDonations = donations
+    .filter(d => d.category === activeCategory)
+    .filter(d => {
+      if (filterType === 'minAmount') {
+        const min = parseFloat(minAmount);
+        if (!isNaN(min)) return d.amount >= min;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === 'date') {
+        const at = new Date(a.created_at || 0).getTime();
+        const bt = new Date(b.created_at || 0).getTime();
+        cmp = at - bt;
+      } else if (sortKey === 'amount') {
+        cmp = a.amount - b.amount;
+      } else {
+        cmp = (a.name || '').localeCompare(b.name || '');
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
 
   const handleDonationSaved = () => {
     refetch();
@@ -109,7 +137,6 @@ export default function Chandas() {
               {t('చందాలు మరియు స్పాన్సర్‌షిప్‌లను ట్రాక్ చేయండి', 'Track donations and sponsorships')}
             </p>
           </div>
-          
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
@@ -117,7 +144,6 @@ export default function Chandas() {
             >
               {language === 'telugu' ? 'EN' : 'తె'}
             </Button>
-            
             <Button onClick={handleAddDonation} className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
               {t('చందా జోడించు', 'Add Donation')}
@@ -125,8 +151,11 @@ export default function Chandas() {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Navigation (top on md+, still bottom-fixed on mobile due to component styles) */}
+        <Navigation />
+
+        {/* Total amount card only */}
+        <div className="grid grid-cols-1 gap-6 mb-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -138,49 +167,73 @@ export default function Chandas() {
               <div className="text-2xl font-bold">₹{totalAmount.toLocaleString()}</div>
             </CardContent>
           </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {t('చందా', 'Chanda')}
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">₹{totalChanda.toLocaleString()}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {t('స్పాన్సర్‌షిప్', 'Sponsorship')}
-              </CardTitle>
-              <Gift className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">₹{totalSponsorship.toLocaleString()}</div>
-            </CardContent>
-          </Card>
         </div>
 
-        {/* Search and Filter */}
-        <div className="mb-6">
-          <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
-        </div>
-
-        {/* Tabs for filtering */}
-        <Tabs value={activeCategory} onValueChange={(value) => setActiveCategory(value as any)} className="mb-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="all">{t('అన్నీ', 'All')}</TabsTrigger>
-            <TabsTrigger value="chanda">{t('చందా', 'Chanda')}</TabsTrigger>
-            <TabsTrigger value="sponsorship">{t('స్పాన్సర్‌షిప్', 'Sponsorship')}</TabsTrigger>
+        {/* Tabs: only Chanda and Sponsorship with counts */}
+        <Tabs value={activeCategory} onValueChange={(value) => setActiveCategory(value as any)} className="mb-4">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="chanda">{t('చందా', 'Chanda')} ({chandaCount})</TabsTrigger>
+            <TabsTrigger value="sponsorship">{t('స్పాన్సర్‌షిప్', 'Sponsorship')} ({sponsorshipCount})</TabsTrigger>
           </TabsList>
         </Tabs>
 
+        {/* Filters and Search */}
+        <div className="mb-6 space-y-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 items-end">
+            <div className="col-span-2 md:col-span-1">
+              <label className="block text-sm text-muted-foreground mb-1">{t('ఫిల్టర్', 'Filter')}:</label>
+              <select
+                className="w-full border rounded-md px-3 py-2 bg-background"
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value as any)}
+              >
+                <option value="none">{t('ఫిల్టర్ లేదు', 'No filter')}</option>
+                <option value="minAmount">{t('తక్కువలోపు మొత్తం (>=)', 'Amount minimum (>=)')}</option>
+              </select>
+            </div>
+            {filterType === 'minAmount' && (
+              <div className="col-span-2 md:col-span-1">
+                <label className="block text-sm text-muted-foreground mb-1">{t('కనిష్ట మొత్తం', 'Minimum amount')}</label>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  className="w-full border rounded-md px-3 py-2 bg-background"
+                  placeholder={t('కనిష్ట మొత్తం', 'Minimum amount')}
+                  value={minAmount}
+                  onChange={(e) => setMinAmount(e.target.value)}
+                />
+              </div>
+            )}
+            <div className="col-span-1">
+              <label className="block text-sm text-muted-foreground mb-1">{t('క్రమబద్ధీకరణ', 'Sort')}:</label>
+              <select
+                className="w-full border rounded-md px-3 py-2 bg-background"
+                value={sortKey}
+                onChange={(e) => setSortKey(e.target.value as any)}
+              >
+                <option value="date">{t('తేదీ', 'Date')}</option>
+                <option value="amount">{t('మొత్తం', 'Amount')}</option>
+                <option value="name">{t('పేరు', 'Name')}</option>
+              </select>
+            </div>
+            <div className="col-span-1">
+              <label className="block text-sm text-muted-foreground mb-1">{t('దిశ', 'Direction')}</label>
+              <select
+                className="w-full border rounded-md px-3 py-2 bg-background"
+                value={sortDir}
+                onChange={(e) => setSortDir(e.target.value as any)}
+              >
+                <option value="asc">{t('ఆరోహణ', 'Asc')}</option>
+                <option value="desc">{t('అవరోహణ', 'Desc')}</option>
+              </select>
+            </div>
+          </div>
+          <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+        </div>
+
         {/* Donations List */}
         <div className="space-y-4 mb-6">
-          {filteredDonations.length === 0 ? (
+          {processedDonations.length === 0 ? (
             <Card>
               <CardContent className="text-center py-8">
                 <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -190,18 +243,10 @@ export default function Chandas() {
                     : t('ఇంకా చందాలు లేవు', 'No donations yet')
                   }
                 </p>
-                {!searchTerm && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {isAuthenticated
-                      ? t('మీ మొదటి చందాను జోడించడానికి పైన ఉన్న "చందా జోడించు" బటన్‌ను క్లిక్ చేయండి', 'Click the "Add Donation" button above to add your first donation')
-                      : t('చందాలను జోడించడానికి దయచేసి లాగిన్ చేయండి', 'Please login to add donations')
-                    }
-                  </p>
-                )}
               </CardContent>
             </Card>
           ) : (
-            filteredDonations.map((donation) => (
+            processedDonations.map((donation) => (
               <DonationCard 
                 key={donation.id} 
                 donation={donation}
@@ -212,9 +257,6 @@ export default function Chandas() {
             ))
           )}
         </div>
-
-        {/* Navigation */}
-        <Navigation />
 
         {/* Donation Form Dialog */}
         <DonationForm
