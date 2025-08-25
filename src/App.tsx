@@ -8,8 +8,6 @@ import Chandas from "./pages/Chandas";
 import Expenses from "./pages/Expenses";
 import Images from "./pages/Images";
 import NotFound from "./pages/NotFound";
-import AuthPage from "./pages/Auth";
-import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -20,7 +18,6 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/auth" element={<AuthPage />} />
           <Route path="/" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/chandas" element={<Chandas />} />
