@@ -34,8 +34,8 @@ export const Navigation = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border md:relative md:bottom-auto md:border-0 md:bg-transparent z-50">
-      <div className="flex justify-around md:justify-start md:gap-4 p-2 md:p-0">
+    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border lg:fixed lg:top-4 lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:bottom-auto lg:border lg:rounded-lg lg:w-auto lg:shadow-lg md:relative md:bottom-auto md:border-0 md:bg-transparent z-50">
+      <div className="flex justify-around md:justify-start md:gap-4 p-2 md:p-0 lg:bg-card lg:px-4 lg:py-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
@@ -53,11 +53,6 @@ export const Navigation = () => {
             </Button>
           );
         })}
-        {!user && (
-          <Button variant={location.pathname === '/auth' ? 'default' : 'ghost'} size="sm" onClick={() => navigate('/auth')}>
-            {t('లాగిన్', 'Login')}
-          </Button>
-        )}
       </div>
     </nav>
   );

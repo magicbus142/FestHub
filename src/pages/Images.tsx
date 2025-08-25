@@ -1,17 +1,18 @@
 import { useState } from 'react';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { Navigation } from '@/components/Navigation';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { uploadImage, getImages, deleteImage, type ImageRecord } from '@/lib/images';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Navigation } from '@/components/Navigation';
+import { Upload, Image as ImageIcon, Calendar, Trash2, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { uploadImage, getImages, deleteImage, type ImageRecord } from '@/lib/images';
-import { Plus, Trash2, Image as ImageIcon, Upload } from 'lucide-react';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { format } from 'date-fns';
 
 export default function Images() {
   const { t } = useLanguage();
@@ -23,6 +24,8 @@ export default function Images() {
     title: '',
     description: ''
   });
+  const [deletingImageId, setDeletingImageId] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<ImageRecord | null>(null);
 
   const { data: images = [] } = useQuery({
     queryKey: ['user-images'],
@@ -133,7 +136,7 @@ export default function Images() {
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
+                <Upload className="h-4 w-4" />
                 {t('అప్‌లోడ్', 'Upload')}
               </Button>
             </DialogTrigger>
@@ -197,84 +200,125 @@ export default function Images() {
           </Dialog>
         </div>
 
-        {/* Images Grid */}
-        {images.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-8">
-              <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">
-                {t('ఇంకా చిత్రాలు లేవు', 'No images yet')}
-              </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                {t('మీ మొదటి చిత్రాన్ని అప్‌లోడ్ చేయడానికి పైన ఉన్న "అప్‌లోడ్" బటన్‌ను క్లిక్ చేయండి', 'Click the "Upload" button above to upload your first image')}
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {images.map((image: ImageRecord) => (
-              <Card key={image.id} className="overflow-hidden">
-                <div className="aspect-video relative overflow-hidden">
-                  <img
-                    src={image.image_url}
+        {/* Images List */}
+        <div className="space-y-4">
+          {images.map((image) => (
+            <Card key={image.id} className="overflow-hidden">
+              <div className="flex gap-4 p-4">
+                <div 
+                  className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => setSelectedImage(image)}
+                >
+                  <img 
+                    src={image.image_url} 
                     alt={image.title}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
+                    className="w-full h-full object-cover"
                   />
                 </div>
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-lg truncate">{image.title}</CardTitle>
-                      {image.description && (
-                        <CardDescription className="mt-1 line-clamp-2">
-                          {image.description}
-                        </CardDescription>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-lg truncate">{image.title}</h3>
+                  {image.description && (
+                    <p className="text-muted-foreground line-clamp-2 mt-1">
+                      {image.description}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between mt-3">
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4 mr-1" />
+                      {format(new Date(image.created_at || ''), 'MMM dd, yyyy')}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDeletingImageId(image.id || null)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Image Modal */}
+        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+          <DialogContent className="max-w-4xl w-full max-h-[90vh] p-0">
+            <div className="relative">
+              <Button
+                variant="outline"
+                size="sm"
+                className="absolute top-4 right-4 z-10 bg-background/80 backdrop-blur-sm"
+                onClick={() => setSelectedImage(null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+              {selectedImage && (
+                <div className="space-y-4">
+                  <div className="relative">
+                    <img 
+                      src={selectedImage.image_url} 
+                      alt={selectedImage.title}
+                      className="w-full max-h-[70vh] object-contain"
+                    />
+                  </div>
+                  <div className="p-6 space-y-4">
+                    <div>
+                      <h2 className="text-2xl font-bold">{selectedImage.title}</h2>
+                      {selectedImage.description && (
+                        <p className="text-muted-foreground mt-2">{selectedImage.description}</p>
                       )}
                     </div>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="ml-2 shrink-0">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            {t('చిత్రం తొలగించు', 'Delete Image')}
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {t('మీరు ఈ చిత్రాన్ని తొలగించాలని ఖచ్చితంగా అనుకుంటున్నారా? ఈ చర్య రద్దు చేయబడదు.', 'Are you sure you want to delete this image? This action cannot be undone.')}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>
-                            {t('రద్దు', 'Cancel')}
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => deleteImageMutation.mutate({ 
-                              id: image.id!, 
-                              imagePath: image.image_path 
-                            })}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            {t('తొలగించు', 'Delete')}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4 mr-1" />
+                        {format(new Date(selectedImage.created_at || ''), 'MMM dd, yyyy')}
+                      </div>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          setDeletingImageId(selectedImage.id || null);
+                          setSelectedImage(null);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        {t('తొలగించు', 'Delete')}
+                      </Button>
+                    </div>
                   </div>
-                </CardHeader>
-                {image.created_at && (
-                  <CardContent className="pt-0">
-                    <p className="text-xs text-muted-foreground">
-                      {t('అప్‌లోడ్ చేసిన తేదీ:', 'Uploaded on:')} {new Date(image.created_at).toLocaleDateString()}
-                    </p>
-                  </CardContent>
-                )}
-              </Card>
-            ))}
-          </div>
-        )}
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation */}
+        <AlertDialog open={!!deletingImageId} onOpenChange={() => setDeletingImageId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('చిత్రం తొలగించు', 'Delete Image')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('మీరు ఈ చిత్రాన్ని తొలగించాలని ఖచ్చితంగా అనుకుంటున్నారా?', 'Are you sure you want to delete this image?')}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('రద్దు', 'Cancel')}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  const image = images.find(img => img.id === deletingImageId);
+                  if (image) {
+                    deleteImageMutation.mutate({ id: image.id!, imagePath: image.image_path });
+                  }
+                  setDeletingImageId(null);
+                }}
+                className="bg-destructive text-destructive-foreground"
+              >
+                {t('తొలగించు', 'Delete')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </Dialog>
 
         {/* Navigation */}
         <Navigation />

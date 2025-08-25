@@ -21,11 +21,11 @@ export default function Chandas() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<'chanda' | 'sponsorship'>('chanda');
-  // Filters and sorting
-  const [filterType, setFilterType] = useState<'none' | 'minAmount'>('none');
-  const [minAmount, setMinAmount] = useState<string>('');
-  const [sortKey, setSortKey] = useState<'date' | 'amount' | 'name'>('date');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+  // Sorting
+  const [sortOption, setSortOption] = useState<string>('date-desc');
   const [isDonationFormOpen, setIsDonationFormOpen] = useState(false);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [editingDonation, setEditingDonation] = useState<Donation | undefined>(undefined);
@@ -55,29 +55,36 @@ export default function Chandas() {
   const chandaCount = donations.filter(d => d.category === 'chanda').length;
   const sponsorshipCount = donations.filter(d => d.category === 'sponsorship').length;
 
-  // Apply category, filter and sort
-  const processedDonations = donations
-    .filter(d => d.category === activeCategory)
-    .filter(d => {
-      if (filterType === 'minAmount') {
-        const min = parseFloat(minAmount);
-        if (!isNaN(min)) return d.amount >= min;
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      let cmp = 0;
-      if (sortKey === 'date') {
-        const at = new Date(a.created_at || 0).getTime();
-        const bt = new Date(b.created_at || 0).getTime();
-        cmp = at - bt;
-      } else if (sortKey === 'amount') {
-        cmp = a.amount - b.amount;
-      } else {
-        cmp = (a.name || '').localeCompare(b.name || '');
-      }
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
+  // Apply category and sort
+  const filteredDonations = donations.filter(d => d.category === activeCategory);
+  
+  const sortedDonations = filteredDonations.sort((a, b) => {
+    const [sortKey, sortDir] = sortOption.split('-');
+    let cmp = 0;
+    
+    if (sortKey === 'date') {
+      const at = new Date(a.created_at || 0).getTime();
+      const bt = new Date(b.created_at || 0).getTime();
+      cmp = at - bt;
+    } else if (sortKey === 'amount') {
+      cmp = a.amount - b.amount;
+    } else if (sortKey === 'name') {
+      cmp = (a.name || '').localeCompare(b.name || '');
+    }
+    
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
+  
+  // Apply pagination
+  const totalPages = Math.ceil(sortedDonations.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const processedDonations = sortedDonations.slice(startIndex, startIndex + itemsPerPage);
+  
+  // Reset to first page when category changes
+  const handleCategoryChange = (category: 'chanda' | 'sponsorship') => {
+    setActiveCategory(category);
+    setCurrentPage(1);
+  };
 
   const handleDonationSaved = () => {
     refetch();
@@ -170,61 +177,29 @@ export default function Chandas() {
         </div>
 
         {/* Tabs: only Chanda and Sponsorship with counts */}
-        <Tabs value={activeCategory} onValueChange={(value) => setActiveCategory(value as any)} className="mb-4">
+        <Tabs value={activeCategory} onValueChange={(value) => handleCategoryChange(value as any)} className="mb-4">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="chanda">{t('చందా', 'Chanda')} ({chandaCount})</TabsTrigger>
             <TabsTrigger value="sponsorship">{t('స్పాన్సర్‌షిప్', 'Sponsorship')} ({sponsorshipCount})</TabsTrigger>
           </TabsList>
         </Tabs>
 
-        {/* Filters and Search */}
+        {/* Sort and Search */}
         <div className="mb-6 space-y-3">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 items-end">
-            <div className="col-span-2 md:col-span-1">
-              <label className="block text-sm text-muted-foreground mb-1">{t('ఫిల్టర్', 'Filter')}:</label>
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="flex-1">
+              <label className="block text-sm text-muted-foreground mb-1">{t('క్రమబద్ధీకరణ', 'Sort by')}:</label>
               <select
                 className="w-full border rounded-md px-3 py-2 bg-background"
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value as any)}
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
               >
-                <option value="none">{t('ఫిల్టర్ లేదు', 'No filter')}</option>
-                <option value="minAmount">{t('తక్కువలోపు మొత్తం (>=)', 'Amount minimum (>=)')}</option>
-              </select>
-            </div>
-            {filterType === 'minAmount' && (
-              <div className="col-span-2 md:col-span-1">
-                <label className="block text-sm text-muted-foreground mb-1">{t('కనిష్ట మొత్తం', 'Minimum amount')}</label>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  className="w-full border rounded-md px-3 py-2 bg-background"
-                  placeholder={t('కనిష్ట మొత్తం', 'Minimum amount')}
-                  value={minAmount}
-                  onChange={(e) => setMinAmount(e.target.value)}
-                />
-              </div>
-            )}
-            <div className="col-span-1">
-              <label className="block text-sm text-muted-foreground mb-1">{t('క్రమబద్ధీకరణ', 'Sort')}:</label>
-              <select
-                className="w-full border rounded-md px-3 py-2 bg-background"
-                value={sortKey}
-                onChange={(e) => setSortKey(e.target.value as any)}
-              >
-                <option value="date">{t('తేదీ', 'Date')}</option>
-                <option value="amount">{t('మొత్తం', 'Amount')}</option>
-                <option value="name">{t('పేరు', 'Name')}</option>
-              </select>
-            </div>
-            <div className="col-span-1">
-              <label className="block text-sm text-muted-foreground mb-1">{t('దిశ', 'Direction')}</label>
-              <select
-                className="w-full border rounded-md px-3 py-2 bg-background"
-                value={sortDir}
-                onChange={(e) => setSortDir(e.target.value as any)}
-              >
-                <option value="asc">{t('ఆరోహణ', 'Asc')}</option>
-                <option value="desc">{t('అవరోహణ', 'Desc')}</option>
+                <option value="date-desc">{t('తేదీ ↓', 'Date ↓')}</option>
+                <option value="date-asc">{t('తేదీ ↑', 'Date ↑')}</option>
+                <option value="amount-desc">{t('మొత్తం ↓', 'Amount ↓')}</option>
+                <option value="amount-asc">{t('మొత్తం ↑', 'Amount ↑')}</option>
+                <option value="name-asc">{t('పేరు ↑', 'Name ↑')}</option>
+                <option value="name-desc">{t('పేరు ↓', 'Name ↓')}</option>
               </select>
             </div>
           </div>
@@ -257,6 +232,31 @@ export default function Chandas() {
             ))
           )}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mb-6">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              {t('మునుపటి', 'Previous')}
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              {t(`పేజీ ${currentPage} / ${totalPages}`, `Page ${currentPage} of ${totalPages}`)}
+            </span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+            >
+              {t('తదుపరి', 'Next')}
+            </Button>
+          </div>
+        )}
 
         {/* Donation Form Dialog */}
         <DonationForm

@@ -82,6 +82,72 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {dashboardCards.map((card) => {
             const Icon = card.icon;
+            
+            // Show image cards for Images section
+            if (card.path === '/images') {
+              const firstFourImages = images.slice(0, 4);
+              return (
+                <Card 
+                  key={card.path} 
+                  className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                  onClick={() => navigate(card.path)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">{card.title}</CardTitle>
+                      <Icon className={`h-5 w-5 ${card.color}`} />
+                    </div>
+                    <CardDescription className="text-sm">
+                      {card.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {firstFourImages.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        {firstFourImages.map((img) => (
+                          <div key={img.id} className="aspect-square rounded-md overflow-hidden">
+                            <img 
+                              src={img.image_url} 
+                              alt={img.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ))}
+                        {firstFourImages.length < 4 && Array.from({ length: 4 - firstFourImages.length }).map((_, idx) => (
+                          <div key={`empty-${idx}`} className="aspect-square rounded-md bg-muted flex items-center justify-center">
+                            <Icon className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        {Array.from({ length: 4 }).map((_, idx) => (
+                          <div key={`empty-${idx}`} className="aspect-square rounded-md bg-muted flex items-center justify-center">
+                            <Icon className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <p className={`text-sm font-medium ${card.color} mb-3`}>
+                      {card.value}
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(card.path);
+                      }}
+                    >
+                      {t('వీక్షించండి', 'View')}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            }
+            
+            // Regular cards for other sections
             return (
               <Card 
                 key={card.path} 
