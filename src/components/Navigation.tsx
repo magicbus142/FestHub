@@ -38,7 +38,10 @@ export const Navigation = () => {
       <div className="flex justify-around md:justify-start md:gap-4 p-2 md:p-0 lg:bg-card lg:px-4 lg:py-2">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.path;
+          const isRootDashboard = item.path === '/dashboard' && location.pathname === '/';
+          const isSamePath = location.pathname === item.path;
+          const isChildPath = location.pathname.startsWith(item.path + '/');
+          const isActive = isRootDashboard || isSamePath || isChildPath;
           
           return (
             <Button
@@ -46,7 +49,7 @@ export const Navigation = () => {
               variant={isActive ? "default" : "ghost"}
               size="sm"
               onClick={() => navigate(item.path)}
-              className="flex flex-col md:flex-row items-center gap-1 md:gap-2 h-auto py-2 px-3 min-w-0"
+              className={`flex flex-col md:flex-row items-center gap-1 md:gap-2 h-auto py-2 px-3 min-w-0 ${isActive ? 'bg-primary text-primary-foreground' : ''}`}
             >
               <Icon className="h-4 w-4 shrink-0" />
               <span className="text-xs md:text-sm truncate">{item.label}</span>

@@ -216,23 +216,25 @@ export default function Chandas() {
           </Card>
         </div>
 
-        {/* Tabs: only Chanda and Sponsorship with counts */}
-        <Tabs value={activeCategory} onValueChange={(value) => handleCategoryChange(value as any)} className="mb-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger
-              value="chanda"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-            >
-              {t('చందా', 'Chanda')} ({chandaCount})
-            </TabsTrigger>
-            <TabsTrigger
-              value="sponsorship"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-            >
-              {t('స్పాన్సర్‌షిప్', 'Sponsorship')} ({sponsorshipCount})
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* Tabs: only Chanda and Sponsorship with counts (sticky on mobile) */}
+        <div className="sticky top-0 z-40 -mx-4 px-4 pt-1 pb-3 bg-background/80 supports-[backdrop-filter]:bg-background/60 backdrop-blur border-b md:static md:border-0 md:-mx-0 md:px-0 md:pt-0 md:pb-0">
+          <Tabs value={activeCategory} onValueChange={(value) => handleCategoryChange(value as any)}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger
+                value="chanda"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                {t('చందా', 'Chanda')} ({chandaCount})
+              </TabsTrigger>
+              <TabsTrigger
+                value="sponsorship"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                {t('స్పాన్సర్‌షిప్', 'Sponsorship')} ({sponsorshipCount})
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
 
         {/* Sort and Search */}
         <div className="mb-6 space-y-3">
