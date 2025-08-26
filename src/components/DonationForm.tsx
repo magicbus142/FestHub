@@ -21,11 +21,12 @@ interface DonationFormProps {
   onSave: () => void;
 }
 
-const sponsorshipTypes: SponsorshipType[] = ['విగ్రహం', 'లాడు', 'Day1-భోజనం', 'Day2-భోజనం', 'Day3-భోజనం', 'Day1-టిఫిన్', 'Day2-టిఫిన్', 'Day3-టిఫిన్', 'ఇతర'];
+const sponsorshipTypes: SponsorshipType[] = ['విగరహం', 'ల్డడు పరసాదం', 'Day1-భోజనం', 'Day2-భోజనం', 'Day3-భోజనం', 'Day1-టిఫిన్', 'Day2-టిఫిన్', 'Day3-టిఫిన్', 'ఇతర'];
 const chandaTypes: ChandaType[] = ['చందా'];
 
 export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationFormProps) => {
-  const [name, setName] = useState(donation?.name || '');
+  const [nameTelugu, setNameTelugu] = useState(donation?.name || '');
+  const [nameEnglish, setNameEnglish] = useState(donation?.name_english || '');
   const [donationItems, setDonationItems] = useState<DonationItem[]>(
     donation ? [{ type: donation.type, amount: donation.amount.toString() }] : [{ type: '', amount: '' }]
   );
@@ -38,7 +39,8 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
   // When the dialog opens, ensure the form reflects the donation being edited
   useEffect(() => {
     if (isOpen && donation) {
-      setName(donation.name || '');
+      setNameTelugu(donation.name || '');
+      setNameEnglish(donation.name_english || '');
       setCategory(donation.category || 'chanda');
       setDonationItems([{ type: donation.type, amount: donation.amount.toString() }]);
       if ((donation.category || 'chanda') === 'sponsorship') {
@@ -48,7 +50,8 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
       }
     }
     if (isOpen && !donation) {
-      setName('');
+      setNameTelugu('');
+      setNameEnglish('');
       setCategory('chanda');
       setDonationItems([{ type: 'చందా', amount: '' }]);
       setSponsorshipAmount('');
@@ -76,10 +79,10 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
     e.preventDefault();
     
     // Validate form
-    if (!name.trim()) {
+    if (!nameTelugu.trim() && !nameEnglish.trim()) {
       toast({
         title: t("దోషం", "Error"),
-        description: t("దయచేసి దాత పేరు నమోదు చేయండి", "Please enter donor name"),
+        description: t("దయచేసి కనీసం ఒక పేరును నమోదు చేయండి (తెలుగు లేదా ఇంగ్లీష్)", "Please enter at least one name (Telugu or English)"),
         variant: "destructive"
       });
       return;
@@ -137,7 +140,8 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
         // Editing a single existing record: use the first item only
         const first = donationItems[0];
         const donationData = {
-          name: name.trim(),
+          name: (nameTelugu || nameEnglish).trim(),
+          name_english: nameEnglish.trim() || undefined,
           amount: category === 'sponsorship' ? parseFloat(sponsorshipAmount) : parseFloat(first.amount),
           type: first.type,
           category
@@ -148,7 +152,8 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
         if (category === 'sponsorship') {
           for (const item of donationItems) {
             const donationData = {
-              name: name.trim(),
+              name: (nameTelugu || nameEnglish).trim(),
+              name_english: nameEnglish.trim() || undefined,
               amount: parseFloat(sponsorshipAmount),
               type: item.type,
               category
@@ -158,7 +163,8 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
         } else {
           for (const item of donationItems) {
             const donationData = {
-              name: name.trim(),
+              name: (nameTelugu || nameEnglish).trim(),
+              name_english: nameEnglish.trim() || undefined,
               amount: parseFloat(item.amount),
               type: item.type,
               category
@@ -175,14 +181,17 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
       
       onSave();
       onClose();
-      setName('');
+      setNameTelugu('');
+      setNameEnglish('');
       setDonationItems([{ type: 'చందా', amount: '' }]);
       setCategory('chanda');
       setSponsorshipAmount('');
     } catch (error) {
+      console.error('Error saving donation:', error);
+      const message = (error as any)?.message || t("దానం సేవ్ చేయడంలో దోషం", "Error saving donation");
       toast({
         title: t("దోషం", "Error"),
-        description: t("దానం సేవ్ చేయడంలో దోషం", "Error saving donation"),
+        description: message,
         variant: "destructive"
       });
     } finally {
@@ -194,7 +203,8 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
     onClose();
     // Reset form on close
     setTimeout(() => {
-      setName('');
+      setNameTelugu('');
+      setNameEnglish('');
       setDonationItems([{ type: 'చందా', amount: '' }]);
       setCategory('chanda');
       setSponsorshipAmount('');
@@ -253,16 +263,31 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-foreground font-medium">
-              {t('పేరు', 'Name')}
+            <Label className="text-foreground font-medium">
+              {t('పేరు (తెలుగు / ఇంగ్లీష్‌లో కనీసం ఒకటి)', 'Name (at least one of Telugu/English)')}
             </Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t("దాత పేరు", "Donor name")}
-              className="bg-background border-border"
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="name_telugu" className="text-xs">{t('పేరు (తెలుగు)', 'Name (Telugu)')}</Label>
+                <Input
+                  id="name_telugu"
+                  value={nameTelugu}
+                  onChange={(e) => setNameTelugu(e.target.value)}
+                  placeholder={t('ఉదా: రామయ్య', 'e.g., రామయ్య')}
+                  className="bg-background border-border"
+                />
+              </div>
+              <div>
+                <Label htmlFor="name_english" className="text-xs">{t('Name (English)', 'Name (English)')}</Label>
+                <Input
+                  id="name_english"
+                  value={nameEnglish}
+                  onChange={(e) => setNameEnglish(e.target.value)}
+                  placeholder={t('e.g., Ramaiah', 'e.g., Ramaiah')}
+                  className="bg-background border-border"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="space-y-4">

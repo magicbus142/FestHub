@@ -10,11 +10,16 @@ interface DonationCardProps {
   onEdit: (donation: Donation) => void;
   onDelete: (id: string) => void;
   onAuthRequired: () => void;
+  namePreference?: 'telugu' | 'english';
 }
 
-export const DonationCard = ({ donation, onEdit, onDelete, onAuthRequired }: DonationCardProps) => {
+export const DonationCard = ({ donation, onEdit, onDelete, onAuthRequired, namePreference = 'telugu' }: DonationCardProps) => {
   const { isAuthenticated } = useAuth();
   const { t } = useLanguage();
+
+  const displayName = namePreference === 'english'
+    ? (donation.name_english || donation.name)
+    : (donation.name || donation.name_english);
 
   const handleEdit = () => {
     if (isAuthenticated) {
@@ -36,7 +41,7 @@ export const DonationCard = ({ donation, onEdit, onDelete, onAuthRequired }: Don
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-2">
           <div className="flex-1">
-            <h3 className="font-semibold text-foreground text-lg">{donation.name}</h3>
+            <h3 className="font-semibold text-foreground text-lg">{displayName}</h3>
             {donation.category === 'chanda' && (
               <p className="text-festival-orange text-xl font-bold">₹{donation.amount.toLocaleString('en-IN')}</p>
             )}

@@ -3,7 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface Donation {
   id?: string;
-  name: string;
+  name: string; // Telugu name in DB
+  name_english?: string;
   amount: number;
   type: string;
   category: 'chanda' | 'sponsorship';
@@ -11,14 +12,16 @@ export interface Donation {
   updated_at?: string;
 }
 
-export type SponsorshipType = 'విగ్రహం' | 'లాడు' | 'Day1-భోజనం' | 'Day2-భోజనం' | 'Day3-భోజనం' | 'Day1-టిఫిన్' | 'Day2-టిఫిన్' | 'Day3-టిఫిన్' | 'ఇతర';
+export type SponsorshipType = 'విగరహం' | 'ల్డడు పరసాదం' | 'Day1-భోజనం' | 'Day2-భోజనం' | 'Day3-భోజనం' | 'Day1-టిఫిన్' | 'Day2-టిఫిన్' | 'Day3-టిఫిన్' | 'ఇతర';
 export type ChandaType = 'చందా';
 
 export const addDonation = async (donation: Omit<Donation, 'id' | 'created_at' | 'updated_at'>) => {
   const { data, error } = await supabase
     .from('donations')
     .insert([{
+      // Telugu goes into 'name', English into 'name_english'
       name: donation.name,
+      name_english: donation.name_english,
       amount: donation.amount,
       type: donation.type,
       category: donation.category
@@ -35,6 +38,7 @@ export const updateDonation = async (id: string, donation: Omit<Donation, 'id' |
     .from('donations')
     .update({
       name: donation.name,
+      name_english: donation.name_english,
       amount: donation.amount,
       type: donation.type,
       category: donation.category
@@ -81,7 +85,7 @@ export const searchDonations = async (searchTerm: string): Promise<Donation[]> =
   const { data, error } = await supabase
     .from('donations')
     .select('*')
-    .or(`name.ilike.%${searchTerm}%,name_telugu.ilike.%${searchTerm}%`)
+    .or(`name.ilike.%${searchTerm}%,name_english.ilike.%${searchTerm}%`)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
@@ -103,7 +107,7 @@ export const searchDonationsWithTranslation = async (searchTerm: string): Promis
 
     // Search with both original and translated terms
     const searchQuery = searchTerms.map(term => 
-      `name.ilike.%${term}%,name_telugu.ilike.%${term}%`
+      `name.ilike.%${term}%,name_english.ilike.%${term}%`
     ).join(',');
 
     const { data, error } = await supabase

@@ -23,9 +23,10 @@ export default function Chandas() {
   const [activeCategory, setActiveCategory] = useState<'chanda' | 'sponsorship'>('chanda');
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
-  // Sorting
-  const [sortOption, setSortOption] = useState<string>('date-desc');
+  const itemsPerPage = 10;
+  // Sorting (no default option selected; chanda defaults to latest internally)
+  const [sortOption, setSortOption] = useState<string>('');
+  const [namePreference, setNamePreference] = useState<'telugu' | 'english'>('telugu');
   const [isDonationFormOpen, setIsDonationFormOpen] = useState(false);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [editingDonation, setEditingDonation] = useState<Donation | undefined>(undefined);
@@ -55,19 +56,56 @@ export default function Chandas() {
   const chandaCount = donations.filter(d => d.category === 'chanda').length;
   const sponsorshipCount = donations.filter(d => d.category === 'sponsorship').length;
 
+  // Sponsorship display order (fixed)
+  const SPONSOR_ORDER = [
+    'విగరహం',
+    'ల్డడు పరసాదం',
+    'Day1-భోజనం',
+    'Day2-భోజనం',
+    'Day3-భోజనం',
+    'Day1-టిఫిన్',
+    'Day2-టిఫిన్',
+    'Day3-టిఫిన్',
+    'ఇతర'
+  ];
+
   // Apply category and sort
   const filteredDonations = donations.filter(d => d.category === activeCategory);
   
-  const sortedDonations = filteredDonations.sort((a, b) => {
+  const sortedDonations = filteredDonations.slice().sort((a, b) => {
+    // Sponsorship tab: custom order by type, then latest within the same type
+    if (activeCategory === 'sponsorship') {
+      const ai = SPONSOR_ORDER.indexOf(a.type);
+      const bi = SPONSOR_ORDER.indexOf(b.type);
+      const typeCmp = (ai === -1 ? Number.MAX_SAFE_INTEGER : ai) - (bi === -1 ? Number.MAX_SAFE_INTEGER : bi);
+      if (typeCmp !== 0) return typeCmp;
+      // latest first within type
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    }
+
+    // For non-sponsorship (i.e., chanda): if no filter selected -> latest first
+    if (!sortOption) {
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    }
+
     const [sortKey, sortDir] = sortOption.split('-');
     let cmp = 0;
-    
+
     if (sortKey === 'amount') {
       cmp = a.amount - b.amount;
     } else if (sortKey === 'name') {
-      cmp = (a.name || '').localeCompare(b.name || '');
+      const an = namePreference === 'english'
+        ? (a.name_english || a.name || '')
+        : (a.name || a.name_english || '');
+      const bn = namePreference === 'english'
+        ? (b.name_english || b.name || '')
+        : (b.name || b.name_english || '');
+      cmp = an.localeCompare(bn);
+    } else {
+      // Default safeguard: latest first
+      cmp = new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
     }
-    
+
     return sortDir === 'asc' ? cmp : -cmp;
   });
   
@@ -143,6 +181,12 @@ export default function Chandas() {
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
+              onClick={() => setNamePreference(prev => prev === 'telugu' ? 'english' : 'telugu')}
+            >
+              {namePreference === 'telugu' ? t('పేర్లు: తెలుగు', 'Names: Telugu') : t('పేర్లు: English', 'Names: English')}
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
             >
               {language === 'telugu' ? 'EN' : 'తె'}
@@ -175,8 +219,18 @@ export default function Chandas() {
         {/* Tabs: only Chanda and Sponsorship with counts */}
         <Tabs value={activeCategory} onValueChange={(value) => handleCategoryChange(value as any)} className="mb-4">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="chanda">{t('చందా', 'Chanda')} ({chandaCount})</TabsTrigger>
-            <TabsTrigger value="sponsorship">{t('స్పాన్సర్‌షిప్', 'Sponsorship')} ({sponsorshipCount})</TabsTrigger>
+            <TabsTrigger
+              value="chanda"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              {t('చందా', 'Chanda')} ({chandaCount})
+            </TabsTrigger>
+            <TabsTrigger
+              value="sponsorship"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              {t('స్పాన్సర్‌షిప్', 'Sponsorship')} ({sponsorshipCount})
+            </TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -190,8 +244,7 @@ export default function Chandas() {
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value)}
               >
-                {/* <option value="date-desc">{t('తేదీ ↓', 'Date ↓')}</option>
-                <option value="date-asc">{t('తేదీ ↑', 'Date ↑')}</option> */}
+                <option value="">{t('ఫిల్టర్', 'Filter')}</option>
                 <option value="amount-desc">{t('మొత్తం ↓', 'Amount ↓')}</option>
                 <option value="amount-asc">{t('మొత్తం ↑', 'Amount ↑')}</option>
                 <option value="name-asc">{t('పేరు ↑', 'Name ↑')}</option>
@@ -224,6 +277,7 @@ export default function Chandas() {
                 onEdit={handleEditDonation}
                 onDelete={(id) => setDeletingDonationId(id)}
                 onAuthRequired={handleAuthRequired}
+                namePreference={namePreference}
               />
             ))
           )}
