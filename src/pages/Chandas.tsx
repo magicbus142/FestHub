@@ -287,26 +287,28 @@ export default function Chandas() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mb-6">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-            >
-              {t('మునుపటి', 'Previous')}
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              {t(`పేజీ ${currentPage} / ${totalPages}`, `Page ${currentPage} of ${totalPages}`)}
-            </span>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-            >
-              {t('తదుపరి', 'Next')}
-            </Button>
+          <div className="sticky bottom-16 z-40 -mx-4 px-4 py-2 bg-background/80 supports-[backdrop-filter]:bg-background/60 backdrop-blur border-t md:static md:border-0 md:-mx-0 md:px-0">
+            <div className="flex justify-center items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                {t('మునుపటి', 'Previous')}
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                {t(`పేజీ ${currentPage} / ${totalPages}`, `Page ${currentPage} of ${totalPages}`)}
+              </span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                {t('తదుపరి', 'Next')}
+              </Button>
+            </div>
           </div>
         )}
 
