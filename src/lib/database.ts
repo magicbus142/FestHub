@@ -92,37 +92,6 @@ export const searchDonations = async (searchTerm: string): Promise<Donation[]> =
   return (data || []) as Donation[];
 };
 
-export const searchDonationsWithTranslation = async (searchTerm: string): Promise<Donation[]> => {
-  try {
-    // First try to translate the search term
-    const { data: translationData, error: translationError } = await supabase.functions.invoke('translate-search', {
-      body: { searchTerm }
-    });
-
-    let searchTerms = [searchTerm];
-    
-    if (!translationError && translationData?.translatedTerm && translationData.translatedTerm !== searchTerm) {
-      searchTerms.push(translationData.translatedTerm);
-    }
-
-    // Search with both original and translated terms
-    const searchQuery = searchTerms.map(term => 
-      `name.ilike.%${term}%,name_english.ilike.%${term}%`
-    ).join(',');
-
-    const { data, error } = await supabase
-      .from('donations')
-      .select('*')
-      .or(searchQuery)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return (data || []) as Donation[];
-  } catch (error) {
-    console.error('Search with translation failed, falling back to basic search:', error);
-    return searchDonations(searchTerm);
-  }
-};
 
 export const getTotalAmount = async (): Promise<number> => {
   const { data, error } = await supabase

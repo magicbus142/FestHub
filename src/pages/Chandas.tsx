@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getAllDonations, getTotalAmount, getTotalByCategory, searchDonationsWithTranslation, deleteDonation, type Donation } from '@/lib/database';
+import { getAllDonations, getTotalAmount, getTotalByCategory, searchDonations, deleteDonation, type Donation } from '@/lib/database';
 import { DonationCard } from '@/components/DonationCard';
 import { DonationForm } from '@/components/DonationForm';
 import { SearchBar } from '@/components/SearchBar';
@@ -34,7 +34,7 @@ export default function Chandas() {
 
   const { data: donations = [], refetch } = useQuery({
     queryKey: ['donations', searchTerm],
-    queryFn: () => searchTerm ? searchDonationsWithTranslation(searchTerm) : getAllDonations(),
+    queryFn: () => searchTerm ? searchDonations(searchTerm) : getAllDonations(),
   });
 
   const { data: totalAmount = 0 } = useQuery({
