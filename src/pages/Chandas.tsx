@@ -59,7 +59,7 @@ export default function Chandas() {
   // Sponsorship display order (fixed)
   const SPONSOR_ORDER = [
     'విగరహం',
-    'ల్డడు పరసాదం',
+    'ల్డడు',
     'Day1-భోజనం',
     'Day2-భోజనం',
     'Day3-భోజనం',
@@ -175,7 +175,7 @@ export default function Chandas() {
               {t('గణేష్ చందా ట్రాకర్', 'Ganesh Chanda')}
             </h1>
             <p className="text-muted-foreground mt-1 md:mt-2">
-              {t('చందాలు మరియు స్పాన్సర్‌షిప్‌లను ట్రాక్ చేయండి', 'Track donations and sponsorships')}
+              {t('చందాలు మరియు స్పాన్సర్‌షిప్‌లను ట్రాక్ చేయండి', 'Track Chandas and sponsorships')}
             </p>
           </div>
           <div className="w-full md:w-auto flex items-center flex-wrap gap-2">
@@ -196,7 +196,7 @@ export default function Chandas() {
             </Button>
             <Button onClick={handleAddDonation} size="sm" className="flex items-center gap-2 flex-1 md:flex-none">
               <Plus className="h-4 w-4" />
-              {t('చందా జోడించు', 'Add Donation')}
+              {t('చందా జోడించు', 'Add Chanda')}
             </Button>
           </div>
         </div>
@@ -208,7 +208,7 @@ export default function Chandas() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {t('మొత్తం చందా', 'Total Donations')}
+                {t('మొత్తం చందా మొత్తం', 'Total Chandas Amount')}
               </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
