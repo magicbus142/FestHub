@@ -21,14 +21,16 @@ interface DonationFormProps {
   onSave: () => void;
 }
 
-const sponsorshipTypes: SponsorshipType[] = ['విగరహం', 'ల్డడు పరసాదం', 'Day1-భోజనం', 'Day2-భోజనం', 'Day3-భోజనం', 'Day1-టిఫిన్', 'Day2-టిఫిన్', 'Day3-టిఫిన్', 'ఇతర'];
+const sponsorshipTypes: SponsorshipType[] = ['విగరహం', 'ల్డడు', 'Day1-భోజనం', 'Day2-భోజనం', 'Day3-భోజనం', 'Day1-టిఫిన్', 'Day2-టిఫిన్', 'Day3-టిఫిన్', 'ఇతర'];
 const chandaTypes: ChandaType[] = ['చందా'];
 
 export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationFormProps) => {
   const [nameTelugu, setNameTelugu] = useState(donation?.name || '');
   const [nameEnglish, setNameEnglish] = useState(donation?.name_english || '');
+  // Normalize legacy type labels
+  const normalizeType = (t: string) => (t === 'ల్డడు పరసాదం' ? 'ల్డడు' : t);
   const [donationItems, setDonationItems] = useState<DonationItem[]>(
-    donation ? [{ type: donation.type, amount: donation.amount.toString() }] : [{ type: '', amount: '' }]
+    donation ? [{ type: normalizeType(donation.type), amount: donation.amount.toString() }] : [{ type: '', amount: '' }]
   );
   const [category, setCategory] = useState<'chanda' | 'sponsorship'>(donation?.category || 'chanda');
   const [sponsorshipAmount, setSponsorshipAmount] = useState<string>('');
@@ -42,7 +44,7 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
       setNameTelugu(donation.name || '');
       setNameEnglish(donation.name_english || '');
       setCategory(donation.category || 'chanda');
-      setDonationItems([{ type: donation.type, amount: donation.amount.toString() }]);
+      setDonationItems([{ type: normalizeType(donation.type), amount: donation.amount.toString() }]);
       if ((donation.category || 'chanda') === 'sponsorship') {
         setSponsorshipAmount(donation.amount.toString());
       } else {
@@ -143,7 +145,7 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
           name: (nameTelugu || nameEnglish).trim(),
           name_english: nameEnglish.trim() || undefined,
           amount: category === 'sponsorship' ? parseFloat(sponsorshipAmount) : parseFloat(first.amount),
-          type: first.type,
+          type: normalizeType(first.type),
           category
         };
         await updateDonation(donation.id, donationData);
@@ -155,7 +157,7 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
               name: (nameTelugu || nameEnglish).trim(),
               name_english: nameEnglish.trim() || undefined,
               amount: parseFloat(sponsorshipAmount),
-              type: item.type,
+              type: normalizeType(item.type),
               category
             };
             await addDonation(donationData);
@@ -166,7 +168,7 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
               name: (nameTelugu || nameEnglish).trim(),
               name_english: nameEnglish.trim() || undefined,
               amount: parseFloat(item.amount),
-              type: item.type,
+              type: normalizeType(item.type),
               category
             };
             await addDonation(donationData);
