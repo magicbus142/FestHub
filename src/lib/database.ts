@@ -12,7 +12,7 @@ export interface Donation {
   updated_at?: string;
 }
 
-export type SponsorshipType = 'విగరహం' | 'ల్డడు పరసాదం' | 'Day1-భోజనం' | 'Day2-భోజనం' | 'Day3-భోజనం' | 'Day1-టిఫిన్' | 'Day2-టిఫిన్' | 'Day3-టిఫిన్' | 'ఇతర';
+export type SponsorshipType = 'విగరహం' | 'ల్డడు' | 'Day1-భోజనం' | 'Day2-భోజనం' | 'Day3-భోజనం' | 'Day1-టిఫిన్' | 'Day2-టిఫిన్' | 'Day3-టిఫిన్' | 'ఇతర';
 export type ChandaType = 'చందా';
 
 export const addDonation = async (donation: Omit<Donation, 'id' | 'created_at' | 'updated_at'>) => {
