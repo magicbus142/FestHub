@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { BarChart3, Receipt, Image, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { getTotalAmount } from '@/lib/database';
+import { getTotalByCategory } from '@/lib/database';
 import { getTotalExpenses, getExpenses } from '@/lib/expenses';
 import { getImages } from '@/lib/images';
 
@@ -14,8 +14,8 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   const { data: totalDonations = 0 } = useQuery({
-    queryKey: ['total-donations'],
-    queryFn: getTotalAmount,
+    queryKey: ['total-donations-chanda'],
+    queryFn: () => getTotalByCategory('chanda'),
   });
 
   const { data: totalExpenses = 0 } = useQuery({
@@ -31,7 +31,7 @@ export default function Dashboard() {
   const dashboardCards = [
     {
       title: t('చందాలు', 'Chandas'),
-      description: t('చందా మరియు స్పాన్సర్‌షిప్ నిర్వహణ', 'Manage Chanda and sponsorships'),
+      description: t('చందా నిర్వహణ (స్పాన్సర్‌షిప్ వేరు)', 'Manage Chanda (sponsorships separate)'),
       icon: BarChart3,
       path: '/chandas',
       value: `₹${totalDonations.toLocaleString()}`,
@@ -93,7 +93,7 @@ export default function Dashboard() {
                   ₹{totalDonations.toLocaleString()}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {t('మొత్తం చందాలు', 'Total Amount')}
+                  {t('మొత్తం చందాలు (చందా మాత్రమే)', 'Total Chandas (Chanda only)')}
                 </p>
               </div>
               <div className="text-center">

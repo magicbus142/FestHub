@@ -92,7 +92,7 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
 
     // Validate donation items
     if (category === 'sponsorship') {
-      // Validate types
+      // Validate types only
       for (let i = 0; i < donationItems.length; i++) {
         const item = donationItems[i];
         if (!item.type) {
@@ -103,15 +103,6 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
           });
           return;
         }
-      }
-      // Validate single amount
-      if (!sponsorshipAmount || isNaN(parseFloat(sponsorshipAmount)) || parseFloat(sponsorshipAmount) <= 0) {
-        toast({
-          title: t("దోషం", "Error"),
-          description: t("దయచేసి సరైన మొత్తం నమోదు చేయండి", "Please enter a valid amount"),
-          variant: "destructive"
-        });
-        return;
       }
     } else {
       for (let i = 0; i < donationItems.length; i++) {
@@ -144,7 +135,7 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
         const donationData = {
           name: (nameTelugu || nameEnglish).trim(),
           name_english: nameEnglish.trim() || undefined,
-          amount: category === 'sponsorship' ? parseFloat(sponsorshipAmount) : parseFloat(first.amount),
+          amount: category === 'sponsorship' ? 0 : parseFloat(first.amount),
           type: normalizeType(first.type),
           category
         };
@@ -156,7 +147,7 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
             const donationData = {
               name: (nameTelugu || nameEnglish).trim(),
               name_english: nameEnglish.trim() || undefined,
-              amount: parseFloat(sponsorshipAmount),
+              amount: 0,
               type: normalizeType(item.type),
               category
             };
@@ -187,7 +178,6 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
       setNameEnglish('');
       setDonationItems([{ type: 'చందా', amount: '' }]);
       setCategory('chanda');
-      setSponsorshipAmount('');
     } catch (error) {
       console.error('Error saving donation:', error);
       const message = (error as any)?.message || t("దానం సేవ్ చేయడంలో దోషం", "Error saving donation");
@@ -209,7 +199,6 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
       setNameEnglish('');
       setDonationItems([{ type: 'చందా', amount: '' }]);
       setCategory('chanda');
-      setSponsorshipAmount('');
     }, 300);
   };
 
@@ -252,7 +241,6 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
               setCategory(value);
               // Reset donation items with sensible default type per category
               setDonationItems([{ type: value === 'chanda' ? 'చందా' : 'ఇతర', amount: '' }]);
-              setSponsorshipAmount('');
             }}>
               <SelectTrigger>
                 <SelectValue placeholder={t("వర్గం ఎంచుకోండి", "Select category")} />
@@ -297,7 +285,7 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
               <Label className="text-foreground font-medium">
                 {t('దానాల వివరాలు', 'Donation Details')}
               </Label>
-              {!donation && (
+              {!donation && category === 'sponsorship' && (
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -355,21 +343,12 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
                     <Label htmlFor={`type-${index}`} className="text-xs">
                       {t('రకం', 'Type')}
                     </Label>
-                    <Select 
-                      value={item.type} 
-                      onValueChange={(value) => updateDonationItem(index, 'type', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("ఎంచుకోండి", "Select")} />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border-border">
-                        {getTypeOptions().map((option) => (
-                          <SelectItem key={option} value={option}>
-                            {option}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      id={`type-${index}`}
+                      value={t('చందా', 'Chanda')}
+                      readOnly
+                      className="bg-muted border-border text-muted-foreground"
+                    />
                   </div>
                   <div className="col-span-5">
                     <Label htmlFor={`amount-${index}`} className="text-xs">
@@ -402,22 +381,6 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
                   </div>
                 </div>
               ))
-            )}
-            {category === 'sponsorship' && (
-              <div className="grid grid-cols-12 gap-3 items-end">
-                <div className="col-span-5 col-start-1">
-                  <Label className="text-xs">{t('మొత్తం (₹)', 'Amount (₹)')}</Label>
-                  <Input
-                    type="number"
-                    value={sponsorshipAmount}
-                    onChange={(e) => setSponsorshipAmount(e.target.value)}
-                    placeholder="0"
-                    min="0"
-                    step="0.01"
-                    className="bg-background border-border"
-                  />
-                </div>
-              </div>
             )}
           </div>
 

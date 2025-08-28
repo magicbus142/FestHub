@@ -6,6 +6,7 @@ import { DonationForm } from '@/components/DonationForm';
 import { SearchBar } from '@/components/SearchBar';
 import { AuthDialog } from '@/components/AuthDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -31,10 +32,11 @@ export default function Chandas() {
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [editingDonation, setEditingDonation] = useState<Donation | undefined>(undefined);
   const [deletingDonationId, setDeletingDonationId] = useState<string | null>(null);
+  const [showDuplicates, setShowDuplicates] = useState(false);
 
   const { data: donations = [], refetch } = useQuery({
-    queryKey: ['donations', searchTerm],
-    queryFn: () => searchTerm ? searchDonations(searchTerm) : getAllDonations(),
+    queryKey: ['donations'],
+    queryFn: () => getAllDonations(),
   });
 
   const { data: totalAmount = 0 } = useQuery({
@@ -52,9 +54,36 @@ export default function Chandas() {
     queryFn: () => getTotalByCategory('sponsorship'),
   });
 
-  // Counts for tabs
-  const chandaCount = donations.filter(d => d.category === 'chanda').length;
-  const sponsorshipCount = donations.filter(d => d.category === 'sponsorship').length;
+  // Client-side, case-insensitive search over Telugu `name` and English `name_english`
+  const term = (searchTerm || '').trim().toLowerCase();
+  const searchFiltered = term
+    ? donations.filter(d => {
+        const en = (d.name_english || '').toLowerCase();
+        const te = (d.name || '').toLowerCase();
+        return en.includes(term) || te.includes(term);
+      })
+    : donations;
+
+  // Optional duplicates-only filter, based on normalized English name (fallback to Telugu)
+  const nameKey = (d: Donation) => ((d.name_english && d.name_english.trim().toLowerCase()) || (d.name?.trim().toLowerCase()) || '');
+  const duplicatesFiltered = showDuplicates
+    ? (() => {
+        const counts = new Map<string, number>();
+        for (const d of searchFiltered) {
+          const key = nameKey(d);
+          if (!key) continue;
+          counts.set(key, (counts.get(key) || 0) + 1);
+        }
+        return searchFiltered.filter(d => {
+          const key = nameKey(d);
+          return key && (counts.get(key) || 0) > 1;
+        });
+      })()
+    : searchFiltered;
+
+  // Counts for tabs (after applying search filter)
+  const chandaCount = duplicatesFiltered.filter(d => d.category === 'chanda').length;
+  const sponsorshipCount = duplicatesFiltered.filter(d => d.category === 'sponsorship').length;
 
   // Sponsorship display order (fixed)
   const SPONSOR_ORDER = [
@@ -69,8 +98,8 @@ export default function Chandas() {
     'ఇతర'
   ];
 
-  // Apply category and sort
-  const filteredDonations = donations.filter(d => d.category === activeCategory);
+  // Apply category and sort (after search filter)
+  const filteredDonations = duplicatesFiltered.filter(d => d.category === activeCategory);
   
   const sortedDonations = filteredDonations.slice().sort((a, b) => {
     // Sponsorship tab: custom order by type, then latest within the same type
@@ -94,12 +123,9 @@ export default function Chandas() {
     if (sortKey === 'amount') {
       cmp = a.amount - b.amount;
     } else if (sortKey === 'name') {
-      const an = namePreference === 'english'
-        ? (a.name_english || a.name || '')
-        : (a.name || a.name_english || '');
-      const bn = namePreference === 'english'
-        ? (b.name_english || b.name || '')
-        : (b.name || b.name_english || '');
+      // Always sort by English name for consistency, fall back to Telugu if missing
+      const an = (a.name_english || a.name || '');
+      const bn = (b.name_english || b.name || '');
       cmp = an.localeCompare(bn);
     } else {
       // Default safeguard: latest first
@@ -208,12 +234,12 @@ export default function Chandas() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {t('మొత్తం చందా మొత్తం', 'Total Chandas Amount')}
+                {t('మొత్తం చందా', 'Total Chandas')}
               </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{totalAmount.toLocaleString()}</div>
+              <div className="text-2xl font-bold">₹{totalChanda.toLocaleString()}</div>
             </CardContent>
           </Card>
         </div>
@@ -249,11 +275,21 @@ export default function Chandas() {
                 onChange={(e) => setSortOption(e.target.value)}
               >
                 <option value="">{t('ఫిల్టర్', 'Filter')}</option>
-                <option value="amount-desc">{t('మొత్తం ↓', 'Amount ↓')}</option>
-                <option value="amount-asc">{t('మొత్తం ↑', 'Amount ↑')}</option>
-                <option value="name-asc">{t('పేరు ↑', 'Name ↑')}</option>
-                <option value="name-desc">{t('పేరు ↓', 'Name ↓')}</option>
+                <option value="amount-desc">{t('మొత్తం (ఎక్కువ → తక్కువ)', 'Amount (High → Low)')}</option>
+                <option value="amount-asc">{t('మొత్తం (తక్కువ → ఎక్కువ)', 'Amount (Low → High)')}</option>
+                <option value="name-asc">{t('పేరు (A → Z)', 'Name (A → Z)')}</option>
+                <option value="name-desc">{t('పేరు (Z → A)', 'Name (Z → A)')}</option>
               </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="duplicates-only"
+                checked={showDuplicates}
+                onCheckedChange={(v) => setShowDuplicates(!!v)}
+              />
+              <label htmlFor="duplicates-only" className="text-sm text-foreground select-none cursor-pointer">
+                {t('నకిలీలు మాత్రమే', 'Duplicates only')}
+              </label>
             </div>
           </div>
           <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
