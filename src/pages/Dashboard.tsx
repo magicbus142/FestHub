@@ -31,7 +31,7 @@ export default function Dashboard() {
   const dashboardCards = [
     {
       title: t('చందాలు', 'Chandas'),
-      description: t('చందా మరియు స్పాన్సర్‌షిప్ నిర్వహణ', 'Manage donations and sponsorships'),
+      description: t('చందా మరియు స్పాన్సర్‌షిప్ నిర్వహణ', 'Manage Chanda and sponsorships'),
       icon: BarChart3,
       path: '/chandas',
       value: `₹${totalDonations.toLocaleString()}`,
@@ -65,7 +65,7 @@ export default function Dashboard() {
               {t('డాష్‌బోర్డ్', 'Dashboard')}
             </h1>
             <p className="text-muted-foreground mt-2">
-              {t('గణేష్ చందా ట్రాకర్ అవలోకనం', 'Ganesh Chanda Tracker Overview')}
+              {t('గణేష్ చందా', 'Ganesh Chanda')}
             </p>
           </div>
           
@@ -83,7 +83,7 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              {t('సంక్షిప్త గణాంకాలు', 'Quick Stats')}
+              {t('సంక్షిప్త గణాంకాలు', 'Quick Status')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -93,7 +93,7 @@ export default function Dashboard() {
                   ₹{totalDonations.toLocaleString()}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {t('మొత్తం చందాలు', 'Total Donations')}
+                  {t('మొత్తం చందాలు', 'Total Amount')}
                 </p>
               </div>
               <div className="text-center">
