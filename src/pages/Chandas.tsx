@@ -15,6 +15,7 @@ import { Navigation } from '@/components/Navigation';
 import { BarChart3, DollarSign, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { YearBadge } from '@/components/YearBadge';
 
 export default function Chandas() {
   const { t, language, setLanguage } = useLanguage();
@@ -203,6 +204,7 @@ export default function Chandas() {
             <p className="text-muted-foreground mt-1 md:mt-2">
               {t('చందాలు మరియు స్పాన్సర్‌షిప్‌లను ట్రాక్ చేయండి', 'Track Chandas and sponsorships')}
             </p>
+            <YearBadge />
           </div>
           <div className="w-full md:w-auto flex items-center flex-wrap gap-2">
             <Button

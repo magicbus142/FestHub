@@ -1,4 +1,5 @@
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useEffect, useState } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,12 +7,37 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart3, Receipt, Image, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getTotalByCategory } from '@/lib/database';
-import { getTotalExpenses, getExpenses } from '@/lib/expenses';
+import { getTotalExpenses } from '@/lib/expenses';
 import { getImages } from '@/lib/images';
+import { YearBadge } from '@/components/YearBadge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Dashboard() {
   const { t, language, setLanguage } = useLanguage();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const [isPrevDialogOpen, setIsPrevDialogOpen] = useState(false as boolean);
+  const [prevInput, setPrevInput] = useState('' as string);
+  // Hardcoded default previous amount (change here if needed)
+  const PREVIOUS_AMOUNT_DEFAULT = 0;
+  const [previousAmount, setPreviousAmount] = useState<number>(PREVIOUS_AMOUNT_DEFAULT);
+
+  // Load from localStorage once (optional persistence without DB)
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('previous_amount');
+      if (stored !== null) setPreviousAmount(Number(stored) || 0);
+    } catch {}
+  }, []);
+
+  const savePreviousAmount = (value: number) => {
+    setPreviousAmount(value);
+    try {
+      localStorage.setItem('previous_amount', String(value));
+    } catch {}
+  };
 
   const { data: totalDonations = 0 } = useQuery({
     queryKey: ['total-donations-chanda'],
@@ -27,6 +53,7 @@ export default function Dashboard() {
     queryKey: ['user-images'],
     queryFn: getImages,
   });
+
 
   const dashboardCards = [
     {
@@ -67,6 +94,7 @@ export default function Dashboard() {
             <p className="text-muted-foreground mt-2">
               {t('గణేష్ చందా', 'Ganesh Chanda')}
             </p>
+            <YearBadge />
           </div>
           
           <Button
@@ -86,35 +114,92 @@ export default function Dashboard() {
               {t('సంక్షిప్త గణాంకాలు', 'Quick Status')}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <CardContent className="pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-2xl sm:text-3xl font-bold text-blue-600 leading-tight">
                   ₹{totalDonations.toLocaleString()}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  {t('మొత్తం చందాలు (చందా మాత్రమే)', 'Total Chandas (Chanda only)')}
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                  {t('మొత్తం చందాలు (చందా మాత్రమే)', 'Total Chandas')}
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-red-600">
+                <p className="text-2xl sm:text-3xl font-bold text-red-600 leading-tight">
                   ₹{totalExpenses.toLocaleString()}
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   {t('మొత్తం ఖర్చులు', 'Total Expenses')}
                 </p>
               </div>
-              <div className="text-center md:col-span-1 col-span-2">
-                <p className="text-2xl font-bold text-green-600">
-                  ₹{(totalDonations - totalExpenses).toLocaleString()}
+              <div className="text-center">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+                  <p className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
+                    ₹{previousAmount.toLocaleString()}
+                  </p>
+                  {isAuthenticated && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full sm:w-auto"
+                      onClick={() => {
+                        setPrevInput(String(previousAmount || 0));
+                        setIsPrevDialogOpen(true);
+                      }}
+                    >
+                      {t('సవరించు', 'Edit')}
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                  {t('మునుపటి మొత్తం', 'Previous Amount')}
                 </p>
-                <p className="text-sm text-muted-foreground">
+              </div>
+              <div className="text-center sm:col-span-2 md:col-span-1">
+                <p className="text-2xl sm:text-3xl font-bold text-green-600 leading-tight">
+                  ₹{(totalDonations + previousAmount - totalExpenses).toLocaleString()}
+                </p>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   {t('మిగిలిన మొత్తం', 'Balance')}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* Previous Amount Dialog */}
+        <Dialog open={isPrevDialogOpen} onOpenChange={setIsPrevDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t('మునుపటి మొత్తాన్ని సవరించు', 'Edit Previous Amount')}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <Input
+                type="number"
+                value={prevInput}
+                onChange={(e) => setPrevInput(e.target.value)}
+                placeholder={t('మొత్తం', 'Amount')}
+              />
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setIsPrevDialogOpen(false)}>
+                  {t('రద్దు', 'Cancel')}
+                </Button>
+                <Button
+                  onClick={() => {
+                    const val = Number(prevInput);
+                    if (!Number.isFinite(val)) return;
+                    savePreviousAmount(val);
+                    setIsPrevDialogOpen(false);
+                  }}
+                >
+                  {t('సేవ్', 'Save')}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit allowed only when logged in; no auth dialog shown */}
 
         {/* Dashboard Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">

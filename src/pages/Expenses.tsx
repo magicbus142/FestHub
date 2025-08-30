@@ -14,6 +14,7 @@ import { Plus, Trash2, Receipt } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthDialog } from '@/components/AuthDialog';
+import { YearBadge } from '@/components/YearBadge';
 
 export default function Expenses() {
   const { t } = useLanguage();
@@ -109,6 +110,7 @@ export default function Expenses() {
             <p className="text-muted-foreground mt-2">
               {t('మీ ఖర్చులను ట్రాక్ చేయండి', 'Track your expenses')}
             </p>
+            <YearBadge />
           </div>
 
           <Button

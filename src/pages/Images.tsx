@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthDialog } from '@/components/AuthDialog';
+import { YearBadge } from '@/components/YearBadge';
 
 export default function Images() {
   const { t } = useLanguage();
@@ -135,6 +136,7 @@ export default function Images() {
             <p className="text-muted-foreground mt-2">
               {t('మీ ఫోటోలను అప్‌లోడ్ చేయండి మరియు నిర్వహించండి', 'Upload and manage your photos')}
             </p>
+            <YearBadge />
           </div>
 
           <Button
