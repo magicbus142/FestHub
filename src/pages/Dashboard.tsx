@@ -4,15 +4,17 @@ import { Navigation } from '@/components/Navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Receipt, Image, Users } from 'lucide-react';
+import { BarChart3, Receipt, Image, Users, Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getTotalByCategory } from '@/lib/database';
 import { getTotalExpenses } from '@/lib/expenses';
 import { getImages } from '@/lib/images';
+import { getAllFestivals } from '@/lib/festivals';
 import { YearBadge } from '@/components/YearBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
+import { FestivalCard } from '@/components/FestivalCard';
 
 export default function Dashboard() {
   const { t, language, setLanguage } = useLanguage();
@@ -52,6 +54,11 @@ export default function Dashboard() {
   const { data: images = [] } = useQuery({
     queryKey: ['user-images'],
     queryFn: getImages,
+  });
+
+  const { data: festivals = [] } = useQuery({
+    queryKey: ['festivals'],
+    queryFn: getAllFestivals,
   });
 
 
@@ -201,110 +208,45 @@ export default function Dashboard() {
 
         {/* Edit allowed only when logged in; no auth dialog shown */}
 
-        {/* Dashboard Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {dashboardCards.map((card) => {
-            const Icon = card.icon;
-            
-            // Show image cards for Images section
-            if (card.path === '/images') {
-              const firstFourImages = images.slice(0, 4);
-              return (
-                <Card 
-                  key={card.path} 
-                  className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
-                  onClick={() => navigate(card.path)}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">{card.title}</CardTitle>
-                      <Icon className={`h-5 w-5 ${card.color}`} />
-                    </div>
-                    <CardDescription className="text-sm">
-                      {card.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {firstFourImages.length > 0 ? (
-                      <div className="grid grid-cols-2 gap-2 mb-3">
-                        {firstFourImages.map((img) => (
-                          <div key={img.id} className="aspect-square rounded-md overflow-hidden">
-                            <img 
-                              src={img.image_url} 
-                              alt={img.title}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ))}
-                        {firstFourImages.length < 4 && Array.from({ length: 4 - firstFourImages.length }).map((_, idx) => (
-                          <div key={`empty-${idx}`} className="aspect-square rounded-md bg-muted flex items-center justify-center">
-                            <Icon className="h-6 w-6 text-muted-foreground" />
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-2 mb-3">
-                        {Array.from({ length: 4 }).map((_, idx) => (
-                          <div key={`empty-${idx}`} className="aspect-square rounded-md bg-muted flex items-center justify-center">
-                            <Icon className="h-6 w-6 text-muted-foreground" />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <p className={`text-sm font-medium ${card.color} mb-3`}>
-                      {card.value}
-                    </p>
-                    <Button 
-                      variant="default" 
-                      size="sm" 
-                      className="w-full"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(card.path);
-                      }}
-                    >
-                      {t('వీక్షించండి', 'View')}
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            }
-            
-            // Regular cards for other sections
-            return (
-              <Card 
-                key={card.path} 
-                className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
-                onClick={() => navigate(card.path)}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{card.title}</CardTitle>
-                    <Icon className={`h-5 w-5 ${card.color}`} />
-                  </div>
-                  <CardDescription className="text-sm">
-                    {card.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className={`text-2xl font-bold ${card.color}`}>
-                    {card.value}
-                  </p>
-                  <Button 
-                    variant="default" 
-                    size="sm" 
-                    className="mt-3 w-full"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(card.path);
-                    }}
-                  >
-                    {t('వీక్షించండి', 'View')}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
+        {/* Festivals Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-foreground">
+              {t('ఉత్సవాలు', 'Festivals')}
+            </h2>
+            {isAuthenticated && (
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                {t('కొత్త ఉత్సవం', 'Add New Festival')}
+              </Button>
+            )}
+          </div>
+          
+          {festivals.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {festivals.map((festival) => (
+                <FestivalCard 
+                  key={festival.id} 
+                  festival={festival}
+                  onClick={() => {
+                    // Navigate to festival details or management page
+                    console.log('Festival clicked:', festival.name);
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <Card className="p-8 text-center">
+              <div className="text-muted-foreground">
+                <p className="text-lg mb-2">
+                  {t('ఇంకా ఉత్సవాలు జోడించబడలేదు', 'No festivals added yet')}
+                </p>
+                <p className="text-sm">
+                  {t('కొత్త ఉత్సవాన్ని జోడించడానికి లాగిన్ చేయండి', 'Login to add new festivals')}
+                </p>
+              </div>
+            </Card>
+          )}
         </div>
 
         {/* Navigation */}
