@@ -1,10 +1,11 @@
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useFestival } from '@/contexts/FestivalContext';
 import { useEffect, useState } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Receipt, Image, Users, Plus } from 'lucide-react';
+import { BarChart3, Receipt, Image, Users, Plus, ArrowLeft } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getTotalByCategory } from '@/lib/database';
 import { getTotalExpenses } from '@/lib/expenses';
@@ -18,8 +19,16 @@ import { FestivalCard } from '@/components/FestivalCard';
 
 export default function Dashboard() {
   const { t, language, setLanguage } = useLanguage();
+  const { selectedFestival } = useFestival();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+
+  // Redirect to festival selection if no festival selected
+  useEffect(() => {
+    if (!selectedFestival) {
+      navigate('/');
+    }
+  }, [selectedFestival, navigate]);
   const [isPrevDialogOpen, setIsPrevDialogOpen] = useState(false as boolean);
   const [prevInput, setPrevInput] = useState('' as string);
   // Hardcoded default previous amount (change here if needed)
@@ -94,14 +103,25 @@ export default function Dashboard() {
       <div className="container mx-auto px-4 py-6 pb-20 md:pb-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {t('డాష్‌బోర్డ్', 'Dashboard')}
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              {t('గణేష్ చందా', 'Ganesh Chanda')}
-            </p>
-            <YearBadge />
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {t('వెనుక', 'Back')}
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">
+                {selectedFestival?.name || t('డాష్‌బోర్డ్', 'Dashboard')}
+              </h1>
+              <p className="text-muted-foreground mt-2">
+                {selectedFestival ? `${selectedFestival.year} - ${t('డేటా', 'Data')}` : t('గణేష్ చందా', 'Ganesh Chanda')}
+              </p>
+              <YearBadge />
+            </div>
           </div>
           
           <Button

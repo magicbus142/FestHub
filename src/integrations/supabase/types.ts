@@ -19,9 +19,11 @@ export type Database = {
           amount: number
           category: string
           created_at: string
+          festival_name: string | null
+          festival_year: number | null
           id: string
           name: string
-          name_telugu: string | null
+          name_english: string | null
           type: string
           updated_at: string
         }
@@ -29,9 +31,11 @@ export type Database = {
           amount: number
           category: string
           created_at?: string
+          festival_name?: string | null
+          festival_year?: number | null
           id?: string
           name: string
-          name_telugu?: string | null
+          name_english?: string | null
           type: string
           updated_at?: string
         }
@@ -39,9 +43,11 @@ export type Database = {
           amount?: number
           category?: string
           created_at?: string
+          festival_name?: string | null
+          festival_year?: number | null
           id?: string
           name?: string
-          name_telugu?: string | null
+          name_english?: string | null
           type?: string
           updated_at?: string
         }
@@ -52,6 +58,8 @@ export type Database = {
           amount: number
           created_at: string
           description: string | null
+          festival_name: string | null
+          festival_year: number | null
           id: string
           type: string
           updated_at: string
@@ -61,6 +69,8 @@ export type Database = {
           amount: number
           created_at?: string
           description?: string | null
+          festival_name?: string | null
+          festival_year?: number | null
           id?: string
           type: string
           updated_at?: string
@@ -70,6 +80,8 @@ export type Database = {
           amount?: number
           created_at?: string
           description?: string | null
+          festival_name?: string | null
+          festival_year?: number | null
           id?: string
           type?: string
           updated_at?: string
@@ -81,6 +93,8 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          festival_name: string | null
+          festival_year: number | null
           id: string
           image_path: string
           image_url: string
@@ -91,6 +105,8 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          festival_name?: string | null
+          festival_year?: number | null
           id?: string
           image_path: string
           image_url: string
@@ -101,6 +117,8 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          festival_name?: string | null
+          festival_year?: number | null
           id?: string
           image_path?: string
           image_url?: string

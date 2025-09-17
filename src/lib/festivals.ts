@@ -27,18 +27,10 @@ export async function getAllFestivals(): Promise<Festival[]> {
     },
     {
       id: '2', 
-      name: 'Diwali',
-      year: 2023,
+      name: 'Dashara',
+      year: 2024,
       background_color: 'hsl(var(--festival-gold))',
       background_image: 'https://images.unsplash.com/photo-1605538883669-825200433431?w=800&h=600&fit=crop',
-      is_active: true,
-    },
-    {
-      id: '3',
-      name: 'Holi',
-      year: 2024,
-      background_color: 'hsl(var(--festival-red))',
-      background_image: 'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=800&h=600&fit=crop',
       is_active: true,
     }
   ];
