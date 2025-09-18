@@ -17,12 +17,19 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ChandasPreview } from '@/components/ChandasPreview';
 import { ExpensesPreview } from '@/components/ExpensesPreview';
 import { ImagesPreview } from '@/components/ImagesPreview';
-
 export default function Dashboard() {
-  const { t, language, setLanguage } = useLanguage();
-  const { selectedFestival } = useFestival();
+  const {
+    t,
+    language,
+    setLanguage
+  } = useLanguage();
+  const {
+    selectedFestival
+  } = useFestival();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const {
+    isAuthenticated
+  } = useAuth();
 
   // Redirect to festival selection if no festival selected
   useEffect(() => {
@@ -43,76 +50,65 @@ export default function Dashboard() {
       if (stored !== null) setPreviousAmount(Number(stored) || 0);
     } catch {}
   }, []);
-
   const savePreviousAmount = (value: number) => {
     setPreviousAmount(value);
     try {
       localStorage.setItem('previous_amount', String(value));
     } catch {}
   };
-
-  const { data: totalDonations = 0 } = useQuery({
+  const {
+    data: totalDonations = 0
+  } = useQuery({
     queryKey: ['total-donations-festival', selectedFestival?.name, selectedFestival?.year],
     queryFn: () => selectedFestival ? getTotalByFestival(selectedFestival.name, selectedFestival.year, 'chanda') : 0,
-    enabled: !!selectedFestival,
+    enabled: !!selectedFestival
   });
-
-  const { data: totalExpenses = 0 } = useQuery({
+  const {
+    data: totalExpenses = 0
+  } = useQuery({
     queryKey: ['total-expenses-festival', selectedFestival?.name, selectedFestival?.year],
     queryFn: () => selectedFestival ? getTotalExpensesByFestival(selectedFestival.name, selectedFestival.year) : 0,
-    enabled: !!selectedFestival,
+    enabled: !!selectedFestival
   });
-
-  const { data: totalImages = 0 } = useQuery({
+  const {
+    data: totalImages = 0
+  } = useQuery({
     queryKey: ['total-images', selectedFestival?.name, selectedFestival?.year],
     queryFn: async () => {
       if (!selectedFestival) return 0;
       const images = await getImages(selectedFestival.name, selectedFestival.year);
       return images.length;
     },
-    enabled: !!selectedFestival,
+    enabled: !!selectedFestival
   });
-
-
-  const dashboardCards = [
-    {
-      title: t('చందాలు', 'Chandas'),
-      description: t('చందా నిర్వహణ (స్పాన్సర్‌షిప్ వేరు)', 'Manage Chanda (sponsorships separate)'),
-      icon: BarChart3,
-      path: '/chandas',
-      value: `₹${totalDonations.toLocaleString()}`,
-      color: 'text-blue-600'
-    },
-    {
-      title: t('ఖర్చులు', 'Expenses'),
-      description: t('ఖర్చుల రికార్డ్ మరియు ట్రాకింగ్', 'Track and record expenses'),
-      icon: Receipt,
-      path: '/expenses',
-      value: `₹${totalExpenses.toLocaleString()}`,
-      color: 'text-red-600'
-    },
-    {
-      title: t('చిత్రాలు', 'Images'),
-      description: t('ఫోటోలు మరియు చిత్రాలను అప్‌లోడ్ చేయండి', 'Upload and manage photos'),
-      icon: Image,
-      path: '/images',
-      value: `${totalImages} ${t('చిత్రాలు', 'images')}`,
-      color: 'text-green-600'
-    }
-  ];
-
-  return (
-    <div className="min-h-screen bg-background">
+  const dashboardCards = [{
+    title: t('చందాలు', 'Chandas'),
+    description: t('చందా నిర్వహణ (స్పాన్సర్‌షిప్ వేరు)', 'Manage Chanda (sponsorships separate)'),
+    icon: BarChart3,
+    path: '/chandas',
+    value: `₹${totalDonations.toLocaleString()}`,
+    color: 'text-blue-600'
+  }, {
+    title: t('ఖర్చులు', 'Expenses'),
+    description: t('ఖర్చుల రికార్డ్ మరియు ట్రాకింగ్', 'Track and record expenses'),
+    icon: Receipt,
+    path: '/expenses',
+    value: `₹${totalExpenses.toLocaleString()}`,
+    color: 'text-red-600'
+  }, {
+    title: t('చిత్రాలు', 'Images'),
+    description: t('ఫోటోలు మరియు చిత్రాలను అప్‌లోడ్ చేయండి', 'Upload and manage photos'),
+    icon: Image,
+    path: '/images',
+    value: `${totalImages} ${t('చిత్రాలు', 'images')}`,
+    color: 'text-green-600'
+  }];
+  return <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 pb-20 md:pb-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2"
-            >
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="flex items-center gap-2">
               <ArrowLeft className="h-4 w-4" />
               {t('వెనుక', 'Back')}
             </Button>
@@ -120,18 +116,12 @@ export default function Dashboard() {
               <h1 className="text-3xl font-bold text-foreground">
                 {selectedFestival?.name || t('డాష్‌బోర్డ్', 'Dashboard')}
               </h1>
-              <p className="text-muted-foreground mt-2">
-                {selectedFestival ? `${selectedFestival.year} - ${t('డేటా', 'Data')}` : t('గణేష్ చందా', 'Ganesh Chanda')}
-              </p>
+              
               <YearBadge />
             </div>
           </div>
           
-          <Button
-            variant="outline"
-            onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-            className="shrink-0"
-          >
+          <Button variant="outline" onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')} className="shrink-0">
             {language === 'telugu' ? 'EN' : 'తె'}
           </Button>
         </div>
@@ -167,19 +157,12 @@ export default function Dashboard() {
                   <p className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
                     ₹{previousAmount.toLocaleString()}
                   </p>
-                  {isAuthenticated && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full sm:w-auto"
-                      onClick={() => {
-                        setPrevInput(String(previousAmount || 0));
-                        setIsPrevDialogOpen(true);
-                      }}
-                    >
+                  {isAuthenticated && <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => {
+                  setPrevInput(String(previousAmount || 0));
+                  setIsPrevDialogOpen(true);
+                }}>
                       {t('సవరించు', 'Edit')}
-                    </Button>
-                  )}
+                    </Button>}
                 </div>
                 <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   {t('మునుపటి మొత్తం', 'Previous Amount')}
@@ -204,24 +187,17 @@ export default function Dashboard() {
               <DialogTitle>{t('మునుపటి మొత్తాన్ని సవరించు', 'Edit Previous Amount')}</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
-              <Input
-                type="number"
-                value={prevInput}
-                onChange={(e) => setPrevInput(e.target.value)}
-                placeholder={t('మొత్తం', 'Amount')}
-              />
+              <Input type="number" value={prevInput} onChange={e => setPrevInput(e.target.value)} placeholder={t('మొత్తం', 'Amount')} />
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" onClick={() => setIsPrevDialogOpen(false)}>
                   {t('రద్దు', 'Cancel')}
                 </Button>
-                <Button
-                  onClick={() => {
-                    const val = Number(prevInput);
-                    if (!Number.isFinite(val)) return;
-                    savePreviousAmount(val);
-                    setIsPrevDialogOpen(false);
-                  }}
-                >
+                <Button onClick={() => {
+                const val = Number(prevInput);
+                if (!Number.isFinite(val)) return;
+                savePreviousAmount(val);
+                setIsPrevDialogOpen(false);
+              }}>
                   {t('సేవ్', 'Save')}
                 </Button>
               </div>
@@ -241,6 +217,5 @@ export default function Dashboard() {
         {/* Navigation */}
         <Navigation />
       </div>
-    </div>
-  );
+    </div>;
 }
