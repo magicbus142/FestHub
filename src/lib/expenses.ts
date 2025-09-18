@@ -7,6 +7,8 @@ export interface Expense {
   type: string;
   amount: number;
   description?: string;
+  festival_name?: string;
+  festival_year?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -17,7 +19,9 @@ export const addExpense = async (expense: Omit<Expense, 'id' | 'user_id' | 'crea
     .insert([{
       type: expense.type,
       amount: expense.amount,
-      description: expense.description
+      description: expense.description,
+      festival_name: 'Ganesh', // Default to current festival
+      festival_year: 2025
     }])
     .select()
     .single();
@@ -40,6 +44,29 @@ export const getTotalExpenses = async (): Promise<number> => {
   const { data, error } = await supabase
     .from('expenses')
     .select('amount');
+
+  if (error) throw error;
+  return (data || []).reduce((sum, expense) => sum + expense.amount, 0);
+};
+
+export const getExpensesByFestival = async (festivalName: string, festivalYear: number): Promise<Expense[]> => {
+  const { data, error } = await supabase
+    .from('expenses')
+    .select('*')
+    .eq('festival_name', festivalName)
+    .eq('festival_year', festivalYear)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return (data || []) as Expense[];
+};
+
+export const getTotalExpensesByFestival = async (festivalName: string, festivalYear: number): Promise<number> => {
+  const { data, error } = await supabase
+    .from('expenses')
+    .select('amount')
+    .eq('festival_name', festivalName)
+    .eq('festival_year', festivalYear);
 
   if (error) throw error;
   return (data || []).reduce((sum, expense) => sum + expense.amount, 0);

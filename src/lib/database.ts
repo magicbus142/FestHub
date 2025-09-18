@@ -81,6 +81,23 @@ export const getDonationsByCategory = async (category: 'chanda' | 'sponsorship')
   return (data || []) as Donation[];
 };
 
+export const getDonationsByFestival = async (festivalName: string, festivalYear: number, category?: 'chanda' | 'sponsorship'): Promise<Donation[]> => {
+  let query = supabase
+    .from('donations')
+    .select('*')
+    .eq('festival_name', festivalName)
+    .eq('festival_year', festivalYear);
+
+  if (category) {
+    query = query.eq('category', category);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return (data || []) as Donation[];
+};
+
 export const searchDonations = async (searchTerm: string): Promise<Donation[]> => {
   const { data, error } = await supabase
     .from('donations')
@@ -107,4 +124,23 @@ export const getTotalByCategory = async (category: 'chanda' | 'sponsorship'): Pr
 
   if (error) throw error;
   return Number(data) || 0;
+};
+
+export const getTotalByFestival = async (festivalName: string, festivalYear: number, category?: 'chanda' | 'sponsorship'): Promise<number> => {
+  let query = supabase
+    .from('donations')
+    .select('amount');
+
+  query = query
+    .eq('festival_name', festivalName)
+    .eq('festival_year', festivalYear);
+
+  if (category) {
+    query = query.eq('category', category);
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+  return (data || []).reduce((sum, donation) => sum + donation.amount, 0);
 };

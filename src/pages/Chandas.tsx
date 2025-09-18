@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getAllDonations, getTotalAmount, getTotalByCategory, searchDonations, deleteDonation, type Donation } from '@/lib/database';
+import { getDonationsByFestival, getTotalByFestival, searchDonations, deleteDonation, type Donation } from '@/lib/database';
 import { DonationCard } from '@/components/DonationCard';
 import { DonationForm } from '@/components/DonationForm';
 import { SearchBar } from '@/components/SearchBar';
@@ -10,17 +10,22 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useFestival } from '@/contexts/FestivalContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigation } from '@/components/Navigation';
-import { BarChart3, DollarSign, Plus } from 'lucide-react';
+import { BarChart3, DollarSign, Plus, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { YearBadge } from '@/components/YearBadge';
+import { ComingSoon } from '@/components/ComingSoon';
+import { useNavigate } from 'react-router-dom';
 
 export default function Chandas() {
   const { t, language, setLanguage } = useLanguage();
+  const { selectedFestival } = useFestival();
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<'chanda' | 'sponsorship'>('chanda');
   // Pagination
@@ -36,23 +41,21 @@ export default function Chandas() {
   const [showDuplicates, setShowDuplicates] = useState(false);
 
   const { data: donations = [], refetch } = useQuery({
-    queryKey: ['donations'],
-    queryFn: () => getAllDonations(),
-  });
-
-  const { data: totalAmount = 0 } = useQuery({
-    queryKey: ['total-amount'],
-    queryFn: getTotalAmount,
+    queryKey: ['donations-festival', selectedFestival?.name, selectedFestival?.year, activeCategory],
+    queryFn: () => selectedFestival ? getDonationsByFestival(selectedFestival.name, selectedFestival.year, activeCategory) : [],
+    enabled: !!selectedFestival,
   });
 
   const { data: totalChanda = 0 } = useQuery({
-    queryKey: ['total-chanda'],
-    queryFn: () => getTotalByCategory('chanda'),
+    queryKey: ['total-chanda-festival', selectedFestival?.name, selectedFestival?.year],
+    queryFn: () => selectedFestival ? getTotalByFestival(selectedFestival.name, selectedFestival.year, 'chanda') : 0,
+    enabled: !!selectedFestival,
   });
 
   const { data: totalSponsorship = 0 } = useQuery({
-    queryKey: ['total-sponsorship'],
-    queryFn: () => getTotalByCategory('sponsorship'),
+    queryKey: ['total-sponsorship-festival', selectedFestival?.name, selectedFestival?.year],
+    queryFn: () => selectedFestival ? getTotalByFestival(selectedFestival.name, selectedFestival.year, 'sponsorship') : 0,
+    enabled: !!selectedFestival,
   });
 
   // Client-side, case-insensitive search over Telugu `name` and English `name_english`

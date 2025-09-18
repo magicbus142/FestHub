@@ -15,16 +15,20 @@ interface DonationItem {
 }
 
 interface DonationFormProps {
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   donation?: Donation;
-  onSave: () => void;
+  onDonationSaved: () => void;
+  selectedFestival?: {
+    name: string;
+    year: number;
+  };
 }
 
 const sponsorshipTypes: SponsorshipType[] = ['విగరహం', 'ల్డడు', 'Day1-భోజనం', 'Day2-భోజనం', 'Day3-భోజనం', 'Day1-టిఫిన్', 'Day2-టిఫిన్', 'Day3-టిఫిన్', 'ఇతర'];
 const chandaTypes: ChandaType[] = ['చందా'];
 
-export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationFormProps) => {
+export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, selectedFestival }: DonationFormProps) => {
   const [nameTelugu, setNameTelugu] = useState(donation?.name || '');
   const [nameEnglish, setNameEnglish] = useState(donation?.name_english || '');
   // Normalize legacy type labels
@@ -40,7 +44,7 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
 
   // When the dialog opens, ensure the form reflects the donation being edited
   useEffect(() => {
-    if (isOpen && donation) {
+    if (open && donation) {
       setNameTelugu(donation.name || '');
       setNameEnglish(donation.name_english || '');
       setCategory(donation.category || 'chanda');
@@ -58,7 +62,7 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
       setDonationItems([{ type: 'చందా', amount: '' }]);
       setSponsorshipAmount('');
     }
-  }, [isOpen, donation]);
+  }, [open, donation]);
 
   const addDonationItem = () => {
     const defaultType = category === 'chanda' ? 'చందా' : 'ఇతర';
@@ -172,8 +176,8 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
         description: t("దానం(లు) విజయవంతంగా సేవ్ చేయబడ్డాయి", "Donation(s) saved successfully")
       });
       
-      onSave();
-      onClose();
+      onDonationSaved();
+      onOpenChange(false);
       setNameTelugu('');
       setNameEnglish('');
       setDonationItems([{ type: 'చందా', amount: '' }]);
@@ -192,7 +196,7 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
   };
 
   const handleClose = () => {
-    onClose();
+    onOpenChange(false);
     // Reset form on close
     setTimeout(() => {
       setNameTelugu('');
@@ -208,7 +212,7 @@ export const DonationForm = ({ isOpen, onClose, donation, onSave }: DonationForm
 
   return (
     <Dialog 
-      open={isOpen} 
+      open={open} 
       onOpenChange={(open) => {
         // only reset when closing
         if (!open) handleClose();

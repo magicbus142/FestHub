@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { BarChart3, Receipt, Image, Users, Plus, ArrowLeft } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { getTotalByCategory } from '@/lib/database';
-import { getTotalExpenses } from '@/lib/expenses';
+import { getTotalByFestival } from '@/lib/database';
+import { getTotalExpensesByFestival } from '@/lib/expenses';
 import { getImages } from '@/lib/images';
 import { getAllFestivals } from '@/lib/festivals';
 import { YearBadge } from '@/components/YearBadge';
@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { FestivalCard } from '@/components/FestivalCard';
+import { AddFestivalDialog } from '@/components/AddFestivalDialog';
 
 export default function Dashboard() {
   const { t, language, setLanguage } = useLanguage();
@@ -51,13 +52,15 @@ export default function Dashboard() {
   };
 
   const { data: totalDonations = 0 } = useQuery({
-    queryKey: ['total-donations-chanda'],
-    queryFn: () => getTotalByCategory('chanda'),
+    queryKey: ['total-donations-festival', selectedFestival?.name, selectedFestival?.year],
+    queryFn: () => selectedFestival ? getTotalByFestival(selectedFestival.name, selectedFestival.year, 'chanda') : 0,
+    enabled: !!selectedFestival,
   });
 
   const { data: totalExpenses = 0 } = useQuery({
-    queryKey: ['total-expenses'],
-    queryFn: getTotalExpenses,
+    queryKey: ['total-expenses-festival', selectedFestival?.name, selectedFestival?.year],
+    queryFn: () => selectedFestival ? getTotalExpensesByFestival(selectedFestival.name, selectedFestival.year) : 0,
+    enabled: !!selectedFestival,
   });
 
   const { data: images = [] } = useQuery({
@@ -69,6 +72,8 @@ export default function Dashboard() {
     queryKey: ['festivals'],
     queryFn: getAllFestivals,
   });
+
+  const [isAddFestivalOpen, setIsAddFestivalOpen] = useState(false);
 
 
   const dashboardCards = [
@@ -235,7 +240,10 @@ export default function Dashboard() {
               {t('ఉత్సవాలు', 'Festivals')}
             </h2>
             {isAuthenticated && (
-              <Button className="flex items-center gap-2">
+              <Button 
+                className="flex items-center gap-2"
+                onClick={() => setIsAddFestivalOpen(true)}
+              >
                 <Plus className="h-4 w-4" />
                 {t('కొత్త ఉత్సవం', 'Add New Festival')}
               </Button>
@@ -268,6 +276,12 @@ export default function Dashboard() {
             </Card>
           )}
         </div>
+
+        {/* Add Festival Dialog */}
+        <AddFestivalDialog 
+          open={isAddFestivalOpen} 
+          onOpenChange={setIsAddFestivalOpen} 
+        />
 
         {/* Navigation */}
         <Navigation />

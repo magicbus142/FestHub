@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useFestival } from '@/contexts/FestivalContext';
 import { Navigation } from '@/components/Navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,18 +10,22 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { addExpense, getExpenses, getTotalExpenses, deleteExpense, type Expense } from '@/lib/expenses';
-import { Plus, Trash2, Receipt } from 'lucide-react';
+import { addExpense, getExpensesByFestival, getTotalExpensesByFestival, deleteExpense, type Expense } from '@/lib/expenses';
+import { Plus, Trash2, Receipt, ArrowLeft } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthDialog } from '@/components/AuthDialog';
 import { YearBadge } from '@/components/YearBadge';
+import { ComingSoon } from '@/components/ComingSoon';
+import { useNavigate } from 'react-router-dom';
 
 export default function Expenses() {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
+  const { selectedFestival } = useFestival();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -30,20 +35,27 @@ export default function Expenses() {
   });
 
   const { data: expenses = [] } = useQuery({
-    queryKey: ['user-expenses'],
-    queryFn: getExpenses,
+    queryKey: ['user-expenses-festival', selectedFestival?.name, selectedFestival?.year],
+    queryFn: () => selectedFestival ? getExpensesByFestival(selectedFestival.name, selectedFestival.year) : [],
+    enabled: !!selectedFestival,
   });
 
   const { data: totalExpenses = 0 } = useQuery({
-    queryKey: ['total-expenses'],
-    queryFn: getTotalExpenses,
+    queryKey: ['total-expenses-festival', selectedFestival?.name, selectedFestival?.year],
+    queryFn: () => selectedFestival ? getTotalExpensesByFestival(selectedFestival.name, selectedFestival.year) : 0,
+    enabled: !!selectedFestival,
   });
 
   const addExpenseMutation = useMutation({
-    mutationFn: addExpense,
+    mutationFn: (expense: { type: string; amount: number; description?: string }) => 
+      addExpense({
+        ...expense,
+        festival_name: selectedFestival?.name || 'Ganesh',
+        festival_year: selectedFestival?.year || 2025
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['total-expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['user-expenses-festival'] });
+      queryClient.invalidateQueries({ queryKey: ['total-expenses-festival'] });
       setIsDialogOpen(false);
       setFormData({ type: '', amount: '', description: '' });
       toast({
@@ -63,8 +75,8 @@ export default function Expenses() {
   const deleteExpenseMutation = useMutation({
     mutationFn: deleteExpense,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['total-expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['user-expenses-festival'] });
+      queryClient.invalidateQueries({ queryKey: ['total-expenses-festival'] });
       toast({
         title: t('విజయవంతమైంది', 'Success'),
         description: t('ఖర్చు తొలగించబడింది', 'Expense deleted successfully'),
