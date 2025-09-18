@@ -17,22 +17,27 @@ export interface Festival {
 export async function getAllFestivals(): Promise<Festival[]> {
   const { data: festivals, error } = await supabase
     .from('festivals')
-    .select('*')
+    .select(`
+      *,
+      background_image_rel:images!festivals_background_image_id_fkey(image_url)
+    `)
     .eq('is_active', true)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
 
-  // Get images to use as backgrounds
+  // Get images to use as fallback backgrounds
   const { data: images } = await supabase
     .from('images')
     .select('*')
     .order('created_at', { ascending: false });
 
   // Map festivals with background images from database
-  return (festivals || []).map((festival, index) => ({
+  return (festivals || []).map((festival: any, index) => ({
     ...festival,
-    background_image: festival.background_image || images?.[index]?.image_url || 
+    background_image: festival.background_image_rel?.[0]?.image_url || 
+      festival.background_image || 
+      images?.[index]?.image_url || 
       (festival.name === 'Ganesh' ? 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop' :
        'https://images.unsplash.com/photo-1605538883669-825200433431?w=800&h=600&fit=crop')
   }));
@@ -73,4 +78,16 @@ export async function deleteFestival(id: string): Promise<void> {
     .eq('id', id);
 
   if (error) throw error;
+}
+
+export async function setFestivalBackgroundImage(festivalId: string, imageId: string): Promise<Festival> {
+  const { data, error } = await supabase
+    .from('festivals')
+    .update({ background_image_id: imageId })
+    .eq('id', festivalId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
 }

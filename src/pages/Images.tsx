@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Navigation } from '@/components/Navigation';
-import { Upload, Image as ImageIcon, Calendar, Trash2, X, Download } from 'lucide-react';
+import { Upload, Image as ImageIcon, Calendar, Trash2, X, Download, Pin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +18,7 @@ import { useFestival } from '@/contexts/FestivalContext';
 import { AuthDialog } from '@/components/AuthDialog';
 import { YearBadge } from '@/components/YearBadge';
 import { ComingSoon } from '@/components/ComingSoon';
+import { setFestivalBackgroundImage } from '@/lib/festivals';
 
 export default function Images() {
   const { t } = useLanguage();
@@ -71,6 +72,25 @@ export default function Images() {
       toast({
         title: t('విజయవంతమైంది', 'Success'),
         description: t('చిత్రం తొలగించబడింది', 'Image deleted successfully'),
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: t('లోపం', 'Error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const setBackgroundMutation = useMutation({
+    mutationFn: ({ festivalId, imageId }: { festivalId: string; imageId: string }) =>
+      setFestivalBackgroundImage(festivalId, imageId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['festivals'] });
+      toast({
+        title: t('విజయవంతమైంది', 'Success'),
+        description: t('పండుగ నేపథ్యంగా సెట్ చేయబడింది', 'Set as festival background'),
       });
     },
     onError: (error) => {
@@ -257,17 +277,35 @@ export default function Images() {
                       className="aspect-square w-full h-auto object-cover transition-transform duration-200 group-hover:scale-105"
                     />
                     {isAuthenticated && (
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeletingImageId(image.id || null);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="absolute top-2 right-2 flex gap-1">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="bg-background/80 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (selectedFestival?.id && image.id) {
+                              setBackgroundMutation.mutate({
+                                festivalId: selectedFestival.id,
+                                imageId: image.id
+                              });
+                            }
+                          }}
+                        >
+                          <Pin className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeletingImageId(image.id || null);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -345,14 +383,16 @@ export default function Images() {
                               <Button 
                                 variant="secondary"
                                 onClick={() => {
-                                  toast({
-                                    title: t('విజయవంతమైంది', 'Success'),
-                                    description: t('పండుగ నేపథ్యంగా సెట్ చేయబడింది', 'Set as festival background'),
-                                  });
-                                  setSelectedImage(null);
+                                  if (selectedFestival?.id && selectedImage?.id) {
+                                    setBackgroundMutation.mutate({
+                                      festivalId: selectedFestival.id,
+                                      imageId: selectedImage.id
+                                    });
+                                    setSelectedImage(null);
+                                  }
                                 }}
                               >
-                                <ImageIcon className="h-4 w-4 mr-2" />
+                                <Pin className="h-4 w-4 mr-2" />
                                 {t('నేపథ్యంగా సెట్ చేయండి', 'Set as Background')}
                               </Button>
                               <Button

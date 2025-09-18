@@ -93,6 +93,7 @@ export type Database = {
         Row: {
           background_color: string | null
           background_image: string | null
+          background_image_id: string | null
           created_at: string
           description: string | null
           end_date: string | null
@@ -106,6 +107,7 @@ export type Database = {
         Insert: {
           background_color?: string | null
           background_image?: string | null
+          background_image_id?: string | null
           created_at?: string
           description?: string | null
           end_date?: string | null
@@ -119,6 +121,7 @@ export type Database = {
         Update: {
           background_color?: string | null
           background_image?: string | null
+          background_image_id?: string | null
           created_at?: string
           description?: string | null
           end_date?: string | null
@@ -129,7 +132,15 @@ export type Database = {
           updated_at?: string
           year?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "festivals_background_image_id_fkey"
+            columns: ["background_image_id"]
+            isOneToOne: false
+            referencedRelation: "images"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       images: {
         Row: {
