@@ -28,14 +28,16 @@ export const uploadImage = async (file: File, title: string, description?: strin
     .from('user-images')
     .getPublicUrl(fileName);
 
-  // Save to database
+  // Save to database with festival info
   const { data, error } = await supabase
     .from('images')
     .insert([{
       title,
       description,
       image_url: publicUrl,
-      image_path: fileName
+      image_path: fileName,
+      festival_name: 'Ganesh',
+      festival_year: 2025
     }])
     .select()
     .single();

@@ -316,16 +316,31 @@ export default function Images() {
                             {t('డౌన్‌లోడ్', 'Download')}
                           </Button>
                           {isAuthenticated && (
-                            <Button
-                              variant="destructive"
-                              onClick={() => {
-                                setDeletingImageId(selectedImage.id || null);
-                                setSelectedImage(null);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              {t('తొలగించు', 'Delete')}
-                            </Button>
+                            <>
+                              <Button 
+                                variant="secondary"
+                                onClick={() => {
+                                  toast({
+                                    title: t('విజయవంతమైంది', 'Success'),
+                                    description: t('పండుగ నేపథ్యంగా సెట్ చేయబడింది', 'Set as festival background'),
+                                  });
+                                  setSelectedImage(null);
+                                }}
+                              >
+                                <ImageIcon className="h-4 w-4 mr-2" />
+                                {t('నేపథ్యంగా సెట్ చేయండి', 'Set as Background')}
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                onClick={() => {
+                                  setDeletingImageId(selectedImage.id || null);
+                                  setSelectedImage(null);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                {t('తొలగించు', 'Delete')}
+                              </Button>
+                            </>
                           )}
                         </div>
                       </div>

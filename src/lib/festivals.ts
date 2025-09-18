@@ -15,22 +15,27 @@ export interface Festival {
 }
 
 export async function getAllFestivals(): Promise<Festival[]> {
-  // Mock data until festivals table is created in database
+  // Get images to use as backgrounds
+  const { data: images } = await supabase
+    .from('images')
+    .select('*')
+    .order('created_at', { ascending: false });
+
   return [
     {
       id: '1',
-      name: 'Ganesh Chaturthi',
-      year: 2024,
+      name: 'Ganesh',
+      year: 2025,
       background_color: 'hsl(var(--festival-orange))',
-      background_image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop',
+      background_image: images?.[0]?.image_url || 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop',
       is_active: true,
     },
     {
       id: '2', 
       name: 'Dashara',
-      year: 2024,
+      year: 2025,
       background_color: 'hsl(var(--festival-gold))',
-      background_image: 'https://images.unsplash.com/photo-1605538883669-825200433431?w=800&h=600&fit=crop',
+      background_image: images?.[1]?.image_url || 'https://images.unsplash.com/photo-1605538883669-825200433431?w=800&h=600&fit=crop',
       is_active: true,
     }
   ];
