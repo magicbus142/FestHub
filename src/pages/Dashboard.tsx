@@ -63,9 +63,14 @@ export default function Dashboard() {
     enabled: !!selectedFestival,
   });
 
-  const { data: images = [] } = useQuery({
-    queryKey: ['user-images'],
-    queryFn: getImages,
+  const { data: totalImages = 0 } = useQuery({
+    queryKey: ['total-images', selectedFestival?.name, selectedFestival?.year],
+    queryFn: async () => {
+      if (!selectedFestival) return 0;
+      const images = await getImages(selectedFestival.name, selectedFestival.year);
+      return images.length;
+    },
+    enabled: !!selectedFestival,
   });
 
   const { data: festivals = [] } = useQuery({
@@ -98,7 +103,7 @@ export default function Dashboard() {
       description: t('ఫోటోలు మరియు చిత్రాలను అప్‌లోడ్ చేయండి', 'Upload and manage photos'),
       icon: Image,
       path: '/images',
-      value: `${images.length} ${t('చిత్రాలు', 'images')}`,
+      value: `${totalImages} ${t('చిత్రాలు', 'images')}`,
       color: 'text-green-600'
     }
   ];

@@ -1,16 +1,23 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFestival } from '@/contexts/FestivalContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { getAllFestivals } from '@/lib/festivals';
 import { FestivalCard } from '@/components/FestivalCard';
 import { Button } from '@/components/ui/button';
+import { AddFestivalDialog } from '@/components/AddFestivalDialog';
+import { AuthDialog } from '@/components/AuthDialog';
+import { Plus } from 'lucide-react';
 
 export default function FestivalSelection() {
   const { t, language, setLanguage } = useLanguage();
   const { setSelectedFestival } = useFestival();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [isAddFestivalOpen, setIsAddFestivalOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   const { data: festivals = [] } = useQuery({
     queryKey: ['festivals'],
@@ -36,13 +43,30 @@ export default function FestivalSelection() {
             </p>
           </div>
           
-          <Button
-            variant="outline"
-            onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-            className="shrink-0"
-          >
-            {language === 'telugu' ? 'EN' : 'తె'}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (isAuthenticated) {
+                  setIsAddFestivalOpen(true);
+                } else {
+                  setIsAuthOpen(true);
+                }
+              }}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              {t('ఉత్సవం జోడించు', 'Add Festival')}
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
+              className="shrink-0"
+            >
+              {language === 'telugu' ? 'EN' : 'తె'}
+            </Button>
+          </div>
         </div>
 
         {/* Festival Cards */}
@@ -63,6 +87,19 @@ export default function FestivalSelection() {
             </p>
           </div>
         )}
+
+        {/* Add Festival Dialog */}
+        <AddFestivalDialog 
+          open={isAddFestivalOpen}
+          onOpenChange={setIsAddFestivalOpen}
+        />
+
+        {/* Auth Dialog */}
+        <AuthDialog
+          isOpen={isAuthOpen}
+          onClose={() => setIsAuthOpen(false)}
+          onSuccess={() => setIsAuthOpen(false)}
+        />
       </div>
     </div>
   );

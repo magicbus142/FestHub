@@ -12,31 +12,34 @@ import FestivalSelection from "./pages/FestivalSelection";
 import { YearProvider } from "@/contexts/YearContext";
 import { FestivalProvider } from "@/contexts/FestivalContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <LanguageProvider>
-        <YearProvider>
-          <FestivalProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<FestivalSelection />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/chandas" element={<Chandas />} />
-                <Route path="/expenses" element={<Expenses />} />
-                <Route path="/images" element={<Images />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </FestivalProvider>
-        </YearProvider>
-      </LanguageProvider>
+      <AuthProvider>
+        <LanguageProvider>
+          <YearProvider>
+            <FestivalProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<FestivalSelection />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/chandas" element={<Chandas />} />
+                  <Route path="/expenses" element={<Expenses />} />
+                  <Route path="/images" element={<Images />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </FestivalProvider>
+          </YearProvider>
+        </LanguageProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

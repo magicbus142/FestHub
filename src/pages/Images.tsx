@@ -14,14 +14,17 @@ import { Upload, Image as ImageIcon, Calendar, Trash2, X, Download } from 'lucid
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFestival } from '@/contexts/FestivalContext';
 import { AuthDialog } from '@/components/AuthDialog';
 import { YearBadge } from '@/components/YearBadge';
+import { ComingSoon } from '@/components/ComingSoon';
 
 export default function Images() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth();
+  const { selectedFestival } = useFestival();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -33,15 +36,16 @@ export default function Images() {
   const [selectedImage, setSelectedImage] = useState<ImageRecord | null>(null);
 
   const { data: images = [] } = useQuery({
-    queryKey: ['user-images'],
-    queryFn: getImages,
+    queryKey: ['user-images', selectedFestival?.name, selectedFestival?.year],
+    queryFn: () => getImages(selectedFestival?.name, selectedFestival?.year),
+    enabled: !!selectedFestival,
   });
 
   const uploadImageMutation = useMutation({
     mutationFn: ({ file, title, description }: { file: File; title: string; description?: string }) =>
-      uploadImage(file, title, description),
+      uploadImage(file, title, description, selectedFestival?.name, selectedFestival?.year),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-images'] });
+      queryClient.invalidateQueries({ queryKey: ['user-images', selectedFestival?.name, selectedFestival?.year] });
       setIsDialogOpen(false);
       setFormData({ title: '', description: '' });
       setSelectedFile(null);
@@ -63,7 +67,7 @@ export default function Images() {
     mutationFn: ({ id, imagePath }: { id: string; imagePath: string }) =>
       deleteImage(id, imagePath),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-images'] });
+      queryClient.invalidateQueries({ queryKey: ['user-images', selectedFestival?.name, selectedFestival?.year] });
       toast({
         title: t('విజయవంతమైంది', 'Success'),
         description: t('చిత్రం తొలగించబడింది', 'Image deleted successfully'),
@@ -123,6 +127,22 @@ export default function Images() {
       description: formData.description
     });
   };
+
+  // Show coming soon if no festival selected
+  if (!selectedFestival) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-6">
+          <ComingSoon 
+            festivalName="Festival"
+            year={new Date().getFullYear()}
+            message={t('ఉత్సవాన్ని ఎంచుకోండి', 'Please select a festival first')}
+          />
+          <Navigation />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -214,9 +234,14 @@ export default function Images() {
           {/* Images Grid (image-only) */}
           <div className="max-w-6xl mx-auto">
             {images.length === 0 ? (
-              <div className="border rounded-lg p-8 text-center text-muted-foreground">
-                {t('ఇంకా చిత్రాలు లేవు. అప్‌లోడ్ చేయండి!', 'No images yet. Upload one!')}
-              </div>
+              <ComingSoon 
+                festivalName={selectedFestival.name}
+                year={selectedFestival.year}
+                message={t(
+                  'ఈ ఉత్సవానికి ఇంకా చిత్రాలు లేవు. అప్‌లోడ్ చేయండి!',
+                  'No images available for this festival yet. Upload some!'
+                )}
+              />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                 {images.map((image) => (

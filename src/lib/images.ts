@@ -12,7 +12,7 @@ export interface ImageRecord {
   updated_at?: string;
 }
 
-export const uploadImage = async (file: File, title: string, description?: string) => {
+export const uploadImage = async (file: File, title: string, description?: string, festivalName?: string, festivalYear?: number) => {
   // Upload file to storage
   const fileExt = file.name.split('.').pop();
   const fileName = `public/${Date.now()}.${fileExt}`;
@@ -36,8 +36,8 @@ export const uploadImage = async (file: File, title: string, description?: strin
       description,
       image_url: publicUrl,
       image_path: fileName,
-      festival_name: 'Ganesh',
-      festival_year: 2025
+      festival_name: festivalName || 'Ganesh',
+      festival_year: festivalYear || 2025
     }])
     .select()
     .single();
@@ -46,11 +46,20 @@ export const uploadImage = async (file: File, title: string, description?: strin
   return data;
 };
 
-export const getImages = async (): Promise<ImageRecord[]> => {
-  const { data, error } = await supabase
+export const getImages = async (festivalName?: string, festivalYear?: number): Promise<ImageRecord[]> => {
+  let query = supabase
     .from('images')
-    .select('*')
-    .order('created_at', { ascending: false });
+    .select('*');
+
+  if (festivalName) {
+    query = query.eq('festival_name', festivalName);
+  }
+  
+  if (festivalYear) {
+    query = query.eq('festival_year', festivalYear);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
 
   if (error) throw error;
   return (data || []) as ImageRecord[];
