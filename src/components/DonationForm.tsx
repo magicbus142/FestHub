@@ -55,7 +55,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
         setSponsorshipAmount('');
       }
     }
-    if (isOpen && !donation) {
+    if (open && !donation) {
       setNameTelugu('');
       setNameEnglish('');
       setCategory('chanda');

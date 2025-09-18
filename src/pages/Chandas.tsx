@@ -357,13 +357,13 @@ export default function Chandas() {
 
         {/* Donation Form Dialog */}
         <DonationForm
-          isOpen={isDonationFormOpen}
-          onClose={() => {
-            setIsDonationFormOpen(false);
-            setEditingDonation(undefined);
+          open={isDonationFormOpen}
+          onOpenChange={(open) => {
+            setIsDonationFormOpen(open);
+            if (!open) setEditingDonation(undefined);
           }}
           donation={editingDonation}
-          onSave={handleDonationSaved}
+          onDonationSaved={handleDonationSaved}
         />
 
         {/* Auth Dialog */}
