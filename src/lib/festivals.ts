@@ -86,8 +86,9 @@ export async function setFestivalBackgroundImage(festivalId: string, imageId: st
     .update({ background_image_id: imageId })
     .eq('id', festivalId)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
+  if (!data) throw new Error('Festival not found or you do not have permission to update it');
   return data;
 }
