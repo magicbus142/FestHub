@@ -5,18 +5,18 @@ import { Navigation } from '@/components/Navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Receipt, Image, Users, Plus, ArrowLeft } from 'lucide-react';
+import { BarChart3, Receipt, Users, ArrowLeft } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getTotalByFestival } from '@/lib/database';
 import { getTotalExpensesByFestival } from '@/lib/expenses';
 import { getImages } from '@/lib/images';
-import { getAllFestivals } from '@/lib/festivals';
 import { YearBadge } from '@/components/YearBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
-import { FestivalCard } from '@/components/FestivalCard';
-import { AddFestivalDialog } from '@/components/AddFestivalDialog';
+import { ChandasPreview } from '@/components/ChandasPreview';
+import { ExpensesPreview } from '@/components/ExpensesPreview';
+import { ImagesPreview } from '@/components/ImagesPreview';
 
 export default function Dashboard() {
   const { t, language, setLanguage } = useLanguage();
@@ -72,13 +72,6 @@ export default function Dashboard() {
     },
     enabled: !!selectedFestival,
   });
-
-  const { data: festivals = [] } = useQuery({
-    queryKey: ['festivals'],
-    queryFn: getAllFestivals,
-  });
-
-  const [isAddFestivalOpen, setIsAddFestivalOpen] = useState(false);
 
 
   const dashboardCards = [
@@ -238,55 +231,12 @@ export default function Dashboard() {
 
         {/* Edit allowed only when logged in; no auth dialog shown */}
 
-        {/* Festivals Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-foreground">
-              {t('ఉత్సవాలు', 'Festivals')}
-            </h2>
-            {isAuthenticated && (
-              <Button 
-                className="flex items-center gap-2"
-                onClick={() => setIsAddFestivalOpen(true)}
-              >
-                <Plus className="h-4 w-4" />
-                {t('కొత్త ఉత్సవం', 'Add New Festival')}
-              </Button>
-            )}
-          </div>
-          
-          {festivals.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {festivals.map((festival) => (
-                <FestivalCard 
-                  key={festival.id} 
-                  festival={festival}
-                  onClick={() => {
-                    // Navigate to festival details or management page
-                    console.log('Festival clicked:', festival.name);
-                  }}
-                />
-              ))}
-            </div>
-          ) : (
-            <Card className="p-8 text-center">
-              <div className="text-muted-foreground">
-                <p className="text-lg mb-2">
-                  {t('ఇంకా ఉత్సవాలు జోడించబడలేదు', 'No festivals added yet')}
-                </p>
-                <p className="text-sm">
-                  {t('కొత్త ఉత్సవాన్ని జోడించడానికి లాగిన్ చేయండి', 'Login to add new festivals')}
-                </p>
-              </div>
-            </Card>
-          )}
+        {/* Module Previews */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+          <ChandasPreview />
+          <ExpensesPreview />
+          <ImagesPreview />
         </div>
-
-        {/* Add Festival Dialog */}
-        <AddFestivalDialog 
-          open={isAddFestivalOpen} 
-          onOpenChange={setIsAddFestivalOpen} 
-        />
 
         {/* Navigation */}
         <Navigation />
