@@ -17,6 +17,7 @@ import { BarChart3, DollarSign, Plus, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { YearBadge } from '@/components/YearBadge';
+import { PageHeader } from '@/components/PageHeader';
 import { ComingSoon } from '@/components/ComingSoon';
 import { useNavigate } from 'react-router-dom';
 
@@ -199,38 +200,32 @@ export default function Chandas() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 pb-20 md:pb-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground leading-tight">
-              {t('గణేష్ చందా ట్రాకర్', 'Ganesh Chanda')}
-            </h1>
-            <p className="text-muted-foreground mt-1 md:mt-2">
-              {t('చందాలు మరియు స్పాన్సర్‌షిప్‌లను ట్రాక్ చేయండి', 'Track Chandas and sponsorships')}
-            </p>
-            <YearBadge />
-          </div>
-          <div className="w-full md:w-auto flex items-center flex-wrap gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 md:flex-none"
-              onClick={() => setNamePreference(prev => prev === 'telugu' ? 'english' : 'telugu')}
-            >
-              {namePreference === 'telugu' ? t('పేర్లు: తెలుగు', 'Names: Telugu') : t('పేర్లు: English', 'Names: English')}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-            >
-              {language === 'telugu' ? 'EN' : 'తె'}
-            </Button>
-            <Button onClick={handleAddDonation} size="sm" className="flex items-center gap-2 flex-1 md:flex-none">
-              <Plus className="h-4 w-4" />
-              {t('చందా జోడించు', 'Add Chanda')}
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          pageName="Chandas"
+          pageNameTelugu="చందాలు"
+          description="Track Chandas and sponsorships"
+          descriptionTelugu="చందాలు మరియు స్పాన్సర్‌షిప్‌లను ట్రాక్ చేయండి"
+        >
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 md:flex-none"
+            onClick={() => setNamePreference(prev => prev === 'telugu' ? 'english' : 'telugu')}
+          >
+            {namePreference === 'telugu' ? t('పేర్లు: తెలుగు', 'Names: Telugu') : t('పేర్లు: English', 'Names: English')}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
+          >
+            {language === 'telugu' ? 'EN' : 'తె'}
+          </Button>
+          <Button onClick={handleAddDonation} size="sm" className="flex items-center gap-2 flex-1 md:flex-none">
+            <Plus className="h-4 w-4" />
+            {t('చందా జోడించు', 'Add Chanda')}
+          </Button>
+        </PageHeader>
 
         {/* Navigation moved to bottom for consistency */}
 
@@ -257,13 +252,13 @@ export default function Chandas() {
                 value="chanda"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
-                {t('చందా', 'Chanda')} ({chandaCount})
+                {t('చందా', 'Chanda')} ({activeCategory === 'chanda' ? filteredDonations.length : chandaCount})
               </TabsTrigger>
               <TabsTrigger
                 value="sponsorship"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
-                {t('స్పాన్సర్‌షిప్', 'Sponsorship')} ({sponsorshipCount})
+                {t('స్పాన్సర్‌షిప్', 'Sponsorship')} ({activeCategory === 'sponsorship' ? filteredDonations.length : sponsorshipCount})
               </TabsTrigger>
             </TabsList>
           </Tabs>

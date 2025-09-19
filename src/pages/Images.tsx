@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFestival } from '@/contexts/FestivalContext';
 import { AuthDialog } from '@/components/AuthDialog';
 import { YearBadge } from '@/components/YearBadge';
+import { PageHeader } from '@/components/PageHeader';
 import { ComingSoon } from '@/components/ComingSoon';
 import { setFestivalBackgroundImage } from '@/lib/festivals';
 
@@ -168,17 +169,12 @@ export default function Images() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 pb-20 md:pb-6">
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 flex-wrap mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {t('చిత్రాలు', 'Images')}
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              {t('మీ ఫోటోలను అప్‌లోడ్ చేయండి మరియు నిర్వహించండి', 'Upload and manage your photos')}
-            </p>
-            <YearBadge />
-          </div>
-
+        <PageHeader
+          pageName="Images"
+          pageNameTelugu="చిత్రాలు"
+          description="Upload and manage your photos"
+          descriptionTelugu="మీ ఫోటోలను అప్‌లోడ్ చేయండి మరియు నిర్వహించండి"
+        >
           <Button
             className="flex items-center gap-2"
             onClick={() => {
@@ -192,265 +188,268 @@ export default function Images() {
             <Upload className="h-4 w-4" />
             {t('అప్‌లోడ్', 'Upload')}
           </Button>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>{t('కొత్త చిత్రం అప్‌లోడ్ చేయండి', 'Upload New Image')}</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="file">{t('చిత్రం', 'Image')} *</Label>
-                  <Input
-                    id="file"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    required
+        </PageHeader>
+
+        {/* Upload Dialog */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t('కొత్త చిత్రం అప్‌లోడ్ చేయండి', 'Upload New Image')}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="file">{t('చిత్రం', 'Image')} *</Label>
+                <Input
+                  id="file"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  required
+                />
+                {selectedFile && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {t('ఎంచుకున్నది:', 'Selected:')} {selectedFile.name}
+                  </p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="title">{t('టైటిల్ (ఐచ్ఛికం)', 'Title (optional)')}</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder={t('చిత్రం టైటిల్ (ఐచ్ఛికం)', 'Image title (optional)')}
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">{t('వివరణ', 'Description')}</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder={t('చిత్రం వివరణ (ఐచ్ఛికం)', 'Image description (optional)')}
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button type="submit" disabled={uploadImageMutation.isPending} className="flex-1">
+                  {uploadImageMutation.isPending ? (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      {t('అప్‌లోడ్ చేస్తోంది...', 'Uploading...')}
+                    </>
+                  ) : (
+                    t('అప్‌లోడ్', 'Upload')
+                  )}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  {t('రద్దు', 'Cancel')}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Images Grid (image-only) */}
+        <div className="max-w-6xl mx-auto">
+          {images.length === 0 ? (
+            <ComingSoon 
+              festivalName={selectedFestival.name}
+              year={selectedFestival.year}
+              message={t(
+                'ఈ ఉత్సవానికి ఇంకా చిత్రాలు లేవు. అప్‌లోడ్ చేయండి!',
+                'No images available for this festival yet. Upload some!'
+              )}
+            />
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+              {images.map((image) => (
+                <div
+                  key={image.id}
+                  className="relative group cursor-pointer rounded-lg overflow-hidden bg-muted border shadow-sm hover:shadow-md transition-shadow"
+                  onClick={() => setSelectedImage(image)}
+                >
+                  <img
+                    src={image.image_url}
+                    alt={image.title || 'Image'}
+                    loading="lazy"
+                    className="aspect-square w-full h-auto object-cover transition-transform duration-200 group-hover:scale-105"
                   />
-                  {selectedFile && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {t('ఎంచుకున్నది:', 'Selected:')} {selectedFile.name}
-                    </p>
+                  {isAuthenticated && (
+                    <div className="absolute top-2 right-2 flex gap-1">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="bg-background/80 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (selectedFestival?.id && image.id) {
+                            setBackgroundMutation.mutate({
+                              festivalId: selectedFestival.id,
+                              imageId: image.id
+                            });
+                          }
+                        }}
+                      >
+                        <Pin className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeletingImageId(image.id || null);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   )}
                 </div>
-                <div>
-                  <Label htmlFor="title">{t('టైటిల్ (ఐచ్ఛికం)', 'Title (optional)')}</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder={t('చిత్రం టైటిల్ (ఐచ్ఛికం)', 'Image title (optional)')}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="description">{t('వివరణ', 'Description')}</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder={t('చిత్రం వివరణ (ఐచ్ఛికం)', 'Image description (optional)')}
-                    rows={3}
-                  />
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button type="submit" disabled={uploadImageMutation.isPending} className="flex-1">
-                    {uploadImageMutation.isPending ? (
-                      <>
-                        <Upload className="h-4 w-4 mr-2" />
-                        {t('అప్‌లోడ్ చేస్తోంది...', 'Uploading...')}
-                      </>
-                    ) : (
-                      t('అప్‌లోడ్', 'Upload')
-                    )}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    {t('రద్దు', 'Cancel')}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+              ))}
+            </div>
+          )}
+        </div>
 
-          {/* Images Grid (image-only) */}
-          <div className="max-w-6xl mx-auto">
-            {images.length === 0 ? (
-              <ComingSoon 
-                festivalName={selectedFestival.name}
-                year={selectedFestival.year}
-                message={t(
-                  'ఈ ఉత్సవానికి ఇంకా చిత్రాలు లేవు. అప్‌లోడ్ చేయండి!',
-                  'No images available for this festival yet. Upload some!'
-                )}
-              />
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-                {images.map((image) => (
-                  <div
-                    key={image.id}
-                    className="relative group cursor-pointer rounded-lg overflow-hidden bg-muted border shadow-sm hover:shadow-md transition-shadow"
-                    onClick={() => setSelectedImage(image)}
-                  >
-                    <img
-                      src={image.image_url}
-                      alt={image.title || 'Image'}
-                      loading="lazy"
-                      className="aspect-square w-full h-auto object-cover transition-transform duration-200 group-hover:scale-105"
+        {/* Image Modal */}
+        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+          <DialogContent className="max-w-4xl w-full max-h-[90vh] p-0">
+            <div className="relative">
+              <Button
+                variant="outline"
+                size="sm"
+                className="absolute top-4 right-4 z-10 bg-background/80 backdrop-blur-sm"
+                onClick={() => setSelectedImage(null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+              {selectedImage && (
+                <div className="space-y-4">
+                  <div className="relative">
+                    <img 
+                      src={selectedImage.image_url} 
+                      alt={selectedImage.title}
+                      className="w-full max-h-[70vh] object-contain"
                     />
-                    {isAuthenticated && (
-                      <div className="absolute top-2 right-2 flex gap-1">
-                        <Button
+                  </div>
+                  <div className="p-6 space-y-4">
+                    <div>
+                      <h2 className="text-2xl font-bold">{selectedImage.title}</h2>
+                      {selectedImage.description && (
+                        <p className="text-muted-foreground mt-2">{selectedImage.description}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4 mr-1" />
+                        {format(new Date(selectedImage.created_at || ''), 'MMM dd, yyyy')}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button 
                           variant="outline"
-                          size="icon"
-                          className="bg-background/80 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground"
-                          onClick={(e) => {
+                          onClick={async (e) => {
                             e.stopPropagation();
-                            if (selectedFestival?.id && image.id) {
-                              setBackgroundMutation.mutate({
-                                festivalId: selectedFestival.id,
-                                imageId: image.id
+                            try {
+                              const response = await fetch(selectedImage.image_url);
+                              const blob = await response.blob();
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              const filename = selectedImage.title ? 
+                                `${selectedImage.title}.${blob.type.split('/')[1] || 'jpg'}` : 
+                                `image-${selectedImage.id}.${blob.type.split('/')[1] || 'jpg'}`;
+                              a.href = url;
+                              a.download = filename;
+                              document.body.appendChild(a);
+                              a.click();
+                              window.URL.revokeObjectURL(url);
+                              document.body.removeChild(a);
+                            } catch (error) {
+                              console.error('Download failed:', error);
+                              toast({
+                                title: t('లోపం', 'Error'),
+                                description: t('డౌన్‌లోడ్ విఫలమైంది', 'Download failed'),
+                                variant: 'destructive',
                               });
                             }
                           }}
                         >
-                          <Pin className="h-4 w-4" />
+                          <Download className="h-4 w-4 mr-2" />
+                          {t('డౌన్‌లోడ్', 'Download')}
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeletingImageId(image.id || null);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Image Modal */}
-          <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-            <DialogContent className="max-w-4xl w-full max-h-[90vh] p-0">
-              <div className="relative">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="absolute top-4 right-4 z-10 bg-background/80 backdrop-blur-sm"
-                  onClick={() => setSelectedImage(null)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-                {selectedImage && (
-                  <div className="space-y-4">
-                    <div className="relative">
-                      <img 
-                        src={selectedImage.image_url} 
-                        alt={selectedImage.title}
-                        className="w-full max-h-[70vh] object-contain"
-                      />
-                    </div>
-                    <div className="p-6 space-y-4">
-                      <div>
-                        <h2 className="text-2xl font-bold">{selectedImage.title}</h2>
-                        {selectedImage.description && (
-                          <p className="text-muted-foreground mt-2">{selectedImage.description}</p>
+                        {isAuthenticated && (
+                          <>
+                            <Button 
+                              variant="secondary"
+                              onClick={() => {
+                                if (selectedFestival?.id && selectedImage?.id) {
+                                  setBackgroundMutation.mutate({
+                                    festivalId: selectedFestival.id,
+                                    imageId: selectedImage.id
+                                  });
+                                  setSelectedImage(null);
+                                }
+                              }}
+                            >
+                              <Pin className="h-4 w-4 mr-2" />
+                              {t('నేపథ్యంగా సెట్ చేయండి', 'Set as Background')}
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              onClick={() => {
+                                setDeletingImageId(selectedImage.id || null);
+                                setSelectedImage(null);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              {t('తొలగించు', 'Delete')}
+                            </Button>
+                          </>
                         )}
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Calendar className="h-4 w-4 mr-1" />
-                          {format(new Date(selectedImage.created_at || ''), 'MMM dd, yyyy')}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            variant="outline"
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              try {
-                                const response = await fetch(selectedImage.image_url);
-                                const blob = await response.blob();
-                                const url = window.URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                const filename = selectedImage.title ? 
-                                  `${selectedImage.title}.${blob.type.split('/')[1] || 'jpg'}` : 
-                                  `image-${selectedImage.id}.${blob.type.split('/')[1] || 'jpg'}`;
-                                a.href = url;
-                                a.download = filename;
-                                document.body.appendChild(a);
-                                a.click();
-                                window.URL.revokeObjectURL(url);
-                                document.body.removeChild(a);
-                              } catch (error) {
-                                console.error('Download failed:', error);
-                                toast({
-                                  title: t('లోపం', 'Error'),
-                                  description: t('డౌన్‌లోడ్ విఫలమైంది', 'Download failed'),
-                                  variant: 'destructive',
-                                });
-                              }
-                            }}
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            {t('డౌన్‌లోడ్', 'Download')}
-                          </Button>
-                          {isAuthenticated && (
-                            <>
-                              <Button 
-                                variant="secondary"
-                                onClick={() => {
-                                  if (selectedFestival?.id && selectedImage?.id) {
-                                    setBackgroundMutation.mutate({
-                                      festivalId: selectedFestival.id,
-                                      imageId: selectedImage.id
-                                    });
-                                    setSelectedImage(null);
-                                  }
-                                }}
-                              >
-                                <Pin className="h-4 w-4 mr-2" />
-                                {t('నేపథ్యంగా సెట్ చేయండి', 'Set as Background')}
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                onClick={() => {
-                                  setDeletingImageId(selectedImage.id || null);
-                                  setSelectedImage(null);
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                {t('తొలగించు', 'Delete')}
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </div>
                     </div>
                   </div>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
 
-          {/* Delete Confirmation */}
-          <AlertDialog open={!!deletingImageId} onOpenChange={() => setDeletingImageId(null)}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>{t('చిత్రం తొలగించు', 'Delete Image')}</AlertDialogTitle>
-                <AlertDialogDescription>
-                  {t('మీరు ఈ చిత్రాన్ని తొలగించాలని ఖచ్చితంగా అనుకుంటున్నారా?', 'Are you sure you want to delete this image?')}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>{t('రద్దు', 'Cancel')}</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => {
-                    const image = images.find(img => img.id === deletingImageId);
-                    if (image) {
-                      deleteImageMutation.mutate({ id: image.id!, imagePath: image.image_path });
-                    }
-                    setDeletingImageId(null);
-                  }}
-                  className="bg-destructive text-destructive-foreground"
-                >
-                  {t('తొలగించు', 'Delete')}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+        {/* Delete Confirmation */}
+        <AlertDialog open={!!deletingImageId} onOpenChange={() => setDeletingImageId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('చిత్రం తొలగించు', 'Delete Image')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('మీరు ఈ చిత్రాన్ని తొలగించాలని ఖచ్చితంగా అనుకుంటున్నారా?', 'Are you sure you want to delete this image?')}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('రద్దు', 'Cancel')}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  const image = images.find(img => img.id === deletingImageId);
+                  if (image) {
+                    deleteImageMutation.mutate({ id: image.id!, imagePath: image.image_path });
+                  }
+                  setDeletingImageId(null);
+                }}
+                className="bg-destructive text-destructive-foreground"
+              >
+                {t('తొలగించు', 'Delete')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
-          {/* Navigation */}
-          <Navigation />
-          <AuthDialog
-            isOpen={isAuthOpen}
-            onClose={() => setIsAuthOpen(false)}
-            onSuccess={() => setIsAuthOpen(false)}
-          />
-        </div>
+        {/* Navigation */}
+        <Navigation />
+        
+        <AuthDialog
+          isOpen={isAuthOpen}
+          onClose={() => setIsAuthOpen(false)}
+          onSuccess={() => setIsAuthOpen(false)}
+        />
       </div>
     </div>
   );

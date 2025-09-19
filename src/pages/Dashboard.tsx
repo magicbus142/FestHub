@@ -11,6 +11,7 @@ import { getTotalByFestival } from '@/lib/database';
 import { getTotalExpensesByFestival } from '@/lib/expenses';
 import { getImages } from '@/lib/images';
 import { YearBadge } from '@/components/YearBadge';
+import { PageHeader } from '@/components/PageHeader';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
@@ -106,25 +107,18 @@ export default function Dashboard() {
   return <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 pb-20 md:pb-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              {t('వెనుక', 'Back')}
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">
-                {selectedFestival?.name || t('డాష్‌బోర్డ్', 'Dashboard')}
-              </h1>
-              
-              <YearBadge />
-            </div>
-          </div>
-          
+        <PageHeader
+          pageName="Dashboard"
+          pageNameTelugu="డాష్‌బోర్డ్"
+        >
+          <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            {t('వెనుక', 'Back')}
+          </Button>
           <Button variant="outline" onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')} className="shrink-0">
             {language === 'telugu' ? 'EN' : 'తె'}
           </Button>
-        </div>
+        </PageHeader>
 
         {/* Quick Stats */}
         <Card className="mb-6">

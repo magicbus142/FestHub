@@ -16,6 +16,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthDialog } from '@/components/AuthDialog';
 import { YearBadge } from '@/components/YearBadge';
+import { PageHeader } from '@/components/PageHeader';
 import { ComingSoon } from '@/components/ComingSoon';
 import { useNavigate } from 'react-router-dom';
 
@@ -114,17 +115,12 @@ export default function Expenses() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 pb-20 md:pb-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {t('ఖర్చులు', 'Expenses')}
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              {t('మీ ఖర్చులను ట్రాక్ చేయండి', 'Track your expenses')}
-            </p>
-            <YearBadge />
-          </div>
-
+        <PageHeader
+          pageName="Expenses"
+          pageNameTelugu="ఖర్చులు"
+          description="Track your expenses"
+          descriptionTelugu="మీ ఖర్చులను ట్రాక్ చేయండి"
+        >
           <Button
             className="flex items-center gap-2"
             onClick={() => {
@@ -138,6 +134,8 @@ export default function Expenses() {
             <Plus className="h-4 w-4" />
             {t('జోడించు', 'Add')}
           </Button>
+        </PageHeader>
+
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
@@ -186,7 +184,6 @@ export default function Expenses() {
               </form>
             </DialogContent>
           </Dialog>
-        </div>
 
         {/* Total Card */}
         <Card className="mb-6">
