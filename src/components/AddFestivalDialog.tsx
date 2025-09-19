@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { addFestival } from '@/lib/festivals';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -21,6 +22,7 @@ interface AddFestivalDialogProps {
 export function AddFestivalDialog({ open, onOpenChange }: AddFestivalDialogProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { user } = useSupabaseAuth();
   const queryClient = useQueryClient();
   
   const [formData, setFormData] = useState({
@@ -62,7 +64,7 @@ export function AddFestivalDialog({ open, onOpenChange }: AddFestivalDialogProps
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
+    if (!formData.name.trim() || !user) return;
 
     addMutation.mutate({
       name: formData.name,
@@ -176,7 +178,7 @@ export function AddFestivalDialog({ open, onOpenChange }: AddFestivalDialogProps
             </Button>
             <Button
               type="submit"
-              disabled={addMutation.isPending || !formData.name.trim()}
+              disabled={addMutation.isPending || !formData.name.trim() || !user}
             >
               {addMutation.isPending ? t('జోడిస్తున్నాము...', 'Adding...') : t('జోడించు', 'Add')}
             </Button>

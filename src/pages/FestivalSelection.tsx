@@ -3,18 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFestival } from '@/contexts/FestivalContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { getAllFestivals } from '@/lib/festivals';
 import { FestivalCard } from '@/components/FestivalCard';
 import { Button } from '@/components/ui/button';
 import { AddFestivalDialog } from '@/components/AddFestivalDialog';
-import { AuthDialog } from '@/components/AuthDialog';
+import { SupabaseAuthDialog } from '@/components/SupabaseAuthDialog';
 import { Plus } from 'lucide-react';
 
 export default function FestivalSelection() {
   const { t, language, setLanguage } = useLanguage();
   const { setSelectedFestival } = useFestival();
-  const { isAuthenticated } = useAuth();
+  const { user } = useSupabaseAuth();
   const navigate = useNavigate();
   const [isAddFestivalOpen, setIsAddFestivalOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -47,7 +47,7 @@ export default function FestivalSelection() {
             <Button
               variant="outline"
               onClick={() => {
-                if (isAuthenticated) {
+                if (user) {
                   setIsAddFestivalOpen(true);
                 } else {
                   setIsAuthOpen(true);
@@ -95,7 +95,7 @@ export default function FestivalSelection() {
         />
 
         {/* Auth Dialog */}
-        <AuthDialog
+        <SupabaseAuthDialog
           isOpen={isAuthOpen}
           onClose={() => setIsAuthOpen(false)}
           onSuccess={() => setIsAuthOpen(false)}

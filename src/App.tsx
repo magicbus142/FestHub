@@ -13,6 +13,7 @@ import { YearProvider } from "@/contexts/YearContext";
 import { FestivalProvider } from "@/contexts/FestivalContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SupabaseAuthProvider } from "@/contexts/SupabaseAuthContext";
 
 const queryClient = new QueryClient();
 
@@ -20,7 +21,8 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <LanguageProvider>
+        <SupabaseAuthProvider>
+          <LanguageProvider>
           <YearProvider>
             <FestivalProvider>
               <Toaster />
@@ -39,6 +41,7 @@ const App = () => (
             </FestivalProvider>
           </YearProvider>
         </LanguageProvider>
+        </SupabaseAuthProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

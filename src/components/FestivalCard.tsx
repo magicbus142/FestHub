@@ -1,4 +1,10 @@
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
+import { deleteFestival } from '@/lib/festivals';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { Trash2 } from 'lucide-react';
 import type { Festival } from '@/lib/festivals';
 
 interface FestivalCardProps {
@@ -7,6 +13,36 @@ interface FestivalCardProps {
 }
 
 export function FestivalCard({ festival, onClick }: FestivalCardProps) {
+  const { user } = useSupabaseAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteFestival,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['festivals'] });
+      toast({
+        title: 'Success',
+        description: 'Festival deleted successfully',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete festival',
+        variant: 'destructive',
+      });
+      console.error('Error deleting festival:', error);
+    },
+  });
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (festival.id && window.confirm('Are you sure you want to delete this festival?')) {
+      deleteMutation.mutate(festival.id);
+    }
+  };
+
   return (
     <Card 
       className="relative overflow-hidden cursor-pointer hover:shadow-festive transition-all duration-300 hover:scale-105 aspect-[4/3] group"
@@ -33,13 +69,31 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 p-6 h-full flex flex-col justify-end text-white">
-        <h3 className="text-2xl font-bold mb-2 drop-shadow-lg">
-          {festival.name}
-        </h3>
-        <p className="text-lg font-medium drop-shadow-md">
-          {festival.year}
-        </p>
+      <div className="relative z-10 p-6 h-full flex flex-col justify-between text-white">
+        {/* Delete button - only for authenticated users */}
+        {user && (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDelete}
+              disabled={deleteMutation.isPending}
+              className="text-white hover:bg-red-500/20 hover:text-red-100 transition-colors"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+        
+        {/* Festival info */}
+        <div className="flex flex-col justify-end">
+          <h3 className="text-2xl font-bold mb-2 drop-shadow-lg">
+            {festival.name}
+          </h3>
+          <p className="text-lg font-medium drop-shadow-md">
+            {festival.year}
+          </p>
+        </div>
       </div>
     </Card>
   );
