@@ -252,13 +252,13 @@ export default function Chandas() {
                 value="chanda"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
-                {t('చందా', 'Chanda')} ({activeCategory === 'chanda' ? filteredDonations.length : chandaCount})
+                {t('చందా', 'Chanda')} ({chandaCount})
               </TabsTrigger>
               <TabsTrigger
                 value="sponsorship"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
-                {t('స్పాన్సర్‌షిప్', 'Sponsorship')} ({activeCategory === 'sponsorship' ? filteredDonations.length : sponsorshipCount})
+                {t('స్పాన్సర్‌షిప్', 'Sponsorship')} ({sponsorshipCount})
               </TabsTrigger>
             </TabsList>
           </Tabs>
