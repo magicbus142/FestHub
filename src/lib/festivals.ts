@@ -26,20 +26,10 @@ export async function getAllFestivals(): Promise<Festival[]> {
 
   if (error) throw error;
 
-  // Get images to use as fallback backgrounds
-  const { data: images } = await supabase
-    .from('images')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  // Map festivals with background images from database
-  return (festivals || []).map((festival: any, index) => ({
+  // Map festivals with background images from database - only use their own images
+  return (festivals || []).map((festival: any) => ({
     ...festival,
-    background_image: festival.background_image_rel?.[0]?.image_url || 
-      festival.background_image || 
-      images?.[index]?.image_url || 
-      (festival.name === 'Ganesh' ? 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop' :
-       'https://images.unsplash.com/photo-1605538883669-825200433431?w=800&h=600&fit=crop')
+    background_image: festival.background_image_rel?.[0]?.image_url || festival.background_image || null
   }));
 }
 
