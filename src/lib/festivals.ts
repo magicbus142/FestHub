@@ -26,11 +26,33 @@ export async function getAllFestivals(): Promise<Festival[]> {
 
   if (error) throw error;
 
-  // Map festivals with background images from database - only use their own images
-  return (festivals || []).map((festival: any) => ({
-    ...festival,
-    background_image: festival.background_image_rel?.[0]?.image_url || festival.background_image || null
-  }));
+  // Get images for each festival to use as background when no specific background is set
+  const festivalsWithImages = await Promise.all(
+    (festivals || []).map(async (festival: any) => {
+      // First check if festival has a specific background image
+      let backgroundImage = festival.background_image_rel?.[0]?.image_url || festival.background_image;
+      
+      // If no specific background, get the latest image from this festival
+      if (!backgroundImage) {
+        const { data: festivalImages } = await supabase
+          .from('images')
+          .select('image_url')
+          .eq('festival_name', festival.name)
+          .eq('festival_year', festival.year)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        
+        backgroundImage = festivalImages?.[0]?.image_url || null;
+      }
+      
+      return {
+        ...festival,
+        background_image: backgroundImage
+      };
+    })
+  );
+
+  return festivalsWithImages;
 }
 
 export async function getActiveFestivals(): Promise<Festival[]> {
