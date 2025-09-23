@@ -19,6 +19,7 @@ import { YearBadge } from '@/components/YearBadge';
 import { PageHeader } from '@/components/PageHeader';
 import { ComingSoon } from '@/components/ComingSoon';
 import { useNavigate } from 'react-router-dom';
+import { BackButton } from '@/components/BackButton';
 
 export default function Expenses() {
   const { t, language, setLanguage } = useLanguage();
@@ -121,69 +122,87 @@ export default function Expenses() {
           description="Track your expenses"
           descriptionTelugu="మీ ఖర్చులను ట్రాక్ చేయండి"
         >
-          <Button
-            className="flex items-center gap-2"
-            onClick={() => {
-              if (isAuthenticated) {
-                setIsDialogOpen(true);
-              } else {
-                setIsAuthOpen(true);
-              }
-            }}
-          >
-            <Plus className="h-4 w-4" />
-            {t('జోడించు', 'Add')}
-          </Button>
+          <div className="flex flex-col gap-3 w-full">
+            {/* Back + Language Row */}
+            <div className="flex items-center justify-between">
+              <BackButton emphasis size="sm" className="rounded-md " />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
+                className="px-3"
+              >
+                {language === 'telugu' ? 'EN' : 'తె'}
+              </Button>
+            </div>
+
+            {/* Prominent Add Expense Button */}
+            <Button
+              size="lg"
+              onClick={() => {
+                if (isAuthenticated) {
+                  setIsDialogOpen(true);
+                } else {
+                  setIsAuthOpen(true);
+                }
+              }}
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              {t('ఖర్చు జోడించు', 'Add Expense')}
+            </Button>
+          </div>
         </PageHeader>
 
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>{t('కొత్త ఖర్చు జోడించండి', 'Add New Expense')}</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="type">{t('రకం', 'Type')} *</Label>
-                  <Input
-                    id="type"
-                    value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                    placeholder={t('ఖర్చు రకం', 'Expense type')}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="amount">{t('మొత్తం', 'Amount')} *</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                    placeholder={t('మొత్తం', 'Amount')}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="description">{t('వివరణ', 'Description')}</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder={t('వివరణ (ఐచ్ఛికం)', 'Description (optional)')}
-                    rows={3}
-                  />
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button type="submit" disabled={addExpenseMutation.isPending} className="flex-1">
-                    {addExpenseMutation.isPending ? t('జోడిస్తోంది...', 'Adding...') : t('జోడించు', 'Add')}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    {t('రద్దు', 'Cancel')}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+        {/* Dialog */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t('కొత్త ఖర్చు జోడించండి', 'Add New Expense')}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="type">{t('రకం', 'Type')} *</Label>
+                <Input
+                  id="type"
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  placeholder={t('ఖర్చు రకం', 'Expense type')}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="amount">{t('మొత్తం', 'Amount')} *</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  placeholder={t('మొత్తం', 'Amount')}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">{t('వివరణ', 'Description')}</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder={t('వివరణ (ఐచ్ఛికం)', 'Description (optional)')}
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button type="submit" disabled={addExpenseMutation.isPending} className="flex-1">
+                  {addExpenseMutation.isPending ? t('జోడిస్తోంది...', 'Adding...') : t('జోడించు', 'Add')}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  {t('రద్దు', 'Cancel')}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
 
         {/* Total Card */}
         <Card className="mb-6">

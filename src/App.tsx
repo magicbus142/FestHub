@@ -14,37 +14,40 @@ import { FestivalProvider } from "@/contexts/FestivalContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SupabaseAuthProvider } from "@/contexts/SupabaseAuthContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <SupabaseAuthProvider>
-          <LanguageProvider>
-          <YearProvider>
-            <FestivalProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<FestivalSelection />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/chandas" element={<Chandas />} />
-                  <Route path="/expenses" element={<Expenses />} />
-                  <Route path="/images" element={<Images />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
-            </FestivalProvider>
-          </YearProvider>
-        </LanguageProvider>
-        </SupabaseAuthProvider>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AuthProvider>
+          <SupabaseAuthProvider>
+            <LanguageProvider>
+            <YearProvider>
+              <FestivalProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <Routes>
+                    <Route path="/" element={<FestivalSelection />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/chandas" element={<Chandas />} />
+                    <Route path="/expenses" element={<Expenses />} />
+                    <Route path="/images" element={<Images />} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </BrowserRouter>
+              </FestivalProvider>
+            </YearProvider>
+          </LanguageProvider>
+          </SupabaseAuthProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

@@ -30,7 +30,9 @@ export async function getAllFestivals(): Promise<Festival[]> {
   const festivalsWithImages = await Promise.all(
     (festivals || []).map(async (festival: any) => {
       // First check if festival has a specific background image
-      let backgroundImage = festival.background_image_rel?.[0]?.image_url || festival.background_image;
+      // background_image_rel can be either an object (1-1) or an array depending on Supabase return shape
+      const rel = festival.background_image_rel;
+      let backgroundImage = (Array.isArray(rel) ? rel?.[0]?.image_url : rel?.image_url) || festival.background_image;
       
       // If no specific background, get the latest image from this festival
       if (!backgroundImage) {

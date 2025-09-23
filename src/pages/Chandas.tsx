@@ -20,6 +20,7 @@ import { YearBadge } from '@/components/YearBadge';
 import { PageHeader } from '@/components/PageHeader';
 import { ComingSoon } from '@/components/ComingSoon';
 import { useNavigate } from 'react-router-dom';
+import { BackButton } from '@/components/BackButton';
 
 export default function Chandas() {
   const { t, language, setLanguage } = useLanguage();
@@ -206,25 +207,45 @@ export default function Chandas() {
           description="Track Chandas and sponsorships"
           descriptionTelugu="చందాలు మరియు స్పాన్సర్‌షిప్‌లను ట్రాక్ చేయండి"
         >
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 md:flex-none"
-            onClick={() => setNamePreference(prev => prev === 'telugu' ? 'english' : 'telugu')}
-          >
-            {namePreference === 'telugu' ? t('పేర్లు: తెలుగు', 'Names: Telugu') : t('పేర్లు: English', 'Names: English')}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-          >
-            {language === 'telugu' ? 'EN' : 'తె'}
-          </Button>
-          <Button onClick={handleAddDonation} size="sm" className="flex items-center gap-2 flex-1 md:flex-none">
-            <Plus className="h-4 w-4" />
-            {t('చందా జోడించు', 'Add Chanda')}
-          </Button>
+          <div className="flex flex-col gap-3 w-full">
+            {/* Back + Language Row */}
+            <div className="flex items-center justify-between">
+              <BackButton
+                className="rounded-md"
+                emphasis size="sm"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
+                className="px-3"
+              >
+                {language === 'telugu' ? 'EN' : 'తె'}
+              </Button>
+            </div>
+
+            {/* Language and Name Preference Controls */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setNamePreference(prev => prev === 'telugu' ? 'english' : 'telugu')}
+                className="flex-1"
+              >
+                {namePreference === 'telugu' ? t('పేర్లు: తెలుగు', 'Names: Telugu') : t('పేర్లు: English', 'Names: English')}
+              </Button>
+            </div>
+
+            {/* Prominent Add Button */}
+            <Button
+              onClick={handleAddDonation}
+              size="lg"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              {t('చందా జోడించు', 'Add Chanda')}
+            </Button>
+          </div>
         </PageHeader>
 
         {/* Navigation moved to bottom for consistency */}

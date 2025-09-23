@@ -38,14 +38,26 @@ export default function FestivalSelection() {
             <h1 className="text-3xl font-bold text-foreground">
               {t('ఉత్సవాన్ని ఎంచుకోండి', 'Select Festival')}
             </h1>
-            <p className="text-muted-foreground mt-2">
-              {t('మీ ఎంపిక చేసిన ఉత్సవ డేటాను చూడటానికి ఉత్సవాన్ని ఎంచుకోండి', 'Choose a festival to view its data')}
-            </p>
+            
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-3 w-full sm:w-auto">
+            {/* Language Toggle */}
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
+                className="px-3"
+              >
+                {language === 'telugu' ? 'EN' : 'తె'}
+              </Button>
+            </div>
+
+            {/* Prominent Add Festival Button */}
             <Button
               variant="outline"
+              size="lg"
               onClick={() => {
                 if (isAuthenticated) {
                   setIsAddFestivalOpen(true);
@@ -53,18 +65,10 @@ export default function FestivalSelection() {
                   setIsAuthOpen(true);
                 }
               }}
-              className="flex items-center gap-2"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-5 w-5 mr-2" />
               {t('ఉత్సవం జోడించు', 'Add Festival')}
-            </Button>
-            
-            <Button
-              variant="outline"
-              onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-              className="shrink-0"
-            >
-              {language === 'telugu' ? 'EN' : 'తె'}
             </Button>
           </div>
         </div>

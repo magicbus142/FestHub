@@ -5,7 +5,7 @@ import { Navigation } from '@/components/Navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Receipt, Users, ArrowLeft } from 'lucide-react';
+import { BarChart3, Receipt, Users, ArrowLeft, Image } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getTotalByFestival } from '@/lib/database';
 import { getTotalExpensesByFestival } from '@/lib/expenses';
@@ -18,6 +18,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ChandasPreview } from '@/components/ChandasPreview';
 import { ExpensesPreview } from '@/components/ExpensesPreview';
 import { ImagesPreview } from '@/components/ImagesPreview';
+import { BackButton } from '@/components/BackButton';
+
 export default function Dashboard() {
   const {
     t,
@@ -40,23 +42,52 @@ export default function Dashboard() {
   }, [selectedFestival, navigate]);
   const [isPrevDialogOpen, setIsPrevDialogOpen] = useState(false as boolean);
   const [prevInput, setPrevInput] = useState('' as string);
-  // Hardcoded default previous amount (change here if needed)
-  const PREVIOUS_AMOUNT_DEFAULT = 0;
-  const [previousAmount, setPreviousAmount] = useState<number>(PREVIOUS_AMOUNT_DEFAULT);
+  const [editingCardType, setEditingCardType] = useState<'chandas' | 'expenses' | 'images' | null>(null);
 
-  // Load from localStorage once (optional persistence without DB)
+  // Previous amounts per festival and card type
+  const [previousAmounts, setPreviousAmounts] = useState<Record<string, Record<string, number>>>({});
+
+  // Load previous amounts from localStorage
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('previous_amount');
-      if (stored !== null) setPreviousAmount(Number(stored) || 0);
+      const stored = localStorage.getItem('previous_amounts');
+      if (stored) {
+        setPreviousAmounts(JSON.parse(stored));
+      }
     } catch {}
   }, []);
-  const savePreviousAmount = (value: number) => {
-    setPreviousAmount(value);
+
+  // Get previous amount for specific festival and card type
+  const getPreviousAmount = (cardType: 'chandas' | 'expenses' | 'images') => {
+    if (!selectedFestival) return 0;
+    const festivalKey = `${selectedFestival.name}-${selectedFestival.year}`;
+    return previousAmounts[festivalKey]?.[cardType] || 0;
+  };
+
+  // Save previous amount for specific festival and card type
+  const savePreviousAmount = (cardType: 'chandas' | 'expenses' | 'images', value: number) => {
+    if (!selectedFestival) return;
+
+    const festivalKey = `${selectedFestival.name}-${selectedFestival.year}`;
+    const updatedAmounts = {
+      ...previousAmounts,
+      [festivalKey]: {
+        ...previousAmounts[festivalKey],
+        [cardType]: value
+      }
+    };
+
+    setPreviousAmounts(updatedAmounts);
     try {
-      localStorage.setItem('previous_amount', String(value));
+      localStorage.setItem('previous_amounts', JSON.stringify(updatedAmounts));
     } catch {}
   };
+
+  // Calculate balance using per-card previous amounts
+  const chandasPrev = getPreviousAmount('chandas');
+  const expensesPrev = getPreviousAmount('expenses');
+  const imagesPrev = getPreviousAmount('images');
+
   const {
     data: totalDonations = 0
   } = useQuery({
@@ -111,13 +142,26 @@ export default function Dashboard() {
           pageName="Dashboard"
           pageNameTelugu="డాష్‌బోర్డ్"
         >
-          <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            {t('వెనుక', 'Back')}
-          </Button>
-          <Button variant="outline" onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')} className="shrink-0">
-            {language === 'telugu' ? 'EN' : 'తె'}
-          </Button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2 hover:bg-accent"
+              
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {t('వెనుక', 'Back')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
+              className="px-3"
+            >
+              {language === 'telugu' ? 'EN' : 'తె'}
+            </Button>
+          </div>
         </PageHeader>
 
         {/* Quick Stats */}
@@ -149,22 +193,23 @@ export default function Dashboard() {
               <div className="text-center">
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
                   <p className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
-                    ₹{previousAmount.toLocaleString()}
+                    ₹{chandasPrev.toLocaleString()}
                   </p>
                   {isAuthenticated && <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => {
-                  setPrevInput(String(previousAmount || 0));
+                  setPrevInput(String(chandasPrev || 0));
+                  setEditingCardType('chandas');
                   setIsPrevDialogOpen(true);
                 }}>
                       {t('సవరించు', 'Edit')}
                     </Button>}
                 </div>
                 <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                  {t('మునుపటి మొత్తం', 'Previous Amount')}
+                  {t('మునుపటి చందాలు', 'Previous Chandas')}
                 </p>
               </div>
               <div className="text-center sm:col-span-2 md:col-span-1">
                 <p className="text-2xl sm:text-3xl font-bold text-green-600 leading-tight">
-                  ₹{(totalDonations + previousAmount - totalExpenses).toLocaleString()}
+                  ₹{(totalDonations + chandasPrev - totalExpenses - expensesPrev).toLocaleString()}
                 </p>
                 <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   {t('మిగిలిన మొత్తం', 'Balance')}
@@ -178,7 +223,11 @@ export default function Dashboard() {
         <Dialog open={isPrevDialogOpen} onOpenChange={setIsPrevDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{t('మునుపటి మొత్తాన్ని సవరించు', 'Edit Previous Amount')}</DialogTitle>
+              <DialogTitle>
+                {editingCardType === 'chandas' && t('మునుపటి చందాల మొత్తాన్ని సవరించు', 'Edit Previous Chandas Amount')}
+                {editingCardType === 'expenses' && t('మునుపటి ఖర్చుల మొత్తాన్ని సవరించు', 'Edit Previous Expenses Amount')}
+                {editingCardType === 'images' && t('మునుపటి చిత్రాల మొత్తాన్ని సవరించు', 'Edit Previous Images Amount')}
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
               <Input type="number" value={prevInput} onChange={e => setPrevInput(e.target.value)} placeholder={t('మొత్తం', 'Amount')} />
@@ -189,7 +238,7 @@ export default function Dashboard() {
                 <Button onClick={() => {
                 const val = Number(prevInput);
                 if (!Number.isFinite(val)) return;
-                savePreviousAmount(val);
+                savePreviousAmount(editingCardType!, val);
                 setIsPrevDialogOpen(false);
               }}>
                   {t('సేవ్', 'Save')}
