@@ -15,6 +15,11 @@ export interface Donation {
 export type SponsorshipType = 'విగరహం' | 'ల్డడు' | 'Day1-భోజనం' | 'Day2-భోజనం' | 'Day3-భోజనం' | 'Day1-టిఫిన్' | 'Day2-టిఫిన్' | 'Day3-టిఫిన్' | 'ఇతర';
 export type ChandaType = 'చందా';
 
+export interface NameSuggestion {
+  name: string;
+  name_english?: string | null;
+}
+
 export const addDonation = async (donation: Omit<Donation, 'id' | 'created_at' | 'updated_at'>) => {
   const { data, error } = await supabase
     .from('donations')
@@ -109,6 +114,30 @@ export const searchDonations = async (searchTerm: string): Promise<Donation[]> =
   return (data || []) as Donation[];
 };
 
+export const searchNameSuggestions = async (term: string): Promise<NameSuggestion[]> => {
+  const q = term.trim();
+  if (!q) return [];
+  const { data, error } = await supabase
+    .from('donations')
+    .select('name,name_english,category')
+    .eq('category', 'chanda')
+    .or(`name.ilike.%${q}%,name_english.ilike.%${q}%`)
+    .limit(50);
+
+  if (error) throw error;
+
+  // Deduplicate by normalized key (prefer english if present)
+  const seen = new Set<string>();
+  const results: NameSuggestion[] = [];
+  for (const row of data || []) {
+    const key = (row.name_english?.trim().toLowerCase() || row.name?.trim().toLowerCase());
+    if (!key) continue;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    results.push({ name: row.name, name_english: row.name_english });
+  }
+  return results;
+};
 
 export const getTotalAmount = async (): Promise<number> => {
   const { data, error } = await supabase
