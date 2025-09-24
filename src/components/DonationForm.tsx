@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Donation, SponsorshipType, ChandaType, addDonation, updateDonation } from '@/lib/database';
+import { Donation, SponsorshipType, ChandaType, addDonation, updateDonation, type NameSuggestion, searchNameSuggestions } from '@/lib/database';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { X, Plus, Trash2 } from 'lucide-react';
@@ -42,6 +42,12 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
   const { toast } = useToast();
   const { t } = useLanguage();
 
+  // Suggestions state
+  const [suggestions, setSuggestions] = useState<NameSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [suggestionQuery, setSuggestionQuery] = useState('');
+
   // When the dialog opens, ensure the form reflects the donation being edited
   useEffect(() => {
     if (open && donation) {
@@ -54,6 +60,8 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
       } else {
         setSponsorshipAmount('');
       }
+      setSuggestions([]);
+      setShowSuggestions(false);
     }
     if (open && !donation) {
       setNameTelugu('');
@@ -61,8 +69,34 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
       setCategory('chanda');
       setDonationItems([{ type: 'చందా', amount: '' }]);
       setSponsorshipAmount('');
+      setSuggestions([]);
+      setShowSuggestions(false);
     }
   }, [open, donation]);
+
+  // Debounced suggestions fetch based on either Telugu or English input
+  useEffect(() => {
+    const term = (nameEnglish || nameTelugu).trim();
+    setSuggestionQuery(term);
+    if (!term || term.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    setLoadingSuggestions(true);
+    const handle = setTimeout(async () => {
+      try {
+        const res = await searchNameSuggestions(term);
+        setSuggestions(res);
+        setShowSuggestions(res.length > 0);
+      } catch (e) {
+        // silent fail
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [nameTelugu, nameEnglish]);
 
   const addDonationItem = () => {
     const defaultType = category === 'chanda' ? 'చందా' : 'ఇతర';
@@ -79,6 +113,12 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
     const newItems = [...donationItems];
     newItems[index] = { ...newItems[index], [field]: value };
     setDonationItems(newItems);
+  };
+
+  const applySuggestion = (s: NameSuggestion) => {
+    setNameTelugu(s.name || '');
+    setNameEnglish(s.name_english || '');
+    setShowSuggestions(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -203,6 +243,8 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
       setNameEnglish('');
       setDonationItems([{ type: 'చందా', amount: '' }]);
       setCategory('chanda');
+      setSuggestions([]);
+      setShowSuggestions(false);
     }, 300);
   };
 
@@ -260,15 +302,16 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
             <Label className="text-foreground font-medium">
               {t('పేరు (తెలుగు / ఇంగ్లీష్‌లో కనీసం ఒకటి)', 'Name (at least one of Telugu/English)')}
             </Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 relative">
               <div>
                 <Label htmlFor="name_telugu" className="text-xs">{t('పేరు (తెలుగు)', 'Name (Telugu)')}</Label>
                 <Input
                   id="name_telugu"
                   value={nameTelugu}
-                  onChange={(e) => setNameTelugu(e.target.value)}
+                  onChange={(e) => { setNameTelugu(e.target.value); }}
                   placeholder={t('ఉదా: రామయ్య', 'e.g., రామయ్య')}
                   className="bg-background border-border"
+                  onFocus={() => suggestions.length && setShowSuggestions(true)}
                 />
               </div>
               <div>
@@ -276,11 +319,34 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
                 <Input
                   id="name_english"
                   value={nameEnglish}
-                  onChange={(e) => setNameEnglish(e.target.value)}
+                  onChange={(e) => { setNameEnglish(e.target.value); }}
                   placeholder={t('e.g., Ramaiah', 'e.g., Ramaiah')}
                   className="bg-background border-border"
+                  onFocus={() => suggestions.length && setShowSuggestions(true)}
                 />
               </div>
+
+              {/* Suggestions dropdown (spans both columns) */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute z-50 top-full left-0 mt-1 w-full md:col-span-2 bg-popover border border-border rounded-md shadow-sm max-h-56 overflow-auto">
+                  <ul className="divide-y divide-border">
+                    {suggestions.map((s, idx) => (
+                      <li key={idx}>
+                        <button
+                          type="button"
+                          className="w-full text-left px-3 py-2 hover:bg-muted/60"
+                          onClick={() => applySuggestion(s)}
+                        >
+                          <div className="text-sm font-medium">{s.name}</div>
+                          {s.name_english && (
+                            <div className="text-xs text-muted-foreground">{s.name_english}</div>
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
 
