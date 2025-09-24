@@ -380,6 +380,7 @@ export default function Chandas() {
           }}
           donation={editingDonation}
           onDonationSaved={handleDonationSaved}
+          selectedFestival={selectedFestival ? { name: selectedFestival.name, year: selectedFestival.year } : undefined}
         />
 
         {/* Auth Dialog */}
