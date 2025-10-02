@@ -8,6 +8,8 @@ export interface Donation {
   amount: number;
   type: string;
   category: 'chanda' | 'sponsorship';
+  festival_name?: string;
+  festival_year?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -29,7 +31,9 @@ export const addDonation = async (donation: Omit<Donation, 'id' | 'created_at' |
       name_english: donation.name_english,
       amount: donation.amount,
       type: donation.type,
-      category: donation.category
+      category: donation.category,
+      festival_name: donation.festival_name,
+      festival_year: donation.festival_year
     }])
     .select()
     .single();
@@ -46,7 +50,9 @@ export const updateDonation = async (id: string, donation: Omit<Donation, 'id' |
       name_english: donation.name_english,
       amount: donation.amount,
       type: donation.type,
-      category: donation.category
+      category: donation.category,
+      festival_name: donation.festival_name,
+      festival_year: donation.festival_year
     })
     .eq('id', id)
     .select()

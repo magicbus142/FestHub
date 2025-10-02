@@ -20,8 +20,8 @@ export const addExpense = async (expense: Omit<Expense, 'id' | 'user_id' | 'crea
       type: expense.type,
       amount: expense.amount,
       description: expense.description,
-      festival_name: 'Ganesh', // Default to current festival
-      festival_year: 2025
+      festival_name: expense.festival_name,
+      festival_year: expense.festival_year
     }])
     .select()
     .single();

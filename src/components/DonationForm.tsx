@@ -181,7 +181,9 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
           name_english: nameEnglish.trim() || undefined,
           amount: category === 'sponsorship' ? 0 : parseFloat(first.amount),
           type: normalizeType(first.type),
-          category
+          category,
+          festival_name: selectedFestival?.name,
+          festival_year: selectedFestival?.year
         };
         await updateDonation(donation.id, donationData);
       } else {
@@ -193,7 +195,9 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
               name_english: nameEnglish.trim() || undefined,
               amount: 0,
               type: normalizeType(item.type),
-              category
+              category,
+              festival_name: selectedFestival?.name,
+              festival_year: selectedFestival?.year
             };
             await addDonation(donationData);
           }
@@ -204,7 +208,9 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
               name_english: nameEnglish.trim() || undefined,
               amount: parseFloat(item.amount),
               type: normalizeType(item.type),
-              category
+              category,
+              festival_name: selectedFestival?.name,
+              festival_year: selectedFestival?.year
             };
             await addDonation(donationData);
           }
