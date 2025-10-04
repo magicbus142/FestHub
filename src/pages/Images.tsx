@@ -293,12 +293,19 @@ export default function Images() {
                     loading="lazy"
                     className="aspect-square w-full h-auto object-cover transition-transform duration-200 group-hover:scale-105"
                   />
+                  {image.title && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-2 sm:p-3">
+                      <p className="text-white text-xs sm:text-sm font-medium line-clamp-2 drop-shadow-md">
+                        {image.title}
+                      </p>
+                    </div>
+                  )}
                   {isAuthenticated && (
                     <div className="absolute top-2 right-2 flex gap-1">
                       <Button
                         variant="outline"
                         size="icon"
-                        className="bg-background/80 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground"
+                        className="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground"
                         onClick={(e) => {
                           e.stopPropagation();
                           if (selectedFestival?.id && image.id) {
@@ -309,18 +316,18 @@ export default function Images() {
                           }
                         }}
                       >
-                        <Pin className="h-4 w-4" />
+                        <Pin className="h-3.5 w-3.5" />
                       </Button>
                       <Button
                         variant="outline"
                         size="icon"
-                        className="bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive"
+                        className="h-8 w-8 bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation();
                           setDeletingImageId(image.id || null);
                         }}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   )}
@@ -363,44 +370,43 @@ export default function Images() {
                          <p className="text-muted-foreground mt-2">{selectedImage.description}</p>
                        )}
                      </div>
-                     <div className="flex items-center justify-between flex-col sm:flex-row gap-3 sm:gap-0">
-                       <div className="flex items-center text-sm text-muted-foreground">
-                         <Calendar className="h-4 w-4 mr-1" />
-                         {format(new Date(selectedImage.created_at || ''), 'MMM dd, yyyy')}
-                       </div>
-                       <div className="flex w-full sm:w-auto items-center gap-2 justify-end">
-                         <Button 
-                           className="flex-1 sm:flex-none"
-                           variant="outline"
-                           onClick={async (e) => {
-                             e.stopPropagation();
-                             try {
-                               const response = await fetch(selectedImage.image_url);
-                               const blob = await response.blob();
-                               const url = window.URL.createObjectURL(blob);
-                               const a = document.createElement('a');
-                               const filename = selectedImage.title ? 
-                                 `${selectedImage.title}.${blob.type.split('/')[1] || 'jpg'}` : 
-                                 `image-${selectedImage.id}.${blob.type.split('/')[1] || 'jpg'}`;
-                               a.href = url;
-                               a.download = filename;
-                               document.body.appendChild(a);
-                               a.click();
-                               window.URL.revokeObjectURL(url);
-                               document.body.removeChild(a);
-                             } catch (error) {
-                               console.error('Download failed:', error);
-                               toast({
-                                 title: t('లోపం', 'Error'),
-                                 description: t('డౌన్‌లోడ్ విఫలమైంది', 'Download failed'),
-                                 variant: 'destructive',
-                               });
-                             }
-                           }}
-                         >
-                           <Download className="h-4 w-4 mr-2" />
-                           {t('డౌన్‌లోడ్', 'Download')}
-                         </Button>
+                      <div className="flex items-center justify-between flex-col sm:flex-row gap-3 sm:gap-0">
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Calendar className="h-4 w-4 mr-1" />
+                          {format(new Date(selectedImage.created_at || ''), 'MMM dd, yyyy')}
+                        </div>
+                        <div className="flex w-full sm:w-auto items-center gap-2 justify-end">
+                          <Button 
+                            className="flex-1 sm:flex-none bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-md"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                const response = await fetch(selectedImage.image_url);
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                const filename = selectedImage.title ? 
+                                  `${selectedImage.title}.${blob.type.split('/')[1] || 'jpg'}` : 
+                                  `image-${selectedImage.id}.${blob.type.split('/')[1] || 'jpg'}`;
+                                a.href = url;
+                                a.download = filename;
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(a);
+                              } catch (error) {
+                                console.error('Download failed:', error);
+                                toast({
+                                  title: t('లోపం', 'Error'),
+                                  description: t('డౌన్‌లోడ్ విఫలమైంది', 'Download failed'),
+                                  variant: 'destructive',
+                                });
+                              }
+                            }}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            {t('డౌన్‌లోడ్', 'Download')}
+                          </Button>
                          {isAuthenticated && (
                            <>
                              <Button 
