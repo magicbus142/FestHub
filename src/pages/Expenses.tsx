@@ -13,8 +13,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { addExpense, getExpensesByFestival, getTotalExpensesByFestival, deleteExpense, type Expense } from '@/lib/expenses';
 import { Plus, Trash2, Receipt, ArrowLeft, Lock } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
-import { SupabaseAuthDialog } from '@/components/SupabaseAuthDialog';
+import { useAuth } from '@/contexts/AuthContext';
+import { AuthDialog } from '@/components/AuthDialog';
 import { YearBadge } from '@/components/YearBadge';
 import { PageHeader } from '@/components/PageHeader';
 import { ComingSoon } from '@/components/ComingSoon';
@@ -26,7 +26,7 @@ export default function Expenses() {
   const { selectedFestival } = useFestival();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useSupabaseAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -141,7 +141,7 @@ export default function Expenses() {
             <Button
               size="lg"
               onClick={() => {
-                if (user) {
+                if (isAuthenticated) {
                   setIsDialogOpen(true);
                 } else {
                   setIsAuthOpen(true);
@@ -255,7 +255,7 @@ export default function Expenses() {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          if (user) {
+                          if (isAuthenticated) {
                             setDeletingExpense(expense);
                           } else {
                             setIsAuthOpen(true);
@@ -263,7 +263,7 @@ export default function Expenses() {
                         }}
                         className="h-8 w-8 p-0 hover:bg-destructive/10"
                       >
-                        {user ? (
+                        {isAuthenticated ? (
                           <Trash2 className="h-4 w-4 text-destructive" />
                         ) : (
                           <Lock className="h-4 w-4 text-muted-foreground" />
@@ -316,7 +316,7 @@ export default function Expenses() {
 
         {/* Navigation */}
         <Navigation />
-        <SupabaseAuthDialog
+        <AuthDialog
           isOpen={isAuthOpen}
           onClose={() => setIsAuthOpen(false)}
           onSuccess={() => setIsAuthOpen(false)}
