@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { addExpense, getExpensesByFestival, getTotalExpensesByFestival, deleteExpense, type Expense } from '@/lib/expenses';
-import { Plus, Trash2, Receipt, ArrowLeft } from 'lucide-react';
+import { Plus, Trash2, Receipt, ArrowLeft, Lock } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { SupabaseAuthDialog } from '@/components/SupabaseAuthDialog';
@@ -30,6 +30,7 @@ export default function Expenses() {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
   const [formData, setFormData] = useState({
     type: '',
     amount: '',
@@ -236,7 +237,7 @@ export default function Expenses() {
           ) : (
             expenses.map((expense: Expense) => (
               <Card key={expense.id}>
-                <CardHeader className="pb-3">
+              <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
                     <div>
                       <CardTitle className="text-lg">{expense.type}</CardTitle>
@@ -250,36 +251,24 @@ export default function Expenses() {
                       <span className="text-lg font-bold text-red-600">
                         ₹{expense.amount.toLocaleString()}
                       </span>
-                      {user && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                {t('ఖర్చు తొలగించు', 'Delete Expense')}
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {t('మీరు ఈ ఖర్చును తొలగించాలని ఖచ్చితంగా అనుకుంటున్నారా? ఈ చర్య రద్దు చేయబడదు.', 'Are you sure you want to delete this expense? This action cannot be undone.')}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>
-                                {t('రద్దు', 'Cancel')}
-                              </AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => deleteExpenseMutation.mutate(expense.id!)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                {t('తొలగించు', 'Delete')}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (user) {
+                            setDeletingExpense(expense);
+                          } else {
+                            setIsAuthOpen(true);
+                          }
+                        }}
+                        className="h-8 w-8 p-0 hover:bg-destructive/10"
+                      >
+                        {user ? (
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        ) : (
+                          <Lock className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </Button>
                     </div>
                   </div>
                 </CardHeader>
@@ -294,6 +283,36 @@ export default function Expenses() {
             ))
           )}
         </div>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!deletingExpense} onOpenChange={() => setDeletingExpense(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {t('ఖర్చు తొలగించు', 'Delete Expense')}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('మీరు ఈ ఖర్చును తొలగించాలని ఖచ్చితంగా అనుకుంటున్నారా? ఈ చర్య రద్దు చేయబడదు.', 'Are you sure you want to delete this expense? This action cannot be undone.')}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>
+                {t('రద్దు', 'Cancel')}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (deletingExpense?.id) {
+                    deleteExpenseMutation.mutate(deletingExpense.id);
+                  }
+                  setDeletingExpense(null);
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {t('తొలగించు', 'Delete')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Navigation */}
         <Navigation />
