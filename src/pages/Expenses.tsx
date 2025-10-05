@@ -13,8 +13,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { addExpense, getExpensesByFestival, getTotalExpensesByFestival, deleteExpense, type Expense } from '@/lib/expenses';
 import { Plus, Trash2, Receipt, ArrowLeft } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useAuth } from '@/contexts/AuthContext';
-import { AuthDialog } from '@/components/AuthDialog';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
+import { SupabaseAuthDialog } from '@/components/SupabaseAuthDialog';
 import { YearBadge } from '@/components/YearBadge';
 import { PageHeader } from '@/components/PageHeader';
 import { ComingSoon } from '@/components/ComingSoon';
@@ -26,7 +26,7 @@ export default function Expenses() {
   const { selectedFestival } = useFestival();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuth();
+  const { user } = useSupabaseAuth();
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -140,7 +140,7 @@ export default function Expenses() {
             <Button
               size="lg"
               onClick={() => {
-                if (isAuthenticated) {
+                if (user) {
                   setIsDialogOpen(true);
                 } else {
                   setIsAuthOpen(true);
@@ -250,34 +250,36 @@ export default function Expenses() {
                       <span className="text-lg font-bold text-red-600">
                         ₹{expense.amount.toLocaleString()}
                       </span>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              {t('ఖర్చు తొలగించు', 'Delete Expense')}
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              {t('మీరు ఈ ఖర్చును తొలగించాలని ఖచ్చితంగా అనుకుంటున్నారా? ఈ చర్య రద్దు చేయబడదు.', 'Are you sure you want to delete this expense? This action cannot be undone.')}
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>
-                              {t('రద్దు', 'Cancel')}
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteExpenseMutation.mutate(expense.id!)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              {t('తొలగించు', 'Delete')}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      {user && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                {t('ఖర్చు తొలగించు', 'Delete Expense')}
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {t('మీరు ఈ ఖర్చును తొలగించాలని ఖచ్చితంగా అనుకుంటున్నారా? ఈ చర్య రద్దు చేయబడదు.', 'Are you sure you want to delete this expense? This action cannot be undone.')}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>
+                                {t('రద్దు', 'Cancel')}
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteExpenseMutation.mutate(expense.id!)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {t('తొలగించు', 'Delete')}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </div>
                   </div>
                 </CardHeader>
@@ -295,7 +297,7 @@ export default function Expenses() {
 
         {/* Navigation */}
         <Navigation />
-        <AuthDialog
+        <SupabaseAuthDialog
           isOpen={isAuthOpen}
           onClose={() => setIsAuthOpen(false)}
           onSuccess={() => setIsAuthOpen(false)}
