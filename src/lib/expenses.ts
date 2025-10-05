@@ -72,6 +72,18 @@ export const getTotalExpensesByFestival = async (festivalName: string, festivalY
   return (data || []).reduce((sum, expense) => sum + expense.amount, 0);
 };
 
+export const updateExpense = async (id: string, expense: Partial<Omit<Expense, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) => {
+  const { data, error } = await supabase
+    .from('expenses')
+    .update(expense)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
 export const deleteExpense = async (id: string) => {
   const { error } = await supabase
     .from('expenses')

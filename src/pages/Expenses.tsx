@@ -10,8 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { addExpense, getExpensesByFestival, getTotalExpensesByFestival, deleteExpense, type Expense } from '@/lib/expenses';
-import { Plus, Trash2, Receipt, ArrowLeft, Lock } from 'lucide-react';
+import { addExpense, getExpensesByFestival, getTotalExpensesByFestival, updateExpense, deleteExpense, type Expense } from '@/lib/expenses';
+import { Plus, Trash2, Receipt, ArrowLeft, Lock, Pencil } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthDialog } from '@/components/AuthDialog';
@@ -31,6 +31,7 @@ export default function Expenses() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [formData, setFormData] = useState({
     type: '',
     amount: '',
@@ -60,10 +61,34 @@ export default function Expenses() {
       queryClient.invalidateQueries({ queryKey: ['user-expenses-festival'] });
       queryClient.invalidateQueries({ queryKey: ['total-expenses-festival'] });
       setIsDialogOpen(false);
+      setEditingExpense(null);
       setFormData({ type: '', amount: '', description: '' });
       toast({
         title: t('విజయవంతమైంది', 'Success'),
         description: t('ఖర్చు జోడించబడింది', 'Expense added successfully'),
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: t('లోపం', 'Error'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const updateExpenseMutation = useMutation({
+    mutationFn: ({ id, expense }: { id: string; expense: { type: string; amount: number; description?: string } }) => 
+      updateExpense(id, expense),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-expenses-festival'] });
+      queryClient.invalidateQueries({ queryKey: ['total-expenses-festival'] });
+      setIsDialogOpen(false);
+      setEditingExpense(null);
+      setFormData({ type: '', amount: '', description: '' });
+      toast({
+        title: t('విజయవంతమైంది', 'Success'),
+        description: t('ఖర్చు నవీకరించబడింది', 'Expense updated successfully'),
       });
     },
     onError: (error) => {
@@ -106,11 +131,42 @@ export default function Expenses() {
       return;
     }
 
-    addExpenseMutation.mutate({
-      type: formData.type,
-      amount: parseFloat(formData.amount),
-      description: formData.description
-    });
+    if (editingExpense?.id) {
+      updateExpenseMutation.mutate({
+        id: editingExpense.id,
+        expense: {
+          type: formData.type,
+          amount: parseFloat(formData.amount),
+          description: formData.description
+        }
+      });
+    } else {
+      addExpenseMutation.mutate({
+        type: formData.type,
+        amount: parseFloat(formData.amount),
+        description: formData.description
+      });
+    }
+  };
+
+  const handleEdit = (expense: Expense) => {
+    if (isAuthenticated) {
+      setEditingExpense(expense);
+      setFormData({
+        type: expense.type,
+        amount: expense.amount.toString(),
+        description: expense.description || ''
+      });
+      setIsDialogOpen(true);
+    } else {
+      setIsAuthOpen(true);
+    }
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setEditingExpense(null);
+    setFormData({ type: '', amount: '', description: '' });
   };
 
   return (
@@ -156,10 +212,15 @@ export default function Expenses() {
         </PageHeader>
 
         {/* Dialog */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>{t('కొత్త ఖర్చు జోడించండి', 'Add New Expense')}</DialogTitle>
+              <DialogTitle>
+                {editingExpense 
+                  ? t('ఖర్చును సవరించండి', 'Edit Expense')
+                  : t('కొత్త ఖర్చు జోడించండి', 'Add New Expense')
+                }
+              </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -194,10 +255,17 @@ export default function Expenses() {
                 />
               </div>
               <div className="flex gap-2 pt-4">
-                <Button type="submit" disabled={addExpenseMutation.isPending} className="flex-1">
-                  {addExpenseMutation.isPending ? t('జోడిస్తోంది...', 'Adding...') : t('జోడించు', 'Add')}
+                <Button 
+                  type="submit" 
+                  disabled={addExpenseMutation.isPending || updateExpenseMutation.isPending} 
+                  className="flex-1"
+                >
+                  {editingExpense 
+                    ? (updateExpenseMutation.isPending ? t('నవీకరిస్తోంది...', 'Updating...') : t('నవీకరించు', 'Update'))
+                    : (addExpenseMutation.isPending ? t('జోడిస్తోంది...', 'Adding...') : t('జోడించు', 'Add'))
+                  }
                 </Button>
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button type="button" variant="outline" onClick={handleCloseDialog}>
                   {t('రద్దు', 'Cancel')}
                 </Button>
               </div>
@@ -251,6 +319,18 @@ export default function Expenses() {
                       <span className="text-lg font-bold text-red-600">
                         ₹{expense.amount.toLocaleString()}
                       </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(expense)}
+                        className="h-8 w-8 p-0 hover:bg-primary/10"
+                      >
+                        {isAuthenticated ? (
+                          <Pencil className="h-4 w-4 text-primary" />
+                        ) : (
+                          <Lock className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
