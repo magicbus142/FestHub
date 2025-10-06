@@ -7,18 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { addExpense, getExpensesByFestival, getTotalExpensesByFestival, updateExpense, deleteExpense, type Expense } from '@/lib/expenses';
-import { Plus, Trash2, Receipt, ArrowLeft, Lock, Pencil } from 'lucide-react';
+import { addExpense, getExpensesByFestival, getTotalExpensesByFestival, deleteExpense, updateExpense, type Expense } from '@/lib/expenses';
+import { Plus, Trash2, Receipt, Edit2, Lock } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthDialog } from '@/components/AuthDialog';
-import { YearBadge } from '@/components/YearBadge';
 import { PageHeader } from '@/components/PageHeader';
-import { ComingSoon } from '@/components/ComingSoon';
-import { useNavigate } from 'react-router-dom';
 import { BackButton } from '@/components/BackButton';
 
 export default function Expenses() {
@@ -27,11 +24,9 @@ export default function Expenses() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
-  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     type: '',
     amount: '',
@@ -51,17 +46,16 @@ export default function Expenses() {
   });
 
   const addExpenseMutation = useMutation({
-    mutationFn: (expense: { type: string; amount: number; description?: string }) => 
+    mutationFn: (expense: { type: string; amount: number; description?: string }) =>
       addExpense({
         ...expense,
         festival_name: selectedFestival?.name || 'Ganesh',
-        festival_year: selectedFestival?.year || 2025
+        festival_year: selectedFestival?.year || 2025,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-expenses-festival'] });
-      queryClient.invalidateQueries({ queryKey: ['total-expenses-festival'] });
+      queryClient.invalidateQueries({ queryKey: ['user-expenses-festival', selectedFestival?.name, selectedFestival?.year] });
+      queryClient.invalidateQueries({ queryKey: ['total-expenses-festival', selectedFestival?.name, selectedFestival?.year] });
       setIsDialogOpen(false);
-      setEditingExpense(null);
       setFormData({ type: '', amount: '', description: '' });
       toast({
         title: t('విజయవంతమైంది', 'Success'),
@@ -78,13 +72,22 @@ export default function Expenses() {
   });
 
   const updateExpenseMutation = useMutation({
-    mutationFn: ({ id, expense }: { id: string; expense: { type: string; amount: number; description?: string } }) => 
-      updateExpense(id, expense),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-expenses-festival'] });
-      queryClient.invalidateQueries({ queryKey: ['total-expenses-festival'] });
+    mutationFn: (payload: { id: string; type: string; amount: number; description?: string }) =>
+      updateExpense(payload.id, { type: payload.type, amount: payload.amount, description: payload.description }),
+    onSuccess: async () => {
+      console.log('Update successful, invalidating queries...');
+      
+      await queryClient.invalidateQueries({ queryKey: ['user-expenses-festival', selectedFestival?.name, selectedFestival?.year] });
+      await queryClient.invalidateQueries({ queryKey: ['total-expenses-festival', selectedFestival?.name, selectedFestival?.year] });
+      
+      // Force refetch to ensure we get fresh data
+      await queryClient.refetchQueries({ queryKey: ['user-expenses-festival', selectedFestival?.name, selectedFestival?.year] });
+      await queryClient.refetchQueries({ queryKey: ['total-expenses-festival', selectedFestival?.name, selectedFestival?.year] });
+      
+      console.log('Queries refetched');
+      
       setIsDialogOpen(false);
-      setEditingExpense(null);
+      setEditingExpenseId(null);
       setFormData({ type: '', amount: '', description: '' });
       toast({
         title: t('విజయవంతమైంది', 'Success'),
@@ -92,6 +95,7 @@ export default function Expenses() {
       });
     },
     onError: (error) => {
+      console.error('Update error:', error);
       toast({
         title: t('లోపం', 'Error'),
         description: error.message,
@@ -103,8 +107,8 @@ export default function Expenses() {
   const deleteExpenseMutation = useMutation({
     mutationFn: deleteExpense,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-expenses-festival'] });
-      queryClient.invalidateQueries({ queryKey: ['total-expenses-festival'] });
+      queryClient.invalidateQueries({ queryKey: ['user-expenses-festival', selectedFestival?.name, selectedFestival?.year] });
+      queryClient.invalidateQueries({ queryKey: ['total-expenses-festival', selectedFestival?.name, selectedFestival?.year] });
       toast({
         title: t('విజయవంతమైంది', 'Success'),
         description: t('ఖర్చు తొలగించబడింది', 'Expense deleted successfully'),
@@ -122,6 +126,11 @@ export default function Expenses() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!isAuthenticated) {
+      setIsAuthOpen(true);
+      return;
+    }
+
     if (!formData.type || !formData.amount) {
       toast({
         title: t('లోపం', 'Error'),
@@ -131,42 +140,41 @@ export default function Expenses() {
       return;
     }
 
-    if (editingExpense?.id) {
-      updateExpenseMutation.mutate({
-        id: editingExpense.id,
-        expense: {
-          type: formData.type,
-          amount: parseFloat(formData.amount),
-          description: formData.description
-        }
-      });
+    const payload = {
+      type: formData.type,
+      amount: parseFloat(formData.amount),
+      description: formData.description
+    };
+
+    if (editingExpenseId) {
+      updateExpenseMutation.mutate({ id: editingExpenseId, ...payload });
     } else {
-      addExpenseMutation.mutate({
-        type: formData.type,
-        amount: parseFloat(formData.amount),
-        description: formData.description
-      });
+      addExpenseMutation.mutate(payload);
     }
   };
 
-  const handleEdit = (expense: Expense) => {
+  const startAddExpense = () => {
     if (isAuthenticated) {
-      setEditingExpense(expense);
-      setFormData({
-        type: expense.type,
-        amount: expense.amount.toString(),
-        description: expense.description || ''
-      });
+      setEditingExpenseId(null);
+      setFormData({ type: '', amount: '', description: '' });
       setIsDialogOpen(true);
     } else {
       setIsAuthOpen(true);
     }
   };
 
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-    setEditingExpense(null);
-    setFormData({ type: '', amount: '', description: '' });
+  const startEditExpense = (expense: Expense) => {
+    if (!isAuthenticated) {
+      setIsAuthOpen(true);
+      return;
+    }
+    setEditingExpenseId(expense.id || null);
+    setFormData({
+      type: expense.type || '',
+      amount: String(expense.amount ?? ''),
+      description: expense.description || ''
+    });
+    setIsDialogOpen(true);
   };
 
   return (
@@ -196,13 +204,7 @@ export default function Expenses() {
             {/* Prominent Add Expense Button */}
             <Button
               size="lg"
-              onClick={() => {
-                if (isAuthenticated) {
-                  setIsDialogOpen(true);
-                } else {
-                  setIsAuthOpen(true);
-                }
-              }}
+              onClick={startAddExpense}
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
             >
               <Plus className="h-5 w-5 mr-2" />
@@ -212,15 +214,15 @@ export default function Expenses() {
         </PageHeader>
 
         {/* Dialog */}
-        <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>
-                {editingExpense 
-                  ? t('ఖర్చును సవరించండి', 'Edit Expense')
-                  : t('కొత్త ఖర్చు జోడించండి', 'Add New Expense')
-                }
+                {editingExpenseId ? t('ఖర్చు మార్చు', 'Edit Expense') : t('కొత్త ఖర్చు జోడించండి', 'Add New Expense')}
               </DialogTitle>
+              <DialogDescription className="sr-only">
+                {t('ఖర్చు వివరాలను నమోదు చేయండి', 'Enter expense details')}
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -255,17 +257,12 @@ export default function Expenses() {
                 />
               </div>
               <div className="flex gap-2 pt-4">
-                <Button 
-                  type="submit" 
-                  disabled={addExpenseMutation.isPending || updateExpenseMutation.isPending} 
-                  className="flex-1"
-                >
-                  {editingExpense 
+                <Button type="submit" disabled={addExpenseMutation.isPending || updateExpenseMutation.isPending} className="flex-1">
+                  {editingExpenseId
                     ? (updateExpenseMutation.isPending ? t('నవీకరిస్తోంది...', 'Updating...') : t('నవీకరించు', 'Update'))
-                    : (addExpenseMutation.isPending ? t('జోడిస్తోంది...', 'Adding...') : t('జోడించు', 'Add'))
-                  }
+                    : (addExpenseMutation.isPending ? t('జోడిస్తోంది...', 'Adding...') : t('జోడించు', 'Add'))}
                 </Button>
-                <Button type="button" variant="outline" onClick={handleCloseDialog}>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   {t('రద్దు', 'Cancel')}
                 </Button>
               </div>
@@ -305,7 +302,7 @@ export default function Expenses() {
           ) : (
             expenses.map((expense: Expense) => (
               <Card key={expense.id}>
-              <CardHeader className="pb-3">
+                <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
                     <div>
                       <CardTitle className="text-lg">{expense.type}</CardTitle>
@@ -316,83 +313,66 @@ export default function Expenses() {
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold text-red-600">
+                    <span className="text-lg font-bold text-red-600">
                         ₹{expense.amount.toLocaleString()}
                       </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(expense)}
-                        className="h-8 w-8 p-0 hover:bg-primary/10"
-                      >
+                      <Button variant="outline" size="sm" onClick={() => startEditExpense(expense)}>
                         {isAuthenticated ? (
-                          <Pencil className="h-4 w-4 text-primary" />
+                          <Edit2 className="h-4 w-4" />
                         ) : (
                           <Lock className="h-4 w-4 text-muted-foreground" />
                         )}
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          if (isAuthenticated) {
-                            setDeletingExpense(expense);
-                          } else {
-                            setIsAuthOpen(true);
-                          }
-                        }}
-                        className="h-8 w-8 p-0 hover:bg-destructive/10"
-                      >
-                        {isAuthenticated ? (
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        ) : (
-                          <Lock className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </Button>
+                      
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            {isAuthenticated ? (
+                              <Trash2 className="h-4 w-4" />
+                            ) : (
+                              <Lock className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              {t('ఖర్చు తొలగించు', 'Delete Expense')}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {t('మీరు ఈ ఖర్చును తొలగించాలని ఖచ్చితంగా అనుకుంటున్నారా? ఈ చర్య రద్దు చేయబడదు.', 'Are you sure you want to delete this expense? This action cannot be undone.')}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>
+                              {t('రద్దు', 'Cancel')}
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => {
+                                if (!isAuthenticated) { setIsAuthOpen(true); return; }
+                                deleteExpenseMutation.mutate(expense.id!);
+                              }}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              {t('తొలగించు', 'Delete')}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </CardHeader>
-                {expense.created_at && (
+                {/* {expense.created_at && (
                   <CardContent className="pt-0">
                     <p className="text-xs text-muted-foreground">
                       {t('జోడించిన తేదీ:', 'Added on:')} {new Date(expense.created_at).toLocaleDateString()}
                     </p>
                   </CardContent>
-                )}
+                )} */}
               </Card>
             ))
           )}
         </div>
-
-        {/* Delete Confirmation Dialog */}
-        <AlertDialog open={!!deletingExpense} onOpenChange={() => setDeletingExpense(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                {t('ఖర్చు తొలగించు', 'Delete Expense')}
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                {t('మీరు ఈ ఖర్చును తొలగించాలని ఖచ్చితంగా అనుకుంటున్నారా? ఈ చర్య రద్దు చేయబడదు.', 'Are you sure you want to delete this expense? This action cannot be undone.')}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>
-                {t('రద్దు', 'Cancel')}
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  if (deletingExpense?.id) {
-                    deleteExpenseMutation.mutate(deletingExpense.id);
-                  }
-                  setDeletingExpense(null);
-                }}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                {t('తొలగించు', 'Delete')}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
 
         {/* Navigation */}
         <Navigation />
