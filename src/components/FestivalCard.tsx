@@ -69,10 +69,10 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 p-6 h-full flex flex-col justify-between text-white">
+      <div className="relative z-10 h-full text-white">
         {/* Delete button - only for authenticated users */}
         {user && (
-          <div className="flex justify-end">
+          <div className="absolute top-4 right-4">
             <Button
               variant="ghost"
               size="sm"
@@ -86,8 +86,8 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
         )}
         
         {/* Festival info */}
-        <div className="flex flex-col justify-end">
-          <h3 className="text-2xl font-bold mb-2 drop-shadow-lg">
+        <div className="absolute bottom-4 left-4 right-4">
+          <h3 className="text-2xl font-bold mb-1 drop-shadow-lg">
             {festival.name}
           </h3>
           <p className="text-lg font-medium drop-shadow-md">
