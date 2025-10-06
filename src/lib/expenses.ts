@@ -1,4 +1,3 @@
-// Expenses database functions
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Expense {
@@ -20,7 +19,7 @@ export const addExpense = async (expense: Omit<Expense, 'id' | 'user_id' | 'crea
       type: expense.type,
       amount: expense.amount,
       description: expense.description,
-      festival_name: expense.festival_name,
+      festival_name: expense.festival_name, // provided by caller
       festival_year: expense.festival_year
     }])
     .select()
@@ -72,18 +71,6 @@ export const getTotalExpensesByFestival = async (festivalName: string, festivalY
   return (data || []).reduce((sum, expense) => sum + expense.amount, 0);
 };
 
-export const updateExpense = async (id: string, expense: Partial<Omit<Expense, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) => {
-  const { data, error } = await supabase
-    .from('expenses')
-    .update(expense)
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-};
-
 export const deleteExpense = async (id: string) => {
   const { error } = await supabase
     .from('expenses')
@@ -91,4 +78,26 @@ export const deleteExpense = async (id: string) => {
     .eq('id', id);
 
   if (error) throw error;
+};
+
+export const updateExpense = async (
+  id: string,
+  updates: Pick<Expense, 'type' | 'amount' | 'description'>
+) => {
+  console.log('Updating expense:', id, updates);
+  
+  const { data, error } = await supabase
+    .from('expenses')
+    .update({
+      type: updates.type,
+      amount: updates.amount,
+      description: updates.description,
+    })
+    .eq('id', id)
+    .select();
+
+  console.log('Update result:', { data, error });
+  
+  if (error) throw error;
+  return data;
 };
