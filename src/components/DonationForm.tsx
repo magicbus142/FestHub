@@ -12,6 +12,7 @@ import { X, Plus, Trash2 } from 'lucide-react';
 interface DonationItem {
   type: string;
   amount: string;
+  customType?: string; // For when user selects "ఇతర" (Other)
 }
 
 interface DonationFormProps {
@@ -109,9 +110,13 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
     setDonationItems(newItems);
   };
 
-  const updateDonationItem = (index: number, field: 'type' | 'amount', value: string) => {
+  const updateDonationItem = (index: number, field: 'type' | 'amount' | 'customType', value: string) => {
     const newItems = [...donationItems];
     newItems[index] = { ...newItems[index], [field]: value };
+    // Clear customType when changing away from "ఇతర"
+    if (field === 'type' && value !== 'ఇతర') {
+      newItems[index].customType = '';
+    }
     setDonationItems(newItems);
   };
 
@@ -147,6 +152,15 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
           });
           return;
         }
+        // Validate custom type when "ఇతర" is selected
+        if (item.type === 'ఇతర' && !item.customType?.trim()) {
+          toast({
+            title: t("దోషం", "Error"),
+            description: t("దయచేసి రకం పేరు నమోదు చేయండి", "Please enter type name"),
+            variant: "destructive"
+          });
+          return;
+        }
       }
     } else {
       for (let i = 0; i < donationItems.length; i++) {
@@ -176,41 +190,38 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
       if (donation?.id) {
         // Editing a single existing record: use the first item only
         const first = donationItems[0];
+        const finalType = first.type === 'ఇతర' && first.customType ? first.customType.trim() : first.type;
         const donationData = {
           name: (nameTelugu || nameEnglish).trim(),
           name_english: nameEnglish.trim() || undefined,
           amount: category === 'sponsorship' ? 0 : parseFloat(first.amount),
-          type: normalizeType(first.type),
-          category,
-          festival_name: selectedFestival?.name,
-          festival_year: selectedFestival?.year
+          type: normalizeType(finalType),
+          category
         };
         await updateDonation(donation.id, donationData);
       } else {
         // Creating: save each donation item as a separate record
         if (category === 'sponsorship') {
           for (const item of donationItems) {
+            const finalType = item.type === 'ఇతర' && item.customType ? item.customType.trim() : item.type;
             const donationData = {
               name: (nameTelugu || nameEnglish).trim(),
               name_english: nameEnglish.trim() || undefined,
               amount: 0,
-              type: normalizeType(item.type),
-              category,
-              festival_name: selectedFestival?.name,
-              festival_year: selectedFestival?.year
+              type: normalizeType(finalType),
+              category
             };
             await addDonation(donationData);
           }
         } else {
           for (const item of donationItems) {
+            const finalType = item.type === 'ఇతర' && item.customType ? item.customType.trim() : item.type;
             const donationData = {
               name: (nameTelugu || nameEnglish).trim(),
               name_english: nameEnglish.trim() || undefined,
               amount: parseFloat(item.amount),
-              type: normalizeType(item.type),
-              category,
-              festival_name: selectedFestival?.name,
-              festival_year: selectedFestival?.year
+              type: normalizeType(finalType),
+              category
             };
             await addDonation(donationData);
           }
@@ -378,35 +389,48 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
             {category === 'sponsorship' ? (
               <>
                 <Label className="text-xs">{t('రకాలు', 'Types')}</Label>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-col gap-3">
                   {donationItems.map((item, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <Select
-                        value={item.type}
-                        onValueChange={(value) => updateDonationItem(index, 'type', value)}
-                      >
-                        <SelectTrigger className="w-40">
-                          <SelectValue placeholder={t('ఎంచుకోండి', 'Select')} />
-                        </SelectTrigger>
-                        <SelectContent className="bg-popover border-border">
-                          {getTypeOptions().map((option) => (
-                            <SelectItem key={option} value={option}>
-                              {option}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {!donation && donationItems.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive"
-                          onClick={() => removeDonationItem(index)}
+                    <div key={index} className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={item.type}
+                          onValueChange={(value) => updateDonationItem(index, 'type', value)}
                         >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">{t('తీసివేయి', 'Remove')}</span>
-                        </Button>
+                          <SelectTrigger className="w-40">
+                            <SelectValue placeholder={t('ఎంచుకోండి', 'Select')} />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover border-border">
+                            {getTypeOptions().map((option) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {!donation && donationItems.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive"
+                            onClick={() => removeDonationItem(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">{t('తీసివేయి', 'Remove')}</span>
+                          </Button>
+                        )}
+                      </div>
+                      {/* Show custom input when "ఇతర" is selected */}
+                      {item.type === 'ఇతర' && (
+                        <div className="ml-0">
+                          <Input
+                            value={item.customType || ''}
+                            onChange={(e) => updateDonationItem(index, 'customType', e.target.value)}
+                            placeholder={t('రకం పేరు నమోదు చేయండి', 'Enter type name')}
+                            className="bg-background border-border w-full"
+                          />
+                        </div>
                       )}
                     </div>
                   ))}
