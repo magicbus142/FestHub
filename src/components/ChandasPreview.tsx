@@ -13,8 +13,8 @@ export function ChandasPreview() {
   const navigate = useNavigate();
 
   const { data: donations = [] } = useQuery({
-    queryKey: ['donations-preview', selectedFestival?.name, selectedFestival?.year],
-    queryFn: () => selectedFestival ? getDonationsByFestival(selectedFestival.name, selectedFestival.year) : [],
+    queryKey: ['donations-preview', selectedFestival?.name, selectedFestival?.year, 'chanda'],
+    queryFn: () => selectedFestival ? getDonationsByFestival(selectedFestival.name, selectedFestival.year, 'chanda') : [],
     enabled: !!selectedFestival,
   });
 
