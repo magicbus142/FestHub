@@ -179,7 +179,7 @@ export default function Dashboard() {
                   ₹{totalDonations.toLocaleString()}
                 </p>
                 <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                  {t('మొత్తం చందాలు (చందా మాత్రమే)', 'Total Chandas')}
+                  {t('మొత్తం చందాలు (చందా మాత్రమే)', 'Total Amount (Chandas)')}
                 </p>
               </div>
               <div className="text-center">
@@ -204,7 +204,7 @@ export default function Dashboard() {
                     </Button>}
                 </div>
                 <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                  {t('మునుపటి చందాలు', 'Previous Chandas')}
+                  {t('మునుపటి చందాలు', 'Previous amountChandas')}
                 </p>
               </div>
               <div className="text-center sm:col-span-2 md:col-span-1">
