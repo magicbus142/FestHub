@@ -12,7 +12,7 @@ export interface ImageRecord {
   updated_at?: string;
 }
 
-export const uploadImage = async (file: File, title: string, description?: string, festivalName?: string, festivalYear?: number) => {
+export const uploadImage = async (file: File, title: string, description?: string, festivalName?: string, festivalYear?: number, organizationId?: string) => {
   // Upload file to storage
   const fileExt = file.name.split('.').pop();
   const fileName = `public/${Date.now()}.${fileExt}`;
@@ -37,7 +37,8 @@ export const uploadImage = async (file: File, title: string, description?: strin
       image_url: publicUrl,
       image_path: fileName,
       festival_name: festivalName || 'Ganesh',
-      festival_year: festivalYear || 2025
+      festival_year: festivalYear || 2025,
+      organization_id: organizationId
     }])
     .select()
     .single();

@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Donation, SponsorshipType, ChandaType, addDonation, updateDonation, type NameSuggestion, searchNameSuggestions } from '@/lib/database';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { X, Plus, Trash2 } from 'lucide-react';
 
 interface DonationItem {
@@ -32,6 +33,7 @@ const chandaTypes: ChandaType[] = ['చందా'];
 export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, selectedFestival }: DonationFormProps) => {
   const [nameTelugu, setNameTelugu] = useState(donation?.name || '');
   const [nameEnglish, setNameEnglish] = useState(donation?.name_english || '');
+  const { currentOrganization } = useOrganization();
   // Normalize legacy type labels
   const normalizeType = (t: string) => (t === 'ల్డడు పరసాదం' ? 'ల్డడు' : t);
   const [donationItems, setDonationItems] = useState<DonationItem[]>(
@@ -211,7 +213,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
               type: normalizeType(finalType),
               category
             };
-            await addDonation(donationData);
+            await addDonation(donationData, currentOrganization?.id || '');
           }
         } else {
           for (const item of donationItems) {
@@ -223,7 +225,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
               type: normalizeType(finalType),
               category
             };
-            await addDonation(donationData);
+            await addDonation(donationData, currentOrganization?.id || '');
           }
         }
       }

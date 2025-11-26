@@ -12,15 +12,16 @@ export interface Expense {
   updated_at?: string;
 }
 
-export const addExpense = async (expense: Omit<Expense, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+export const addExpense = async (expense: Omit<Expense, 'id' | 'user_id' | 'created_at' | 'updated_at'>, organizationId: string) => {
   const { data, error } = await supabase
     .from('expenses')
     .insert([{
       type: expense.type,
       amount: expense.amount,
       description: expense.description,
-      festival_name: expense.festival_name, // provided by caller
-      festival_year: expense.festival_year
+      festival_name: expense.festival_name,
+      festival_year: expense.festival_year,
+      organization_id: organizationId
     }])
     .select()
     .single();

@@ -22,18 +22,18 @@ export interface NameSuggestion {
   name_english?: string | null;
 }
 
-export const addDonation = async (donation: Omit<Donation, 'id' | 'created_at' | 'updated_at'>) => {
+export const addDonation = async (donation: Omit<Donation, 'id' | 'created_at' | 'updated_at'>, organizationId: string) => {
   const { data, error } = await supabase
     .from('donations')
     .insert([{
-      // Telugu goes into 'name', English into 'name_english'
       name: donation.name,
       name_english: donation.name_english,
       amount: donation.amount,
       type: donation.type,
       category: donation.category,
       festival_name: donation.festival_name,
-      festival_year: donation.festival_year
+      festival_year: donation.festival_year,
+      organization_id: organizationId
     }])
     .select()
     .single();
