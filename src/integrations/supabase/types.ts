@@ -186,18 +186,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_total_amount: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      get_total_amount: { Args: never; Returns: number }
       get_total_by_category: {
         Args: { category_param: string }
         Returns: number
       }
-      get_user_total_expenses: {
-        Args: { user_uuid?: string }
-        Returns: number
-      }
+      get_user_total_expenses: { Args: { user_uuid?: string }; Returns: number }
     }
     Enums: {
       [_ in never]: never
