@@ -24,6 +24,7 @@ export type Database = {
           id: string
           name: string
           name_english: string | null
+          organization_id: string | null
           type: string
           updated_at: string
         }
@@ -36,6 +37,7 @@ export type Database = {
           id?: string
           name: string
           name_english?: string | null
+          organization_id?: string | null
           type: string
           updated_at?: string
         }
@@ -48,10 +50,19 @@ export type Database = {
           id?: string
           name?: string
           name_english?: string | null
+          organization_id?: string | null
           type?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "donations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       expenses: {
         Row: {
@@ -61,6 +72,7 @@ export type Database = {
           festival_name: string | null
           festival_year: number | null
           id: string
+          organization_id: string | null
           type: string
           updated_at: string
           user_id: string | null
@@ -72,6 +84,7 @@ export type Database = {
           festival_name?: string | null
           festival_year?: number | null
           id?: string
+          organization_id?: string | null
           type: string
           updated_at?: string
           user_id?: string | null
@@ -83,11 +96,20 @@ export type Database = {
           festival_name?: string | null
           festival_year?: number | null
           id?: string
+          organization_id?: string | null
           type?: string
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "expenses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       festivals: {
         Row: {
@@ -100,6 +122,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          organization_id: string | null
           start_date: string | null
           updated_at: string
           year: number
@@ -114,6 +137,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          organization_id?: string | null
           start_date?: string | null
           updated_at?: string
           year: number
@@ -128,6 +152,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          organization_id?: string | null
           start_date?: string | null
           updated_at?: string
           year?: number
@@ -138,6 +163,13 @@ export type Database = {
             columns: ["background_image_id"]
             isOneToOne: false
             referencedRelation: "images"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "festivals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -151,6 +183,7 @@ export type Database = {
           id: string
           image_path: string
           image_url: string
+          organization_id: string | null
           title: string
           updated_at: string
           user_id: string | null
@@ -163,6 +196,7 @@ export type Database = {
           id?: string
           image_path: string
           image_url: string
+          organization_id?: string | null
           title: string
           updated_at?: string
           user_id?: string | null
@@ -175,11 +209,153 @@ export type Database = {
           id?: string
           image_path?: string
           image_url?: string
+          organization_id?: string | null
           title?: string
           updated_at?: string
           user_id?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "images_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_invitations: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          organization_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          status: string | null
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          invited_by?: string | null
+          organization_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          status?: string | null
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          organization_id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string | null
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
         Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -192,9 +368,21 @@ export type Database = {
         Returns: number
       }
       get_user_total_expenses: { Args: { user_uuid?: string }; Returns: number }
+      has_role: {
+        Args: {
+          _organization_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_organization_member: {
+        Args: { _organization_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "manager" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -321,6 +509,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "manager", "viewer"],
+    },
   },
 } as const
