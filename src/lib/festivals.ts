@@ -62,10 +62,10 @@ export async function getActiveFestivals(): Promise<Festival[]> {
   return allFestivals.filter(festival => festival.is_active);
 }
 
-export async function addFestival(festival: Omit<Festival, 'id' | 'created_at' | 'updated_at'>): Promise<Festival> {
+export async function addFestival(festival: Omit<Festival, 'id' | 'created_at' | 'updated_at'>, organizationId: string): Promise<Festival> {
   const { data, error } = await supabase
     .from('festivals')
-    .insert([festival])
+    .insert([{ ...festival, organization_id: organizationId }])
     .select()
     .single();
 
