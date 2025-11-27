@@ -17,8 +17,9 @@ import { SupabaseAuthProvider } from "@/contexts/SupabaseAuthContext";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import MagicLinkAuth from "./pages/MagicLinkAuth";
+import Auth from "./pages/Auth";
 import Organizations from "./pages/Organizations";
+import InviteAccept from "./pages/InviteAccept";
 
 const queryClient = new QueryClient();
 
@@ -36,7 +37,8 @@ const App = () => (
                     <Sonner />
                     <BrowserRouter>
                       <Routes>
-                        <Route path="/auth" element={<MagicLinkAuth />} />
+                        <Route path="/auth" element={<Auth />} />
+                        <Route path="/invite/accept" element={<InviteAccept />} />
                         <Route path="/organizations" element={
                           <ProtectedRoute>
                             <Organizations />

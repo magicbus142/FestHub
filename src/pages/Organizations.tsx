@@ -4,14 +4,16 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Plus, ChevronRight, Loader2 } from 'lucide-react';
+import { Building2, Plus, ChevronRight, Loader2, UserPlus } from 'lucide-react';
 import { CreateOrganizationDialog } from '@/components/CreateOrganizationDialog';
+import { InviteMemberDialog } from '@/components/InviteMemberDialog';
 
 export default function Organizations() {
-  const { currentOrganization, userOrganizations, setCurrentOrganization, loading } = useOrganization();
+  const { currentOrganization, userOrganizations, setCurrentOrganization, loading, refetchOrganizations } = useOrganization();
   const { user } = useSupabaseAuth();
   const navigate = useNavigate();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
 
   const handleSelectOrganization = (org: any) => {
     setCurrentOrganization(org.organization);
@@ -89,18 +91,39 @@ export default function Organizations() {
           </Card>
         )}
 
-        <Button
-          onClick={() => setIsCreateOpen(true)}
-          className="w-full"
-          size="lg"
-        >
-          <Plus className="mr-2 h-5 w-5" />
-          Create New Organization
-        </Button>
+        <div className="flex gap-3">
+          {currentOrganization && (
+            <Button
+              onClick={() => setIsInviteOpen(true)}
+              variant="outline"
+              className="flex-1"
+              size="lg"
+            >
+              <UserPlus className="mr-2 h-5 w-5" />
+              Invite Member
+            </Button>
+          )}
+          <Button
+            onClick={() => setIsCreateOpen(true)}
+            className={currentOrganization ? "flex-1" : "w-full"}
+            size="lg"
+          >
+            <Plus className="mr-2 h-5 w-5" />
+            Create New Organization
+          </Button>
+        </div>
 
         <CreateOrganizationDialog
           open={isCreateOpen}
-          onOpenChange={setIsCreateOpen}
+          onOpenChange={(open) => {
+            setIsCreateOpen(open);
+            if (!open) refetchOrganizations();
+          }}
+        />
+        
+        <InviteMemberDialog
+          isOpen={isInviteOpen}
+          onClose={() => setIsInviteOpen(false)}
         />
       </div>
     </div>
