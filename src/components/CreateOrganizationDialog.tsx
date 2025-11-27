@@ -26,9 +26,8 @@ export function CreateOrganizationDialog({ open, onOpenChange }: CreateOrganizat
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
+  const [passcode, setPasscode] = useState('');
   const [loading, setLoading] = useState(false);
-  const { refetchOrganizations } = useOrganization();
-  const { user } = useSupabaseAuth();
   const { toast } = useToast();
 
   const generateSlug = (name: string) => {
@@ -46,10 +45,19 @@ export function CreateOrganizationDialog({ open, onOpenChange }: CreateOrganizat
   };
 
   const handleCreate = async () => {
-    if (!name || !slug) {
+    if (!name || !slug || !passcode) {
       toast({
         title: 'Missing fields',
-        description: 'Please provide organization name',
+        description: 'Please provide all required fields',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (passcode.length < 6) {
+      toast({
+        title: 'Invalid passcode',
+        description: 'Passcode must be at least 6 characters',
         variant: 'destructive'
       });
       return;
@@ -58,38 +66,30 @@ export function CreateOrganizationDialog({ open, onOpenChange }: CreateOrganizat
     setLoading(true);
 
     try {
-      // Create organization
+      // Create organization with passcode
       const { data: org, error: orgError } = await supabase
         .from('organizations')
-        .insert([{ name, slug, description }])
+        .insert([{ name, slug, description, passcode }])
         .select()
         .single();
 
       if (orgError) throw orgError;
 
-      // Assign creator as admin
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert([{
-          user_id: user?.id,
-          organization_id: org.id,
-          role: 'admin'
-        }]);
-
-      if (roleError) throw roleError;
-
       toast({
         title: 'Organization created!',
-        description: `${name} has been created successfully`
+        description: `Access your organization at /org/${slug}`
       });
 
-      await refetchOrganizations();
       onOpenChange(false);
       
       // Reset form
       setName('');
       setSlug('');
       setDescription('');
+      setPasscode('');
+      
+      // Redirect to the new organization
+      window.location.href = `/org/${slug}`;
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -146,6 +146,22 @@ export function CreateOrganizationDialog({ open, onOpenChange }: CreateOrganizat
               onChange={(e) => setDescription(e.target.value)}
               disabled={loading}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="passcode">Passcode</Label>
+            <Input
+              id="passcode"
+              type="password"
+              placeholder="Set organization passcode (min 6 characters)"
+              value={passcode}
+              onChange={(e) => setPasscode(e.target.value)}
+              disabled={loading}
+              minLength={6}
+            />
+            <p className="text-xs text-muted-foreground">
+              Required to add, edit, or delete data
+            </p>
           </div>
         </div>
 

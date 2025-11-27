@@ -3,9 +3,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Dashboard from "./pages/Dashboard";
-import Chandas from "./pages/Chandas";
+import AdminHome from "./pages/AdminHome";
+import OrganizationHome from "./pages/OrganizationHome";
+import OrganizationSettings from "./pages/OrganizationSettings";
 import Expenses from "./pages/Expenses";
+import Chandas from "./pages/Chandas";
 import Images from "./pages/Images";
 import NotFound from "./pages/NotFound";
 import FestivalSelection from "./pages/FestivalSelection";
@@ -13,13 +15,7 @@ import { YearProvider } from "@/contexts/YearContext";
 import { FestivalProvider } from "@/contexts/FestivalContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { SupabaseAuthProvider } from "@/contexts/SupabaseAuthContext";
-import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import Auth from "./pages/Auth";
-import Organizations from "./pages/Organizations";
-import InviteAccept from "./pages/InviteAccept";
 
 const queryClient = new QueryClient();
 
@@ -28,56 +24,26 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <SupabaseAuthProvider>
-            <OrganizationProvider>
-              <LanguageProvider>
-                <YearProvider>
-                  <FestivalProvider>
-                    <Toaster />
-                    <Sonner />
-                    <BrowserRouter>
-                      <Routes>
-                        <Route path="/auth" element={<Auth />} />
-                        <Route path="/invite/accept" element={<InviteAccept />} />
-                        <Route path="/organizations" element={
-                          <ProtectedRoute>
-                            <Organizations />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/" element={
-                          <ProtectedRoute>
-                            <FestivalSelection />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/dashboard" element={
-                          <ProtectedRoute>
-                            <Dashboard />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/chandas" element={
-                          <ProtectedRoute>
-                            <Chandas />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/expenses" element={
-                          <ProtectedRoute>
-                            <Expenses />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/images" element={
-                          <ProtectedRoute>
-                            <Images />
-                          </ProtectedRoute>
-                        } />
-                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </BrowserRouter>
-                  </FestivalProvider>
-                </YearProvider>
-              </LanguageProvider>
-            </OrganizationProvider>
-          </SupabaseAuthProvider>
+          <LanguageProvider>
+            <YearProvider>
+              <FestivalProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <Routes>
+                    <Route path="/" element={<AdminHome />} />
+                    <Route path="/org/:slug" element={<OrganizationHome />} />
+                    <Route path="/org/:slug/settings" element={<OrganizationSettings />} />
+                    <Route path="/org/:slug/expenses" element={<Expenses />} />
+                    <Route path="/org/:slug/chandas" element={<Chandas />} />
+                    <Route path="/org/:slug/images" element={<Images />} />
+                    <Route path="/org/:slug/festival-selection" element={<FestivalSelection />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </BrowserRouter>
+              </FestivalProvider>
+            </YearProvider>
+          </LanguageProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
