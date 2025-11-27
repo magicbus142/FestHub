@@ -1,15 +1,14 @@
-import { Home, Receipt, Image, BarChart3 } from 'lucide-react';
+import { Home, Receipt, Image, BarChart3, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 export const Navigation = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useSupabaseAuth();
+  const { slug } = useParams<{ slug: string }>();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
@@ -39,24 +38,29 @@ export const Navigation = () => {
 
   const navItems = [
     {
-      path: '/dashboard',
+      path: `/org/${slug}`,
       icon: Home,
       label: t('డాష్‌బోర్డ్', 'Dashboard')
     },
     {
-      path: '/chandas',
+      path: `/org/${slug}/chandas`,
       icon: BarChart3,
       label: t('చందాలు', 'Chandas')
     },
     {
-      path: '/expenses',
+      path: `/org/${slug}/expenses`,
       icon: Receipt,
       label: t('ఖర్చులు', 'Expenses')
     },
     {
-      path: '/images',
+      path: `/org/${slug}/images`,
       icon: Image,
       label: t('చిత్రాలు', 'Images')
+    },
+    {
+      path: `/org/${slug}/settings`,
+      icon: Settings,
+      label: t('సెట్టింగ్‌లు', 'Settings')
     }
   ];
 

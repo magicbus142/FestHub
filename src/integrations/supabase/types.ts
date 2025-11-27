@@ -278,6 +278,7 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          passcode: string | null
           slug: string
           updated_at: string
         }
@@ -287,6 +288,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          passcode?: string | null
           slug: string
           updated_at?: string
         }
@@ -296,6 +298,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          passcode?: string | null
           slug?: string
           updated_at?: string
         }
@@ -378,6 +381,10 @@ export type Database = {
       }
       is_organization_member: {
         Args: { _organization_id: string; _user_id: string }
+        Returns: boolean
+      }
+      verify_organization_passcode: {
+        Args: { _organization_id: string; _passcode: string }
         Returns: boolean
       }
     }
