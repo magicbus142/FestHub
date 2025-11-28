@@ -1,5 +1,4 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Props {
   children: ReactNode;
@@ -25,18 +24,6 @@ class ErrorBoundaryClass extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
-      const LanguageToggle = () => {
-        const { language, setLanguage, t } = useLanguage();
-        return (
-          <button
-            onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-            className="px-3 py-1 text-sm border rounded hover:bg-accent"
-          >
-            {language === 'telugu' ? 'EN' : 'తె'}
-          </button>
-        );
-      };
-
       return (
         <div className="min-h-screen bg-background flex items-center justify-center p-4">
           <div className="max-w-md w-full text-center space-y-6">
@@ -48,22 +35,19 @@ class ErrorBoundaryClass extends Component<Props, State> {
 
             <div className="space-y-2">
               <h1 className="text-2xl font-bold text-foreground">
-                లోపం సంభవించింది
+                Something went wrong / లోపం సంభవించింది
               </h1>
               <p className="text-muted-foreground">
-                క్షమించండి, అనుకోని లోపం సంభవించింది. దయచేసి పేజీని రిఫ్రెష్ చేయండి.
+                Please refresh the page / దయచేసి పేజీని రిఫ్రెష్ చేయండి
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-              <button
-                onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-medium"
-              >
-                పేజీ రిఫ్రెష్
-              </button>
-              <LanguageToggle />
-            </div>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-medium"
+            >
+              Refresh Page / పేజీ రిఫ్రెష్
+            </button>
 
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="mt-4 text-left">

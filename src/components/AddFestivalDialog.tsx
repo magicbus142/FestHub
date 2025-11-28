@@ -5,8 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
-import { useOrganization } from '@/contexts/OrganizationContext';
+import { useOrganizationAccess } from '@/contexts/OrganizationAccessContext';
 import { addFestival } from '@/lib/festivals';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -23,8 +22,7 @@ interface AddFestivalDialogProps {
 export function AddFestivalDialog({ open, onOpenChange }: AddFestivalDialogProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const { user } = useSupabaseAuth();
-  const { currentOrganization } = useOrganization();
+  const { organization } = useOrganizationAccess();
   const queryClient = useQueryClient();
   
   const [formData, setFormData] = useState({
@@ -45,7 +43,7 @@ export function AddFestivalDialog({ open, onOpenChange }: AddFestivalDialogProps
       start_date?: string;
       end_date?: string;
       is_active: boolean;
-    }) => addFestival(festival, currentOrganization?.id || ''),
+    }) => addFestival(festival, organization?.id || ''),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['festivals'] });
       toast({
@@ -74,7 +72,7 @@ export function AddFestivalDialog({ open, onOpenChange }: AddFestivalDialogProps
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim() || !user) return;
+    if (!formData.name.trim()) return;
 
     addMutation.mutate({
       name: formData.name,
@@ -188,7 +186,7 @@ export function AddFestivalDialog({ open, onOpenChange }: AddFestivalDialogProps
             </Button>
             <Button
               type="submit"
-              disabled={addMutation.isPending || !formData.name.trim() || !user}
+              disabled={addMutation.isPending || !formData.name.trim()}
             >
               {addMutation.isPending ? t('జోడిస్తున్నాము...', 'Adding...') : t('జోడించు', 'Add')}
             </Button>
