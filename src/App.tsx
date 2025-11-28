@@ -32,12 +32,7 @@ const App = () => (
                 <BrowserRouter>
                   <Routes>
                     <Route path="/" element={<AdminHome />} />
-                    <Route path="/org/:slug" element={<OrganizationHome />} />
-                    <Route path="/org/:slug/settings" element={<OrganizationSettings />} />
-                    <Route path="/org/:slug/expenses" element={<Expenses />} />
-                    <Route path="/org/:slug/chandas" element={<Chandas />} />
-                    <Route path="/org/:slug/images" element={<Images />} />
-                    <Route path="/org/:slug/festival-selection" element={<FestivalSelection />} />
+                    <Route path="/org/:slug/*" element={<OrganizationHome />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </BrowserRouter>
