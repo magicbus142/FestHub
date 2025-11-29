@@ -1,14 +1,13 @@
-import { Home, Receipt, Image, BarChart3, Settings } from 'lucide-react';
+import { Home, Receipt, Image, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 export const Navigation = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
-  const { slug } = useParams<{ slug: string }>();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
@@ -38,29 +37,24 @@ export const Navigation = () => {
 
   const navItems = [
     {
-      path: `/org/${slug}`,
+      path: '/dashboard',
       icon: Home,
       label: t('డాష్‌బోర్డ్', 'Dashboard')
     },
     {
-      path: `/org/${slug}/chandas`,
+      path: '/chandas',
       icon: BarChart3,
       label: t('చందాలు', 'Chandas')
     },
     {
-      path: `/org/${slug}/expenses`,
+      path: '/expenses',
       icon: Receipt,
       label: t('ఖర్చులు', 'Expenses')
     },
     {
-      path: `/org/${slug}/images`,
+      path: '/images',
       icon: Image,
       label: t('చిత్రాలు', 'Images')
-    },
-    {
-      path: `/org/${slug}/settings`,
-      icon: Settings,
-      label: t('సెట్టింగ్‌లు', 'Settings')
     }
   ];
 

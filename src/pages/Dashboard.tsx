@@ -1,5 +1,3 @@
-import { useParams } from 'react-router-dom';
-import { OrganizationAccessProvider } from '@/contexts/OrganizationAccessContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFestival } from '@/contexts/FestivalContext';
 import { useEffect, useState } from 'react';
@@ -23,7 +21,6 @@ import { ImagesPreview } from '@/components/ImagesPreview';
 import { BackButton } from '@/components/BackButton';
 
 export default function Dashboard() {
-  const { slug } = useParams<{ slug: string }>();
   const { t, language, setLanguage } = useLanguage();
   const {
     selectedFestival
@@ -116,21 +113,21 @@ export default function Dashboard() {
     title: t('చందాలు', 'Chandas'),
     description: t('చందా నిర్వహణ (స్పాన్సర్‌షిప్ వేరు)', 'Manage Chanda (sponsorships separate)'),
     icon: BarChart3,
-    path: `/org/${slug}/chandas`,
+    path: '/chandas',
     value: `₹${totalDonations.toLocaleString()}`,
     color: 'text-blue-600'
   }, {
     title: t('ఖర్చులు', 'Expenses'),
     description: t('ఖర్చుల రికార్డ్ మరియు ట్రాకింగ్', 'Track and record expenses'),
     icon: Receipt,
-    path: `/org/${slug}/expenses`,
+    path: '/expenses',
     value: `₹${totalExpenses.toLocaleString()}`,
     color: 'text-red-600'
   }, {
     title: t('చిత్రాలు', 'Images'),
     description: t('ఫోటోలు మరియు చిత్రాలను అప్‌లోడ్ చేయండి', 'Upload and manage photos'),
     icon: Image,
-    path: `/org/${slug}/images`,
+    path: '/images',
     value: `${totalImages} ${t('చిత్రాలు', 'images')}`,
     color: 'text-green-600'
   }];
@@ -145,7 +142,7 @@ export default function Dashboard() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate(`/org/${slug}/festival-selection`)}
+              onClick={() => navigate('/')}
               className="flex items-center gap-2 hover:bg-accent"
             >
               <ArrowLeft className="h-4 w-4" />
