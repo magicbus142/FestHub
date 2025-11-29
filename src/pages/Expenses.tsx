@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFestival } from '@/contexts/FestivalContext';
-import { useOrganization } from '@/contexts/OrganizationContext';
 import { Navigation } from '@/components/Navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,6 @@ import { BackButton } from '@/components/BackButton';
 export default function Expenses() {
   const { t, language, setLanguage } = useLanguage();
   const { selectedFestival } = useFestival();
-  const { currentOrganization } = useOrganization();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth();
@@ -53,7 +51,7 @@ export default function Expenses() {
         ...expense,
         festival_name: selectedFestival?.name || 'Ganesh',
         festival_year: selectedFestival?.year || 2025,
-      }, currentOrganization?.id || ''),
+      }, null),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-expenses-festival', selectedFestival?.name, selectedFestival?.year] });
       queryClient.invalidateQueries({ queryKey: ['total-expenses-festival', selectedFestival?.name, selectedFestival?.year] });

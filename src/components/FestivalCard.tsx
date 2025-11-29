@@ -1,6 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { deleteFestival } from '@/lib/festivals';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -13,7 +13,7 @@ interface FestivalCardProps {
 }
 
 export function FestivalCard({ festival, onClick }: FestivalCardProps) {
-  const { user } = useSupabaseAuth();
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -71,7 +71,7 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
       {/* Content */}
       <div className="relative z-10 h-full text-white">
         {/* Delete button - only for authenticated users */}
-        {user && (
+        {isAuthenticated && (
           <div className="absolute top-4 right-4">
             <Button
               variant="ghost"
