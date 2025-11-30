@@ -1,11 +1,13 @@
 import { Home, Receipt, Image, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 export const Navigation = () => {
   const { t } = useLanguage();
+  const { currentOrganization } = useOrganization();
   const navigate = useNavigate();
   const location = useLocation();
   const [isVisible, setIsVisible] = useState(true);
@@ -35,24 +37,26 @@ export const Navigation = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const orgPrefix = currentOrganization ? `/org/${currentOrganization.slug}` : '';
+
   const navItems = [
     {
-      path: '/dashboard',
+      path: `${orgPrefix}/dashboard`,
       icon: Home,
       label: t('డాష్‌బోర్డ్', 'Dashboard')
     },
     {
-      path: '/chandas',
+      path: `${orgPrefix}/chandas`,
       icon: BarChart3,
       label: t('చందాలు', 'Chandas')
     },
     {
-      path: '/expenses',
+      path: `${orgPrefix}/expenses`,
       icon: Receipt,
       label: t('ఖర్చులు', 'Expenses')
     },
     {
-      path: '/images',
+      path: `${orgPrefix}/images`,
       icon: Image,
       label: t('చిత్రాలు', 'Images')
     }

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { addFestival } from '@/lib/festivals';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +23,7 @@ export function AddFestivalDialog({ open, onOpenChange }: AddFestivalDialogProps
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currentOrganization } = useOrganization();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -41,7 +43,10 @@ export function AddFestivalDialog({ open, onOpenChange }: AddFestivalDialogProps
       start_date?: string;
       end_date?: string;
       is_active: boolean;
-    }) => addFestival(festival, null),
+    }) => {
+      if (!currentOrganization) throw new Error('No organization selected');
+      return addFestival(festival, currentOrganization.id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['festivals'] });
       toast({
