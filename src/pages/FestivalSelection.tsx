@@ -1,32 +1,46 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFestival } from '@/contexts/FestivalContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { getAllFestivals } from '@/lib/festivals';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { FestivalCard } from '@/components/FestivalCard';
 import { Button } from '@/components/ui/button';
 import { AddFestivalDialog } from '@/components/AddFestivalDialog';
-import { AuthDialog } from '@/components/AuthDialog';
-import { Plus } from 'lucide-react';
+import { PasscodeDialog } from '@/components/PasscodeDialog';
+import { Plus, ArrowLeft } from 'lucide-react';
+import type { Festival } from '@/lib/festivals';
 
 export default function FestivalSelection() {
   const { t, language, setLanguage } = useLanguage();
   const { setSelectedFestival } = useFestival();
-  const { isAuthenticated } = useAuth();
+  const { currentOrganization, isAuthenticated, authenticate } = useOrganization();
   const navigate = useNavigate();
   const [isAddFestivalOpen, setIsAddFestivalOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isPasscodeOpen, setIsPasscodeOpen] = useState(false);
 
   const { data: festivals = [] } = useQuery({
-    queryKey: ['festivals'],
-    queryFn: getAllFestivals,
+    queryKey: ['festivals', currentOrganization?.id],
+    queryFn: async () => {
+      if (!currentOrganization) return [];
+      
+      const { data, error } = await supabase
+        .from('festivals')
+        .select('*')
+        .eq('organization_id', currentOrganization.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as Festival[];
+    },
+    enabled: !!currentOrganization
   });
 
   const handleFestivalSelect = (festival: any) => {
     setSelectedFestival(festival);
-    navigate('/dashboard');
+    navigate(`/org/${currentOrganization?.slug}/dashboard`);
   };
 
   return (
@@ -35,10 +49,21 @@ export default function FestivalSelection() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/')}
+              className="mb-2"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              All Organizations
+            </Button>
             <h1 className="text-3xl font-bold text-foreground">
-              {t('ఉత్సవాన్ని ఎంచుకోండి', 'Select Festival')}
+              {currentOrganization?.name}
             </h1>
-            
+            <p className="text-sm text-muted-foreground mt-1">
+              {t('ఉత్సవాన్ని ఎంచుకోండి', 'Select Festival')}
+            </p>
           </div>
           
           <div className="flex flex-col gap-3 w-full sm:w-auto">
@@ -54,7 +79,7 @@ export default function FestivalSelection() {
               </Button>
             </div>
 
-            {/* Prominent Add Festival Button */}
+            {/* Add Festival Button */}
             <Button
               variant="outline"
               size="lg"
@@ -62,7 +87,7 @@ export default function FestivalSelection() {
                 if (isAuthenticated) {
                   setIsAddFestivalOpen(true);
                 } else {
-                  setIsAuthOpen(true);
+                  setIsPasscodeOpen(true);
                 }
               }}
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
@@ -92,17 +117,17 @@ export default function FestivalSelection() {
           </div>
         )}
 
-        {/* Add Festival Dialog */}
+        {/* Dialogs */}
         <AddFestivalDialog 
           open={isAddFestivalOpen}
           onOpenChange={setIsAddFestivalOpen}
         />
 
-        {/* Auth Dialog */}
-        <AuthDialog
-          isOpen={isAuthOpen}
-          onClose={() => setIsAuthOpen(false)}
-          onSuccess={() => setIsAuthOpen(false)}
+        <PasscodeDialog
+          open={isPasscodeOpen}
+          onOpenChange={setIsPasscodeOpen}
+          onAuthenticate={authenticate}
+          organizationName={currentOrganization?.name || ''}
         />
       </div>
     </div>
