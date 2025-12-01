@@ -1,10 +1,11 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { deleteFestival } from '@/lib/festivals';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Share2 } from 'lucide-react';
 import type { Festival } from '@/lib/festivals';
 
 interface FestivalCardProps {
@@ -14,6 +15,7 @@ interface FestivalCardProps {
 
 export function FestivalCard({ festival, onClick }: FestivalCardProps) {
   const { isAuthenticated } = useAuth();
+  const { currentOrganization } = useOrganization();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -43,6 +45,16 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
     }
   };
 
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareUrl = `${window.location.origin}/org/${currentOrganization?.slug}?festival=${festival.id}`;
+    navigator.clipboard.writeText(shareUrl);
+    toast({
+      title: 'Link copied!',
+      description: 'Share this link for read-only access to the festival',
+    });
+  };
+
   return (
     <Card 
       className="relative overflow-hidden cursor-pointer hover:shadow-festive transition-all duration-300 hover:scale-105 aspect-[4/3] group"
@@ -70,9 +82,21 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
 
       {/* Content */}
       <div className="relative z-10 h-full text-white">
-        {/* Delete button - only for authenticated users */}
-        {isAuthenticated && (
-          <div className="absolute top-4 right-4">
+        {/* Action buttons */}
+        <div className="absolute top-4 right-4 flex gap-2">
+          {/* Share button - always visible */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleShare}
+            className="text-white hover:bg-white/20 hover:text-white transition-colors"
+            title="Copy shareable link"
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
+          
+          {/* Delete button - only for authenticated users */}
+          {isAuthenticated && (
             <Button
               variant="ghost"
               size="sm"
@@ -82,8 +106,8 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
             >
               <Trash2 className="h-4 w-4" />
             </Button>
-          </div>
-        )}
+          )}
+        </div>
         
         {/* Festival info */}
         <div className="absolute bottom-4 left-4 right-4">
