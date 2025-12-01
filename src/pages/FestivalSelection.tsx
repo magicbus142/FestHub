@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -17,6 +17,7 @@ export default function FestivalSelection() {
   const { setSelectedFestival } = useFestival();
   const { currentOrganization, isAuthenticated, authenticate } = useOrganization();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isAddFestivalOpen, setIsAddFestivalOpen] = useState(false);
   const [isPasscodeOpen, setIsPasscodeOpen] = useState(false);
 
@@ -37,6 +38,18 @@ export default function FestivalSelection() {
     },
     enabled: !!currentOrganization
   });
+
+  // Auto-select festival from URL query parameter (for shared links)
+  useEffect(() => {
+    const festivalId = searchParams.get('festival');
+    if (festivalId && festivals.length > 0) {
+      const festival = festivals.find(f => f.id === festivalId);
+      if (festival) {
+        setSelectedFestival(festival);
+        navigate(`/org/${currentOrganization?.slug}/dashboard`, { replace: true });
+      }
+    }
+  }, [searchParams, festivals, currentOrganization?.slug, setSelectedFestival, navigate]);
 
   const handleFestivalSelect = (festival: any) => {
     setSelectedFestival(festival);
