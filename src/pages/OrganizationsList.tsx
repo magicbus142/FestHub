@@ -1,105 +1,145 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Building2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Plus, LogIn, Calendar, Users, Image, DollarSign } from 'lucide-react';
 import { CreateOrganizationDialog } from '@/components/CreateOrganizationDialog';
-import type { Organization } from '@/contexts/OrganizationContext';
+import { OrganizationLoginDialog } from '@/components/OrganizationLoginDialog';
 
 export default function OrganizationsList() {
-  const navigate = useNavigate();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-
-  const { data: organizations = [], isLoading } = useQuery({
-    queryKey: ['organizations'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('organizations')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as Organization[];
-    }
-  });
-
-  const handleOrganizationClick = (org: Organization) => {
-    navigate(`/org/${org.slug}`);
-  };
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto px-4 py-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Organizations
-          </h1>
-          <p className="text-lg text-muted-foreground mb-8">
-            Select an organization to manage festivals and donations
-          </p>
-          
-          <Button
-            onClick={() => setIsCreateOpen(true)}
-            size="lg"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            Create Organization
-          </Button>
-        </div>
-
-        {/* Organizations Grid */}
-        {isLoading ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Loading organizations...</p>
-          </div>
-        ) : organizations.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {organizations.map((org) => (
-              <Card
-                key={org.id}
-                className="cursor-pointer hover:shadow-xl transition-all duration-200 hover:scale-105 border-2 hover:border-primary/50"
-                onClick={() => handleOrganizationClick(org)}
-              >
-                <CardHeader>
-                  <div className="flex items-center gap-3 mb-2">
-                    {org.logo_url ? (
-                      <img src={org.logo_url} alt={org.name} className="w-12 h-12 rounded-lg object-cover" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Building2 className="h-6 w-6 text-primary" />
-                      </div>
-                    )}
-                    <CardTitle className="text-xl">{org.name}</CardTitle>
-                  </div>
-                  {org.description && (
-                    <CardDescription className="line-clamp-2">
-                      {org.description}
-                    </CardDescription>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  <div className="text-sm text-muted-foreground">
-                    <span className="font-mono bg-muted px-2 py-1 rounded">
-                      /{org.slug}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <Building2 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <p className="text-lg text-muted-foreground">
-              No organizations yet. Create your first one!
+        {/* Hero Section */}
+        <div className="text-center mb-16 max-w-4xl mx-auto">
+          <div className="mb-6">
+            <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-4 bg-gradient-to-r from-primary via-festival-orange to-festival-gold bg-clip-text text-transparent">
+              FestHub
+            </h1>
+            <p className="text-xl md:text-2xl text-muted-foreground">
+              Your Complete Festival Management Platform
             </p>
           </div>
-        )}
 
+          <p className="text-lg text-foreground/80 mb-12 leading-relaxed">
+            FestHub helps organizations manage their festivals, track donations, monitor expenses, 
+            and share beautiful image galleries with their community. Create your organization or 
+            access an existing one to get started.
+          </p>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+            <Button
+              onClick={() => setIsLoginOpen(true)}
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg text-lg px-8 py-6"
+            >
+              <LogIn className="h-5 w-5 mr-2" />
+              Enter Organization
+            </Button>
+            <Button
+              onClick={() => setIsCreateOpen(true)}
+              size="lg"
+              variant="outline"
+              className="border-2 border-primary text-primary hover:bg-primary/10 text-lg px-8 py-6"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Create Organization
+            </Button>
+          </div>
+        </div>
+
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-12">
+          <Card className="border-2 hover:border-primary/50 transition-all hover:shadow-lg">
+            <CardContent className="pt-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Calendar className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2 text-foreground">Festival Management</h3>
+              <p className="text-sm text-muted-foreground">
+                Create and manage multiple festivals with dates, descriptions, and custom backgrounds
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 hover:border-primary/50 transition-all hover:shadow-lg">
+            <CardContent className="pt-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <DollarSign className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2 text-foreground">Donation Tracking</h3>
+              <p className="text-sm text-muted-foreground">
+                Track donations by category, donor, and festival with detailed analytics
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 hover:border-primary/50 transition-all hover:shadow-lg">
+            <CardContent className="pt-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Users className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2 text-foreground">Expense Management</h3>
+              <p className="text-sm text-muted-foreground">
+                Monitor festival expenses and keep detailed records of all spending
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 hover:border-primary/50 transition-all hover:shadow-lg">
+            <CardContent className="pt-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Image className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2 text-foreground">Image Galleries</h3>
+              <p className="text-sm text-muted-foreground">
+                Upload and share festival photos with beautiful image galleries
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* How It Works */}
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl font-bold text-foreground mb-8">How It Works</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                1
+              </div>
+              <h3 className="font-semibold mb-2 text-foreground">Create or Enter</h3>
+              <p className="text-sm text-muted-foreground">
+                Create a new organization or enter an existing one with your passcode
+              </p>
+            </div>
+            <div>
+              <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                2
+              </div>
+              <h3 className="font-semibold mb-2 text-foreground">Add Festivals</h3>
+              <p className="text-sm text-muted-foreground">
+                Create festivals and start tracking donations, expenses, and images
+              </p>
+            </div>
+            <div>
+              <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                3
+              </div>
+              <h3 className="font-semibold mb-2 text-foreground">Share & Manage</h3>
+              <p className="text-sm text-muted-foreground">
+                Share your festival pages with your community and manage everything in one place
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <OrganizationLoginDialog 
+          open={isLoginOpen} 
+          onOpenChange={setIsLoginOpen}
+        />
         <CreateOrganizationDialog 
           open={isCreateOpen} 
           onOpenChange={setIsCreateOpen}
