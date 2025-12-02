@@ -43,34 +43,37 @@ export const Navigation = () => {
     {
       path: `${orgPrefix}/dashboard`,
       icon: Home,
-      label: t('డాష్‌బోర్డ్', 'Dashboard')
+      label: t('డాష్‌బోర్డ్', 'Dashboard'),
+      requiresAuth: false
     },
     {
       path: `${orgPrefix}/chandas`,
       icon: BarChart3,
-      label: t('చందాలు', 'Chandas')
+      label: t('చందాలు', 'Chandas'),
+      requiresAuth: false
     },
     {
       path: `${orgPrefix}/expenses`,
       icon: Receipt,
-      label: t('ఖర్చులు', 'Expenses')
+      label: t('ఖర్చులు', 'Expenses'),
+      requiresAuth: false
     },
     {
       path: `${orgPrefix}/images`,
       icon: Image,
-      label: t('చిత్రాలు', 'Images')
+      label: t('చిత్రాలు', 'Images'),
+      requiresAuth: false
     },
     {
       path: `${orgPrefix}/settings`,
       icon: Settings,
-      label: t('సెట్టింగ్‌లు', 'Settings')
+      label: t('సెట్టింగ్‌లు', 'Settings'),
+      requiresAuth: true
     }
   ];
 
-  // Only show navigation when authenticated
-  if (!isAuthenticated) {
-    return null;
-  }
+  // Filter items based on authentication
+  const visibleNavItems = navItems.filter(item => !item.requiresAuth || isAuthenticated);
 
   return (
     <nav className={`fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-t border-border transition-transform duration-300 ease-in-out lg:fixed lg:top-4 lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:bottom-auto lg:border lg:rounded-xl lg:w-auto lg:shadow-lg md:relative md:bottom-auto md:border-0 md:bg-transparent z-50 ${
@@ -95,7 +98,7 @@ export const Navigation = () => {
         )}
         
         {/* Navigation Items */}
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const Icon = item.icon;
           const isRootDashboard = item.path === '/dashboard' && location.pathname === '/';
           const isSamePath = location.pathname === item.path;
