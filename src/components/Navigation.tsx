@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 
 export const Navigation = () => {
   const { t } = useLanguage();
-  const { currentOrganization } = useOrganization();
+  const { currentOrganization, isAuthenticated } = useOrganization();
   const navigate = useNavigate();
   const location = useLocation();
   const [isVisible, setIsVisible] = useState(true);
@@ -67,11 +67,34 @@ export const Navigation = () => {
     }
   ];
 
+  // Only show navigation when authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <nav className={`fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-t border-border transition-transform duration-300 ease-in-out lg:fixed lg:top-4 lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:bottom-auto lg:border lg:rounded-xl lg:w-auto lg:shadow-lg md:relative md:bottom-auto md:border-0 md:bg-transparent z-50 ${
       isVisible ? 'translate-y-0' : 'translate-y-full lg:translate-y-0'
     }`}>
-      <div className="flex justify-around md:justify-start md:gap-2 p-2 md:p-0 lg:bg-card lg:px-4 lg:py-3">
+      <div className="flex items-center justify-around md:justify-start md:gap-2 p-2 md:p-0 lg:bg-card lg:px-4 lg:py-3">
+        {/* Organization Logo */}
+        {currentOrganization?.logo_url && (
+          <div 
+            className="hidden lg:flex items-center gap-2 pr-3 mr-3 border-r border-border cursor-pointer"
+            onClick={() => navigate(`/org/${currentOrganization.slug}`)}
+          >
+            <img 
+              src={currentOrganization.logo_url} 
+              alt={currentOrganization.name}
+              className="w-8 h-8 rounded-lg object-cover"
+            />
+            <span className="text-sm font-semibold text-foreground max-w-[120px] truncate">
+              {currentOrganization.name}
+            </span>
+          </div>
+        )}
+        
+        {/* Navigation Items */}
         {navItems.map((item) => {
           const Icon = item.icon;
           const isRootDashboard = item.path === '/dashboard' && location.pathname === '/';
