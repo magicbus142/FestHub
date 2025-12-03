@@ -14,7 +14,7 @@ import { addExpense, getExpensesByFestival, getTotalExpensesByFestival, deleteEx
 import { Plus, Trash2, Receipt, Edit2, Lock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useAuth } from '@/contexts/AuthContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { AuthDialog } from '@/components/AuthDialog';
 import { PageHeader } from '@/components/PageHeader';
 import { BackButton } from '@/components/BackButton';
@@ -24,7 +24,7 @@ export default function Expenses() {
   const { selectedFestival } = useFestival();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useOrganization();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);

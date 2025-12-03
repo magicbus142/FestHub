@@ -2,7 +2,7 @@ import { Donation } from '@/lib/database';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2, Lock } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -15,7 +15,7 @@ interface DonationCardProps {
 }
 
 export const DonationCard = ({ donation, onEdit, onDelete, onAuthRequired, namePreference = 'telugu' }: DonationCardProps) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useOrganization();
   const { t } = useLanguage();
 
   const displayName = namePreference === 'english'
