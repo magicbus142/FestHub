@@ -9,7 +9,9 @@ import { FestivalCard } from '@/components/FestivalCard';
 import { Button } from '@/components/ui/button';
 import { AddFestivalDialog } from '@/components/AddFestivalDialog';
 import { PasscodeDialog } from '@/components/PasscodeDialog';
-import { Plus, ArrowLeft } from 'lucide-react';
+import { Plus, ArrowLeft, Share2, Lock } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useToast } from '@/hooks/use-toast';
 import type { Festival } from '@/lib/festivals';
 
 export default function FestivalSelection() {
@@ -20,6 +22,16 @@ export default function FestivalSelection() {
   const [searchParams] = useSearchParams();
   const [isAddFestivalOpen, setIsAddFestivalOpen] = useState(false);
   const [isPasscodeOpen, setIsPasscodeOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleShareOrganization = () => {
+    const shareUrl = `${window.location.origin}/org/${currentOrganization?.slug}/festivals`;
+    navigator.clipboard.writeText(shareUrl);
+    toast({
+      title: t('లింక్ కాపీ చేయబడింది', 'Link Copied'),
+      description: t('సంస్థ లింక్ క్లిప్‌బోర్డ్‌కు కాపీ చేయబడింది', 'Organization link copied to clipboard'),
+    });
+  };
 
   const { data: festivals = [] } = useQuery({
     queryKey: ['festivals', currentOrganization?.id],
@@ -80,8 +92,17 @@ export default function FestivalSelection() {
           </div>
           
           <div className="flex flex-col gap-3 w-full sm:w-auto">
-            {/* Language Toggle */}
-            <div className="flex justify-end">
+            {/* Language Toggle + Share */}
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleShareOrganization}
+                className="px-3"
+              >
+                <Share2 className="h-4 w-4 mr-1" />
+                {t('షేర్', 'Share')}
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -93,21 +114,36 @@ export default function FestivalSelection() {
             </div>
 
             {/* Add Festival Button */}
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => {
-                if (isAuthenticated) {
-                  setIsAddFestivalOpen(true);
-                } else {
-                  setIsPasscodeOpen(true);
-                }
-              }}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              {t('ఉత్సవం జోడించు', 'Add Festival')}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => {
+                      if (isAuthenticated) {
+                        setIsAddFestivalOpen(true);
+                      } else {
+                        setIsPasscodeOpen(true);
+                      }
+                    }}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                  >
+                    {isAuthenticated ? (
+                      <Plus className="h-5 w-5 mr-2" />
+                    ) : (
+                      <Lock className="h-5 w-5 mr-2" />
+                    )}
+                    {t('ఉత్సవం జోడించు', 'Add Festival')}
+                  </Button>
+                </TooltipTrigger>
+                {!isAuthenticated && (
+                  <TooltipContent>
+                    <p>{t('జోడించడానికి లాగిన్ అవసరం', 'Login required to add')}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
 

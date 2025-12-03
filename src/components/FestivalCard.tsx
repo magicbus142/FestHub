@@ -5,7 +5,9 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import { deleteFestival } from '@/lib/festivals';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Share2 } from 'lucide-react';
+import { Trash2, Share2, Lock } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { Festival } from '@/lib/festivals';
 
 interface FestivalCardProps {
@@ -17,6 +19,7 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
   const { isAuthenticated } = useAuth();
   const { currentOrganization } = useOrganization();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
@@ -95,18 +98,35 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
             <Share2 className="h-4 w-4" />
           </Button>
           
-          {/* Delete button - only for authenticated users */}
-          {isAuthenticated && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDelete}
-              disabled={deleteMutation.isPending}
-              className="text-white hover:bg-red-500/20 hover:text-red-100 transition-colors"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
+          {/* Delete button - show lock for unauthenticated */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isAuthenticated) return;
+                    handleDelete(e);
+                  }}
+                  disabled={deleteMutation.isPending}
+                  className="text-white hover:bg-red-500/20 hover:text-red-100 transition-colors"
+                >
+                  {isAuthenticated ? (
+                    <Trash2 className="h-4 w-4" />
+                  ) : (
+                    <Lock className="h-4 w-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              {!isAuthenticated && (
+                <TooltipContent>
+                  <p>{t('తొలగించడానికి లాగిన్ అవసరం', 'Login required to delete')}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
         </div>
         
         {/* Festival info */}
