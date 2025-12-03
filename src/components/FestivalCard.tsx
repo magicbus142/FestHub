@@ -1,6 +1,5 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { deleteFestival } from '@/lib/festivals';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,8 +15,7 @@ interface FestivalCardProps {
 }
 
 export function FestivalCard({ festival, onClick }: FestivalCardProps) {
-  const { isAuthenticated } = useAuth();
-  const { currentOrganization } = useOrganization();
+  const { currentOrganization, isAuthenticated } = useOrganization();
   const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();

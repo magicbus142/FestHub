@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useAuth } from '@/contexts/AuthContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { X, Lock } from 'lucide-react';
@@ -17,7 +17,7 @@ interface AuthDialogProps {
 export const AuthDialog = ({ isOpen, onClose, onSuccess }: AuthDialogProps) => {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const { authenticate } = useAuth();
+  const { authenticate } = useOrganization();
   const { t } = useLanguage();
   const { toast } = useToast();
 

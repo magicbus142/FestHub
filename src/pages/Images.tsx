@@ -14,7 +14,7 @@ import { Upload, Image as ImageIcon, Calendar, Trash2, X, Download, Pin, Lock } 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { useAuth } from '@/contexts/AuthContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { useFestival } from '@/contexts/FestivalContext';
 import { AuthDialog } from '@/components/AuthDialog';
 import { YearBadge } from '@/components/YearBadge';
@@ -27,7 +27,7 @@ export default function Images() {
   const { t, language, setLanguage } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useOrganization();
   const { selectedFestival } = useFestival();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);

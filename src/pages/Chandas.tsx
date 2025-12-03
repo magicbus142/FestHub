@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFestival } from '@/contexts/FestivalContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { Navigation } from '@/components/Navigation';
 import { BarChart3, DollarSign, Plus, ArrowLeft, Lock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -26,7 +26,7 @@ import { BackButton } from '@/components/BackButton';
 export default function Chandas() {
   const { t, language, setLanguage } = useLanguage();
   const { selectedFestival } = useFestival();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useOrganization();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
