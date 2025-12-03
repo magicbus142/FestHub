@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Navigation } from '@/components/Navigation';
-import { Upload, Image as ImageIcon, Calendar, Trash2, X, Download, Pin } from 'lucide-react';
+import { Upload, Image as ImageIcon, Calendar, Trash2, X, Download, Pin, Lock } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
@@ -191,20 +192,35 @@ export default function Images() {
             </div>
 
             {/* Prominent Upload Button */}
-            <Button
-              size="lg"
-              onClick={() => {
-                if (isAuthenticated) {
-                  setIsDialogOpen(true);
-                } else {
-                  setIsAuthOpen(true);
-                }
-              }}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-            >
-              <Upload className="h-5 w-5 mr-2" />
-              {t('చిత్రం అప్‌లోడ్ చేయండి', 'Upload Image')}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="lg"
+                    onClick={() => {
+                      if (isAuthenticated) {
+                        setIsDialogOpen(true);
+                      } else {
+                        setIsAuthOpen(true);
+                      }
+                    }}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                  >
+                    {isAuthenticated ? (
+                      <Upload className="h-5 w-5 mr-2" />
+                    ) : (
+                      <Lock className="h-5 w-5 mr-2" />
+                    )}
+                    {t('చిత్రం అప్‌లోడ్ చేయండి', 'Upload Image')}
+                  </Button>
+                </TooltipTrigger>
+                {!isAuthenticated && (
+                  <TooltipContent>
+                    <p>{t('అప్‌లోడ్ చేయడానికి లాగిన్ అవసరం', 'Login required to upload')}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </PageHeader>
 
@@ -300,37 +316,73 @@ export default function Images() {
                       </p>
                     </div>
                   )}
-                  {isAuthenticated && (
-                    <div className="absolute top-2 right-2 flex gap-1">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (selectedFestival?.id && image.id) {
-                            setBackgroundMutation.mutate({
-                              festivalId: selectedFestival.id,
-                              imageId: image.id
-                            });
-                          }
-                        }}
-                      >
-                        <Pin className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8 bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeletingImageId(image.id || null);
-                        }}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  )}
+                  <div className="absolute top-2 right-2 flex gap-1">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!isAuthenticated) {
+                                setIsAuthOpen(true);
+                                return;
+                              }
+                              if (selectedFestival?.id && image.id) {
+                                setBackgroundMutation.mutate({
+                                  festivalId: selectedFestival.id,
+                                  imageId: image.id
+                                });
+                              }
+                            }}
+                          >
+                            {isAuthenticated ? (
+                              <Pin className="h-3.5 w-3.5" />
+                            ) : (
+                              <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        {!isAuthenticated && (
+                          <TooltipContent>
+                            <p>{t('పిన్ చేయడానికి లాగిన్ అవసరం', 'Login required to pin')}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!isAuthenticated) {
+                                setIsAuthOpen(true);
+                                return;
+                              }
+                              setDeletingImageId(image.id || null);
+                            }}
+                          >
+                            {isAuthenticated ? (
+                              <Trash2 className="h-3.5 w-3.5" />
+                            ) : (
+                              <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        {!isAuthenticated && (
+                          <TooltipContent>
+                            <p>{t('తొలగించడానికి లాగిన్ అవసరం', 'Login required to delete')}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </div>
               ))}
             </div>

@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { addExpense, getExpensesByFestival, getTotalExpensesByFestival, deleteExpense, updateExpense, type Expense } from '@/lib/expenses';
 import { Plus, Trash2, Receipt, Edit2, Lock } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthDialog } from '@/components/AuthDialog';
@@ -202,14 +203,29 @@ export default function Expenses() {
             </div>
 
             {/* Prominent Add Expense Button */}
-            <Button
-              size="lg"
-              onClick={startAddExpense}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              {t('ఖర్చు జోడించు', 'Add Expense')}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="lg"
+                    onClick={startAddExpense}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                  >
+                    {isAuthenticated ? (
+                      <Plus className="h-5 w-5 mr-2" />
+                    ) : (
+                      <Lock className="h-5 w-5 mr-2" />
+                    )}
+                    {t('ఖర్చు జోడించు', 'Add Expense')}
+                  </Button>
+                </TooltipTrigger>
+                {!isAuthenticated && (
+                  <TooltipContent>
+                    <p>{t('జోడించడానికి లాగిన్ అవసరం', 'Login required to add')}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </PageHeader>
 
@@ -316,23 +332,45 @@ export default function Expenses() {
                     <span className="text-lg font-bold text-red-600">
                         ₹{expense.amount.toLocaleString()}
                       </span>
-                      <Button variant="outline" size="sm" onClick={() => startEditExpense(expense)}>
-                        {isAuthenticated ? (
-                          <Edit2 className="h-4 w-4" />
-                        ) : (
-                          <Lock className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="outline" size="sm" onClick={() => startEditExpense(expense)}>
+                              {isAuthenticated ? (
+                                <Edit2 className="h-4 w-4" />
+                              ) : (
+                                <Lock className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          {!isAuthenticated && (
+                            <TooltipContent>
+                              <p>{t('సవరించడానికి లాగిన్ అవసరం', 'Login required to edit')}</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
                       
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            {isAuthenticated ? (
-                              <Trash2 className="h-4 w-4" />
-                            ) : (
-                              <Lock className="h-4 w-4 text-muted-foreground" />
-                            )}
-                          </Button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  {isAuthenticated ? (
+                                    <Trash2 className="h-4 w-4" />
+                                  ) : (
+                                    <Lock className="h-4 w-4 text-muted-foreground" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              {!isAuthenticated && (
+                                <TooltipContent>
+                                  <p>{t('తొలగించడానికి లాగిన్ అవసరం', 'Login required to delete')}</p>
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          </TooltipProvider>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>

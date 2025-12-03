@@ -13,7 +13,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useFestival } from '@/contexts/FestivalContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigation } from '@/components/Navigation';
-import { BarChart3, DollarSign, Plus, ArrowLeft } from 'lucide-react';
+import { BarChart3, DollarSign, Plus, ArrowLeft, Lock } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { YearBadge } from '@/components/YearBadge';
@@ -237,14 +238,29 @@ export default function Chandas() {
             </div>
 
             {/* Prominent Add Button */}
-            <Button
-              onClick={handleAddDonation}
-              size="lg"
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              {t('చందా జోడించు', 'Add Chanda')}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={handleAddDonation}
+                    size="lg"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                  >
+                    {isAuthenticated ? (
+                      <Plus className="h-5 w-5 mr-2" />
+                    ) : (
+                      <Lock className="h-5 w-5 mr-2" />
+                    )}
+                    {t('చందా జోడించు', 'Add Chanda')}
+                  </Button>
+                </TooltipTrigger>
+                {!isAuthenticated && (
+                  <TooltipContent>
+                    <p>{t('జోడించడానికి లాగిన్ అవసరం', 'Login required to add')}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </PageHeader>
 

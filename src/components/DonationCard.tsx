@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Edit, Trash2, Lock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface DonationCardProps {
   donation: Donation;
@@ -47,30 +48,52 @@ export const DonationCard = ({ donation, onEdit, onDelete, onAuthRequired, nameP
             )}
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleEdit}
-              className="h-8 w-8 p-0 hover:bg-accent"
-            >
-              {isAuthenticated ? (
-                <Edit className="h-4 w-4 text-festival-blue" />
-              ) : (
-                <Lock className="h-4 w-4 text-muted-foreground" />
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDelete}
-              className="h-8 w-8 p-0 hover:bg-destructive/10"
-            >
-              {isAuthenticated ? (
-                <Trash2 className="h-4 w-4 text-destructive" />
-              ) : (
-                <Lock className="h-4 w-4 text-muted-foreground" />
-              )}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleEdit}
+                    className="h-8 w-8 p-0 hover:bg-accent"
+                  >
+                    {isAuthenticated ? (
+                      <Edit className="h-4 w-4 text-festival-blue" />
+                    ) : (
+                      <Lock className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                {!isAuthenticated && (
+                  <TooltipContent>
+                    <p>{t('సవరించడానికి లాగిన్ అవసరం', 'Login required to edit')}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDelete}
+                    className="h-8 w-8 p-0 hover:bg-destructive/10"
+                  >
+                    {isAuthenticated ? (
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    ) : (
+                      <Lock className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                {!isAuthenticated && (
+                  <TooltipContent>
+                    <p>{t('తొలగించడానికి లాగిన్ అవసరం', 'Login required to delete')}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
         <div className="flex justify-between items-center">
