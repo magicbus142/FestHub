@@ -37,7 +37,7 @@ export function ChandasPreview() {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => navigate('/chandas')}
+          onClick={() => navigate('chandas')}
         >
           {t('అన్నీ చూడండి', 'View All')}
         </Button>
