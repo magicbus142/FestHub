@@ -25,7 +25,7 @@ export default function FestivalSelection() {
   const { toast } = useToast();
 
   const handleShareOrganization = () => {
-    const shareUrl = `${window.location.origin}/org/${currentOrganization?.slug}/festivals`;
+    const shareUrl = `${window.location.origin}/org/${currentOrganization?.slug}`;
     navigator.clipboard.writeText(shareUrl);
     toast({
       title: t('లింక్ కాపీ చేయబడింది', 'Link Copied'),
