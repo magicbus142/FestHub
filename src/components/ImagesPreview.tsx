@@ -34,7 +34,7 @@ export function ImagesPreview() {
             {t('ఫోటోల గ్యాలరీ', 'Photo gallery')}
           </CardDescription>
         </div>
-        <Button variant="outline" size="sm" onClick={() => navigate('/images')}>
+        <Button variant="outline" size="sm" onClick={() => navigate('images')}>
           {t('అన్నీ చూడండి', 'View All')}
         </Button>
       </CardHeader>
@@ -49,7 +49,7 @@ export function ImagesPreview() {
               {t('ఇటీవలి చిత్రాలు', 'Recent Images')}
             </h4>
             {recentImages.length > 0 ? <div className="grid grid-cols-2 gap-2">
-                {recentImages.map(image => <div key={image.id} className="relative aspect-square rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/images')}>
+                {recentImages.map(image => <div key={image.id} className="relative aspect-square rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('images')}>
                     <img src={image.image_url} alt={image.title || 'Festival image'} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
                       <Eye className="h-5 w-5 text-white" />
@@ -60,7 +60,7 @@ export function ImagesPreview() {
                 <p className="text-sm text-muted-foreground">
                   {t('చిత్రాలు లేవు', 'No images yet')}
                 </p>
-                <Button variant="ghost" size="sm" className="mt-2" onClick={() => navigate('/images')}>
+                <Button variant="ghost" size="sm" className="mt-2" onClick={() => navigate('images')}>
                   {t('మొదట అప్‌లోడ్ చేయండి', 'Upload first')}
                 </Button>
               </div>}

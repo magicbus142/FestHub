@@ -37,7 +37,7 @@ export function ExpensesPreview() {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => navigate('/expenses')}
+          onClick={() => navigate('expenses')}
         >
           {t('అన్నీ చూడండి', 'View All')}
         </Button>
