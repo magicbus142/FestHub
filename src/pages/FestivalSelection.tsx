@@ -103,6 +103,7 @@ export default function FestivalSelection() {
                 <Share2 className="h-4 w-4 mr-1" />
                 {t('షేర్', 'Share')}
               </Button>
+              {/* Language toggle button - commented out
               <Button
                 variant="outline"
                 size="sm"
@@ -111,6 +112,7 @@ export default function FestivalSelection() {
               >
                 {language === 'telugu' ? 'EN' : 'తె'}
               </Button>
+              */}
             </div>
 
             {/* Add Festival Button */}
