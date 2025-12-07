@@ -12,6 +12,7 @@ import Expenses from '@/pages/Expenses';
 import Chandas from '@/pages/Chandas';
 import Images from '@/pages/Images';
 import OrganizationSettings from '@/pages/OrganizationSettings';
+import Preferences from '@/pages/Preferences';
 import { Loader2 } from 'lucide-react';
 
 export default function OrganizationHome() {
@@ -67,6 +68,7 @@ export default function OrganizationHome() {
             <Route path="/chandas" element={<Chandas />} />
             <Route path="/images" element={<Images />} />
             <Route path="/settings" element={<OrganizationSettings />} />
+            <Route path="/preferences" element={<Preferences />} />
           </Routes>
         </FestivalProvider>
       </YearProvider>
