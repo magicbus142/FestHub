@@ -1,4 +1,4 @@
-import { Home, Receipt, Image, BarChart3, Settings } from 'lucide-react';
+import { Home, Receipt, Image, BarChart3, Settings, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -62,6 +62,12 @@ export const Navigation = () => {
       path: `${orgPrefix}/images`,
       icon: Image,
       label: t('చిత్రాలు', 'Images'),
+      requiresAuth: false
+    },
+    {
+      path: `${orgPrefix}/preferences`,
+      icon: SlidersHorizontal,
+      label: t('ప్రాధాన్యతలు', 'Preferences'),
       requiresAuth: false
     },
     {
