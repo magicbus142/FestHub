@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 
 export interface Festival {
   id?: string;
@@ -12,6 +13,8 @@ export interface Festival {
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;
+  theme?: string | null;
+  enabled_pages?: Json | null;
 }
 
 export async function getAllFestivals(): Promise<Festival[]> {

@@ -118,12 +118,14 @@ export type Database = {
           background_image_id: string | null
           created_at: string
           description: string | null
+          enabled_pages: Json | null
           end_date: string | null
           id: string
           is_active: boolean
           name: string
           organization_id: string | null
           start_date: string | null
+          theme: string | null
           updated_at: string
           year: number
         }
@@ -133,12 +135,14 @@ export type Database = {
           background_image_id?: string | null
           created_at?: string
           description?: string | null
+          enabled_pages?: Json | null
           end_date?: string | null
           id?: string
           is_active?: boolean
           name: string
           organization_id?: string | null
           start_date?: string | null
+          theme?: string | null
           updated_at?: string
           year: number
         }
@@ -148,12 +152,14 @@ export type Database = {
           background_image_id?: string | null
           created_at?: string
           description?: string | null
+          enabled_pages?: Json | null
           end_date?: string | null
           id?: string
           is_active?: boolean
           name?: string
           organization_id?: string | null
           start_date?: string | null
+          theme?: string | null
           updated_at?: string
           year?: number
         }
@@ -275,31 +281,37 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          enabled_pages: Json | null
           id: string
           logo_url: string | null
           name: string
           passcode: string | null
           slug: string
+          theme: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           description?: string | null
+          enabled_pages?: Json | null
           id?: string
           logo_url?: string | null
           name: string
           passcode?: string | null
           slug: string
+          theme?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           description?: string | null
+          enabled_pages?: Json | null
           id?: string
           logo_url?: string | null
           name?: string
           passcode?: string | null
           slug?: string
+          theme?: string | null
           updated_at?: string
         }
         Relationships: []

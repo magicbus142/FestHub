@@ -9,6 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { ThemeSelector, ThemeOption } from '@/components/ThemeSelector';
+import { PageSelector, PageOption } from '@/components/PageSelector';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface CreateOrganizationDialogProps {
   open: boolean;
@@ -19,6 +22,8 @@ export function CreateOrganizationDialog({ open, onOpenChange }: CreateOrganizat
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [passcode, setPasscode] = useState('');
+  const [theme, setTheme] = useState<ThemeOption>('classic');
+  const [enabledPages, setEnabledPages] = useState<PageOption[]>(['dashboard', 'chandas', 'expenses', 'images', 'organizers']);
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -34,7 +39,9 @@ export function CreateOrganizationDialog({ open, onOpenChange }: CreateOrganizat
           name,
           slug,
           description: description || null,
-          passcode
+          passcode,
+          theme,
+          enabled_pages: enabledPages
         }])
         .select()
         .single();
@@ -75,7 +82,7 @@ export function CreateOrganizationDialog({ open, onOpenChange }: CreateOrganizat
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Create Organization</DialogTitle>
           <DialogDescription>
@@ -83,59 +90,65 @@ export function CreateOrganizationDialog({ open, onOpenChange }: CreateOrganizat
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Organization Name *</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., Ganesh Temple 2025"
-              required
-            />
-          </div>
+        <ScrollArea className="max-h-[calc(90vh-120px)] pr-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="name">Organization Name *</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g., Ganesh Temple 2025"
+                required
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Brief description of your organization"
-              rows={3}
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Brief description of your organization"
+                rows={2}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="passcode">Access Passcode *</Label>
-            <Input
-              id="passcode"
-              type="password"
-              value={passcode}
-              onChange={(e) => setPasscode(e.target.value)}
-              placeholder="Create a secure passcode"
-              required
-            />
-            <p className="text-xs text-muted-foreground">
-              This passcode will be required to edit data in this organization
-            </p>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="passcode">Access Passcode *</Label>
+              <Input
+                id="passcode"
+                type="password"
+                value={passcode}
+                onChange={(e) => setPasscode(e.target.value)}
+                placeholder="Create a secure passcode"
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                This passcode will be required to edit data
+              </p>
+            </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={createMutation.isPending}
-          >
-            {createMutation.isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              'Create Organization'
-            )}
-          </Button>
-        </form>
+            <ThemeSelector value={theme} onChange={setTheme} />
+
+            <PageSelector value={enabledPages} onChange={setEnabledPages} />
+
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={createMutation.isPending}
+            >
+              {createMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create Organization'
+              )}
+            </Button>
+          </form>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
