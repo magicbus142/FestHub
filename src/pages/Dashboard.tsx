@@ -5,6 +5,7 @@ import { Navigation } from '@/components/Navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { BarChart3, Receipt, Users, ArrowLeft, Image } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getTotalByFestival } from '@/lib/database';
@@ -26,16 +27,19 @@ export default function Dashboard() {
     selectedFestival
   } = useFestival();
   const navigate = useNavigate();
+  const { currentOrganization } = useOrganization();
   const {
     isAuthenticated
   } = useAuth();
+  
+  const orgPath = currentOrganization ? `/org/${currentOrganization.slug}` : '/';
 
   // Redirect to festival selection if no festival selected
   useEffect(() => {
     if (!selectedFestival) {
-      navigate('/');
+      navigate(orgPath);
     }
-  }, [selectedFestival, navigate]);
+  }, [selectedFestival, navigate, orgPath]);
   const [isPrevDialogOpen, setIsPrevDialogOpen] = useState(false as boolean);
   const [prevInput, setPrevInput] = useState('' as string);
   const [editingCardType, setEditingCardType] = useState<'chandas' | 'expenses' | 'images' | null>(null);
@@ -142,11 +146,11 @@ export default function Dashboard() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/')}
+              onClick={() => navigate(orgPath)}
               className="flex items-center gap-2 hover:bg-accent"
             >
               <ArrowLeft className="h-4 w-4" />
-              {t('వెనుక', 'Back')}
+              {t('ఉత్సవాలు', 'Festivals')}
             </Button>
             <Button
               variant="outline"
