@@ -1,8 +1,8 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, ReactNode } from 'react';
+import { useOrganization } from './OrganizationContext';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  authenticate: (code: string) => boolean;
   logout: () => void;
 }
 
@@ -20,23 +20,13 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-const ADMIN_CODE = 'ganesh@2025kpl';
-
+// This context now delegates to OrganizationContext for authentication
+// The hardcoded admin credentials have been removed for security
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const authenticate = (code: string) => {
-    if (code === ADMIN_CODE) {
-      setIsAuthenticated(true);
-      return true;
-    }
-    return false;
-  };
-
-  const logout = () => setIsAuthenticated(false);
+  const { isAuthenticated, logout } = useOrganization();
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, authenticate, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, logout }}>
       {children}
     </AuthContext.Provider>
   );
