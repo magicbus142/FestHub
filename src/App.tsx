@@ -16,8 +16,8 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
-          <OrganizationProvider>
+        <OrganizationProvider>
+          <AuthProvider>
             <Toaster />
             <Sonner />
             <BrowserRouter>
@@ -27,8 +27,8 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
-          </OrganizationProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </OrganizationProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </ErrorBoundary>
