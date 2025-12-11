@@ -25,7 +25,8 @@ export const AuthDialog = ({ isOpen, onClose, onSuccess }: AuthDialogProps) => {
     e.preventDefault();
     setLoading(true);
 
-    if (authenticate(code)) {
+    const isValid = await authenticate(code);
+    if (isValid) {
       toast({
         title: t("విజయవంతం", "Success"),
         description: t("విజయవంతంగా లాగిన్ అయ్యారు", "Successfully logged in")

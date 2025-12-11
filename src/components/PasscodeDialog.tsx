@@ -9,7 +9,7 @@ import { Lock } from 'lucide-react';
 interface PasscodeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAuthenticate: (passcode: string) => boolean;
+  onAuthenticate: (passcode: string) => boolean | Promise<boolean>;
   organizationName: string;
 }
 
@@ -22,10 +22,10 @@ export function PasscodeDialog({
   const [passcode, setPasscode] = useState('');
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const success = onAuthenticate(passcode);
+    const success = await onAuthenticate(passcode);
     
     if (success) {
       toast({

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface Organization {
   id: string;
@@ -6,16 +7,18 @@ export interface Organization {
   slug: string;
   description?: string;
   logo_url?: string;
-  passcode?: string;
+  theme?: string;
+  enabled_pages?: string[];
   created_at?: string;
   updated_at?: string;
+  // Note: passcode is intentionally NOT included - never expose it client-side
 }
 
 interface OrganizationContextType {
   currentOrganization: Organization | null;
   setCurrentOrganization: (org: Organization) => void;
   isAuthenticated: boolean;
-  authenticate: (passcode: string) => boolean;
+  authenticate: (passcode: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -40,10 +43,12 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
     if (savedOrg) {
       try {
         const org = JSON.parse(savedOrg);
-        setCurrentOrgState(org);
+        // Remove passcode from saved org if it exists (cleanup from old versions)
+        const { passcode, ...cleanOrg } = org;
+        setCurrentOrgState(cleanOrg);
         
         // Check if authenticated for this org
-        if (savedAuth === 'true' && savedOrgId === org.id) {
+        if (savedAuth === 'true' && savedOrgId === cleanOrg.id) {
           setIsAuthenticated(true);
         }
       } catch {
@@ -53,30 +58,49 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const setCurrentOrganization = (org: Organization) => {
-    setCurrentOrgState(org);
-    localStorage.setItem('currentOrganization', JSON.stringify(org));
+    // Ensure passcode is never stored
+    const { passcode, ...cleanOrg } = org as Organization & { passcode?: string };
+    setCurrentOrgState(cleanOrg);
+    localStorage.setItem('currentOrganization', JSON.stringify(cleanOrg));
     
     // Check if we're already authenticated for this org
     const savedAuth = localStorage.getItem('orgAuthenticated');
     const savedOrgId = localStorage.getItem('orgAuthId');
     
-    if (savedAuth === 'true' && savedOrgId === org.id) {
+    if (savedAuth === 'true' && savedOrgId === cleanOrg.id) {
       setIsAuthenticated(true);
     } else {
       setIsAuthenticated(false);
     }
   };
 
-  const authenticate = (passcode: string) => {
+  // Server-side passcode verification
+  const authenticate = async (passcode: string): Promise<boolean> => {
     if (!currentOrganization) return false;
     
-    if (passcode === currentOrganization.passcode) {
-      setIsAuthenticated(true);
-      localStorage.setItem('orgAuthenticated', 'true');
-      localStorage.setItem('orgAuthId', currentOrganization.id);
-      return true;
+    try {
+      const { data: isValid, error } = await supabase
+        .rpc('verify_organization_passcode', {
+          _organization_id: currentOrganization.id,
+          _passcode: passcode
+        });
+
+      if (error) {
+        console.error('Authentication error:', error);
+        return false;
+      }
+
+      if (isValid) {
+        setIsAuthenticated(true);
+        localStorage.setItem('orgAuthenticated', 'true');
+        localStorage.setItem('orgAuthId', currentOrganization.id);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Authentication error:', error);
+      return false;
     }
-    return false;
   };
 
   const logout = () => {
