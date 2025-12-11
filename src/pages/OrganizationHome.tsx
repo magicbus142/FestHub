@@ -26,7 +26,7 @@ export default function OrganizationHome() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('organizations')
-        .select('*')
+        .select('id, name, slug, description, logo_url, theme, enabled_pages, created_at, updated_at')
         .eq('slug', slug)
         .single();
       
