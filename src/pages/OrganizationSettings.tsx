@@ -25,7 +25,7 @@ export default function OrganizationSettings() {
 
   const [name, setName] = useState(currentOrganization?.name || '');
   const [description, setDescription] = useState(currentOrganization?.description || '');
-  const [passcode, setPasscode] = useState(currentOrganization?.passcode || '');
+  const [newPasscode, setNewPasscode] = useState(''); // Only for changing passcode
   const [showPasscode, setShowPasscode] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(currentOrganization?.logo_url || null);
@@ -33,34 +33,40 @@ export default function OrganizationSettings() {
   const [isUploading, setIsUploading] = useState(false);
 
   const updateMutation = useMutation({
-    mutationFn: async (data: { name: string; description: string; passcode: string; logo_url?: string }) => {
+    mutationFn: async (data: { name: string; description: string; newPasscode?: string; logo_url?: string }) => {
       if (!currentOrganization) throw new Error('No organization selected');
+
+      const updateData: Record<string, any> = {
+        name: data.name,
+        description: data.description,
+        logo_url: data.logo_url || currentOrganization.logo_url
+      };
+
+      // Only update passcode if a new one was provided
+      if (data.newPasscode && data.newPasscode.trim()) {
+        updateData.passcode = data.newPasscode;
+      }
 
       const { error } = await supabase
         .from('organizations')
-        .update({
-          name: data.name,
-          description: data.description,
-          passcode: data.passcode,
-          logo_url: data.logo_url || currentOrganization.logo_url
-        })
+        .update(updateData)
         .eq('id', currentOrganization.id);
 
       if (error) throw error;
       return data;
     },
     onSuccess: (data) => {
-      // Update the current organization in context
+      // Update the current organization in context (without passcode)
       if (currentOrganization) {
         setCurrentOrganization({
           ...currentOrganization,
           name: data.name,
           description: data.description,
-          passcode: data.passcode,
           logo_url: data.logo_url || currentOrganization.logo_url
         });
       }
       queryClient.invalidateQueries({ queryKey: ['organization'] });
+      setNewPasscode(''); // Clear passcode field
       toast({
         title: t('సెట్టింగ్‌లు అప్‌డేట్ అయ్యాయి', 'Settings updated'),
         description: t('మీ సంస్థ సెట్టింగ్‌లు విజయవంతంగా సేవ్ చేయబడ్డాయి', 'Your organization settings have been saved successfully'),
@@ -137,7 +143,7 @@ export default function OrganizationSettings() {
     updateMutation.mutate({
       name,
       description,
-      passcode,
+      newPasscode: newPasscode.trim() || undefined,
       logo_url: logoUrl
     });
   };
@@ -247,15 +253,14 @@ export default function OrganizationSettings() {
 
               {/* Passcode */}
               <div className="space-y-2">
-                <Label htmlFor="passcode">{t('పాస్‌కోడ్', 'Passcode')}</Label>
+                <Label htmlFor="passcode">{t('కొత్త పాస్‌కోడ్', 'New Passcode')}</Label>
                 <div className="relative">
                   <Input
                     id="passcode"
                     type={showPasscode ? 'text' : 'password'}
-                    value={passcode}
-                    onChange={(e) => setPasscode(e.target.value)}
-                    placeholder={t('సంస్థ పాస్‌కోడ్', 'Organization passcode')}
-                    required
+                    value={newPasscode}
+                    onChange={(e) => setNewPasscode(e.target.value)}
+                    placeholder={t('కొత్త పాస్‌కోడ్ సెట్ చేయండి', 'Set new passcode (leave empty to keep current)')}
                   />
                   <Button
                     type="button"
@@ -272,7 +277,7 @@ export default function OrganizationSettings() {
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {t('ఈ పాస్‌కోడ్ డేటాను సవరించడానికి అవసరం', 'This passcode is required to edit data')}
+                  {t('ఖాళీగా ఉంచండి ప్రస్తుత పాస్‌కోడ్ ఉంచడానికి', 'Leave empty to keep current passcode')}
                 </p>
               </div>
 

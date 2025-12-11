@@ -28,10 +28,10 @@ export function OrganizationLoginDialog({
     setIsLoading(true);
     
     try {
-      // Find organization by name
+      // Find organization by name - NEVER select passcode
       const { data: org, error } = await supabase
         .from('organizations')
-        .select('*')
+        .select('id, name, slug, description, logo_url, theme, enabled_pages, created_at, updated_at')
         .ilike('name', name.trim())
         .single();
 
@@ -45,8 +45,14 @@ export function OrganizationLoginDialog({
         return;
       }
 
-      // Verify passcode
-      if (org.passcode !== passcode) {
+      // Verify passcode using server-side function
+      const { data: isValid, error: verifyError } = await supabase
+        .rpc('verify_organization_passcode', {
+          _organization_id: org.id,
+          _passcode: passcode
+        });
+
+      if (verifyError || !isValid) {
         toast({
           title: 'Invalid passcode',
           description: 'Please check the passcode and try again',
@@ -56,7 +62,10 @@ export function OrganizationLoginDialog({
         return;
       }
 
-      // Success - navigate to organization
+      // Success - store authenticated org in localStorage (for UI purposes only)
+      localStorage.setItem('orgAuthenticated', 'true');
+      localStorage.setItem('orgAuthId', org.id);
+      
       toast({
         title: 'Access granted',
         description: `Welcome to ${org.name}`
