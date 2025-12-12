@@ -1,16 +1,54 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, LogIn, Calendar, Users, Image, DollarSign } from 'lucide-react';
+import { Plus, LogIn, Calendar, Users, Image, DollarSign, User, LogOut, Loader2 } from 'lucide-react';
 import { CreateOrganizationDialog } from '@/components/CreateOrganizationDialog';
 import { OrganizationLoginDialog } from '@/components/OrganizationLoginDialog';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 export default function OrganizationsList() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const { user, isLoading, signOut } = useSupabaseAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
+  const handleSignOut = async () => {
+    await signOut();
+    toast({
+      title: 'Signed out',
+      description: 'You have been signed out successfully.',
+    });
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      {/* User Auth Status Bar */}
+      <div className="border-b border-border/50 bg-background/80 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-end gap-3">
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          ) : user ? (
+            <>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">{user.email}</span>
+              </div>
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4 mr-1" />
+                Sign out
+              </Button>
+            </>
+          ) : (
+            <Button variant="ghost" size="sm" onClick={() => navigate('/auth')}>
+              <User className="h-4 w-4 mr-1" />
+              Sign in
+            </Button>
+          )}
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16 max-w-4xl mx-auto">
