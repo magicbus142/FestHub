@@ -12,6 +12,7 @@ import { X, Plus, Trash2 } from 'lucide-react';
 interface DonationItem {
   type: string;
   amount: string;
+  receivedAmount?: string;
   customType?: string; // For when user selects "ఇతర" (Other)
 }
 
@@ -35,7 +36,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
   // Normalize legacy type labels
   const normalizeType = (t: string) => (t === 'ల్డడు పరసాదం' ? 'ల్డడు' : t);
   const [donationItems, setDonationItems] = useState<DonationItem[]>(
-    donation ? [{ type: normalizeType(donation.type), amount: donation.amount.toString() }] : [{ type: '', amount: '' }]
+    donation ? [{ type: normalizeType(donation.type), amount: donation.amount.toString(), receivedAmount: (donation.received_amount || 0).toString() }] : [{ type: '', amount: '', receivedAmount: '' }]
   );
   const [category, setCategory] = useState<'chanda' | 'sponsorship'>(donation?.category || 'chanda');
   const [sponsorshipAmount, setSponsorshipAmount] = useState<string>('');
@@ -68,7 +69,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
       setNameTelugu('');
       setNameEnglish('');
       setCategory('chanda');
-      setDonationItems([{ type: 'చందా', amount: '' }]);
+      setDonationItems([{ type: 'చందా', amount: '', receivedAmount: '' }]);
       setSponsorshipAmount('');
       setSuggestions([]);
       setShowSuggestions(false);
@@ -101,7 +102,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
 
   const addDonationItem = () => {
     const defaultType = category === 'chanda' ? 'చందా' : 'ఇతర';
-    setDonationItems([...donationItems, { type: defaultType, amount: '' }]);
+    setDonationItems([...donationItems, { type: defaultType, amount: '', receivedAmount: '' }]);
   };
 
   const removeDonationItem = (index: number) => {
@@ -110,7 +111,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
     setDonationItems(newItems);
   };
 
-  const updateDonationItem = (index: number, field: 'type' | 'amount' | 'customType', value: string) => {
+  const updateDonationItem = (index: number, field: 'type' | 'amount' | 'receivedAmount' | 'customType', value: string) => {
     const newItems = [...donationItems];
     newItems[index] = { ...newItems[index], [field]: value };
     // Clear customType when changing away from "ఇతర"
@@ -181,6 +182,23 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
           });
           return;
         }
+        if (item.receivedAmount && (isNaN(parseFloat(item.receivedAmount)) || parseFloat(item.receivedAmount) < 0)) {
+             toast({
+              title: t("దోషం", "Error"),
+              description: t("దయచేసి సరైన స్వీకరించిన మొత్తం నమోదు చేయండి", "Please enter a valid received amount"),
+              variant: "destructive"
+            });
+            return;
+        }
+         // Optional: Validation if received > entered amount
+         if (item.receivedAmount && parseFloat(item.receivedAmount) > parseFloat(item.amount)) {
+             toast({
+              title: t("హెచ్చరిక", "Warning"),
+              description: t("స్వీకరించిన మొత్తం, అసలు మొత్తం కంటే ఎక్కువగా ఉంది", "Received amount is greater than total amount"),
+              variant: "destructive"
+            });
+            return;
+        }
       }
     }
 
@@ -195,6 +213,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
           name: (nameTelugu || nameEnglish).trim(),
           name_english: nameEnglish.trim() || undefined,
           amount: category === 'sponsorship' ? 0 : parseFloat(first.amount),
+          received_amount: category === 'sponsorship' ? 0 : parseFloat(first.receivedAmount || '0'), 
           type: normalizeType(finalType),
           category
         };
@@ -208,6 +227,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
               name: (nameTelugu || nameEnglish).trim(),
               name_english: nameEnglish.trim() || undefined,
               amount: 0,
+              received_amount: 0,
               type: normalizeType(finalType),
               category
             };
@@ -220,6 +240,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
               name: (nameTelugu || nameEnglish).trim(),
               name_english: nameEnglish.trim() || undefined,
               amount: parseFloat(item.amount),
+              received_amount: parseFloat(item.receivedAmount || '0'),
               type: normalizeType(finalType),
               category
             };
@@ -303,7 +324,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
             <Select value={category} onValueChange={(value: 'chanda' | 'sponsorship') => {
               setCategory(value);
               // Reset donation items with sensible default type per category
-              setDonationItems([{ type: value === 'chanda' ? 'చందా' : 'ఇతర', amount: '' }]);
+              setDonationItems([{ type: value === 'chanda' ? 'చందా' : 'ఇతర', amount: '', receivedAmount: '' }]);
             }}>
               <SelectTrigger>
                 <SelectValue placeholder={t("వర్గం ఎంచుకోండి", "Select category")} />
@@ -438,47 +459,74 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
               </>
             ) : (
               donationItems.map((item, index) => (
-                <div key={index} className="grid grid-cols-12 gap-3 items-end">
-                  <div className="col-span-5">
-                    <Label htmlFor={`type-${index}`} className="text-xs">
-                      {t('రకం', 'Type')}
-                    </Label>
-                    <Input
-                      id={`type-${index}`}
-                      value={t('చందా', 'Chanda')}
-                      readOnly
-                      className="bg-muted border-border text-muted-foreground"
-                    />
-                  </div>
-                  <div className="col-span-5">
-                    <Label htmlFor={`amount-${index}`} className="text-xs">
-                      {t('మొత్తం (₹)', 'Amount (₹)')}
-                    </Label>
-                    <Input
-                      id={`amount-${index}`}
-                      type="number"
-                      value={item.amount}
-                      onChange={(e) => updateDonationItem(index, 'amount', e.target.value)}
-                      placeholder="0"
-                      min="0"
-                      step="0.01"
-                      className="bg-background border-border"
-                    />
-                  </div>
-                  <div className="col-span-2">
+                <div key={index} className="space-y-3 p-3 bg-slate-50 rounded-lg border border-slate-100 relative">
                     {!donation && donationItems.length > 1 && (
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 text-destructive"
+                        className="absolute top-1 right-1 h-6 w-6 text-destructive hover:bg-destructive/10"
                         onClick={() => removeDonationItem(index)}
                       >
                         <Trash2 className="h-4 w-4" />
                         <span className="sr-only">{t('తీసివేయి', 'Remove')}</span>
                       </Button>
                     )}
-                  </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                            <Label htmlFor={`type-${index}`} className="text-xs font-medium">
+                            {t('రకం', 'Type')}
+                            </Label>
+                            <Input
+                            id={`type-${index}`}
+                            value={t('చందా', 'Chanda')}
+                            readOnly
+                            className="bg-white border-slate-200 h-9"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor={`amount-${index}`} className="text-xs font-medium">
+                            {t('మొత్తం (₹)', 'Total Amount (₹)')}
+                            </Label>
+                            <Input
+                            id={`amount-${index}`}
+                            type="number"
+                            value={item.amount}
+                            onChange={(e) => updateDonationItem(index, 'amount', e.target.value)}
+                            placeholder="0"
+                            min="0"
+                            step="1"
+                            className="bg-white border-slate-200 h-9 font-medium"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                         <div className="space-y-1">
+                            <Label htmlFor={`received-${index}`} className="text-xs font-medium text-emerald-600">
+                            {t('వసూలు (₹)', 'Received (₹)')}
+                            </Label>
+                            <Input
+                            id={`received-${index}`}
+                            type="number"
+                            value={item.receivedAmount}
+                            onChange={(e) => updateDonationItem(index, 'receivedAmount', e.target.value)}
+                            placeholder="0"
+                            min="0"
+                            step="1"
+                            className="bg-white border-emerald-200 focus-visible:ring-emerald-500 h-9"
+                            />
+                        </div>
+                         <div className="space-y-1">
+                            <Label className="text-xs font-medium text-amber-600">
+                            {t('బాకీ (₹)', 'Pending (₹)')}
+                            </Label>
+                            <div className="h-9 px-3 flex items-center bg-amber-50 border border-amber-100 rounded-md text-amber-700 font-bold text-sm">
+                                {Math.max(0, (parseFloat(item.amount || '0') - parseFloat(item.receivedAmount || '0'))).toLocaleString()}
+                            </div>
+                        </div>
+                    </div>
                 </div>
               ))
             )}

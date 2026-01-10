@@ -2,117 +2,252 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
-    --background: 35 25% 96%;
-    --foreground: 20 14.3% 4.1%;
+    /* 
+      THEME 1: UTSAV (Default)
+      Vibe: Energetic, Traditional, Premium
+      Primary: Saffron & Gold
+      Background: Rich Warm Beige
+    */
+    --background: 35 30% 95%; /* Clean Warm Cream */
+    --foreground: 20 14% 10%; /* Soft Black */
 
-    --card: 0 0% 100%;
-    --card-foreground: 20 14.3% 4.1%;
+    --card: 35 30% 98%;
+    --card-foreground: 20 14% 10%;
+    --card-border: 35 20% 90%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 20 14.3% 4.1%;
+    --popover: 35 30% 99%;
+    --popover-foreground: 20 14% 10%;
 
-    --primary: 24 90% 53%;
+    --primary: 24 95% 53%; /* Vibrant Saffron */
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 35 25% 88%;
-    --secondary-foreground: 20 14.3% 4.1%;
+    --secondary: 45 100% 50%; /* Golden Yellow */
+    --secondary-foreground: 20 14% 10%;
 
-    --muted: 35 25% 92%;
-    --muted-foreground: 20 5.9% 45.1%;
+    --muted: 35 20% 90%;
+    --muted-foreground: 20 5% 45%;
 
-    --accent: 35 86% 85%;
-    --accent-foreground: 20 14.3% 4.1%;
+    --accent: 35 30% 92%;
+    --accent-foreground: 20 14% 10%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 35 25% 88%;
-    --input: 35 25% 88%;
+    --border: 35 20% 85%;
+    --input: 35 20% 85%;
     --ring: 24 90% 53%;
 
-    --festival-gold: 45 100% 55%;
-    --festival-orange: 24 90% 53%;
-    --festival-deep-orange: 16 100% 50%;
-    --festival-red: 0 72% 50%;
-    --festival-blue: 210 100% 40%;
-    --festival-cream: 35 25% 96%;
+    --radius: 1rem;
 
-    --gradient-festive: linear-gradient(135deg, hsl(var(--festival-orange)), hsl(var(--festival-gold)));
-    --gradient-header: linear-gradient(135deg, hsl(var(--festival-blue)), hsl(var(--festival-deep-orange)));
-    --shadow-festive: 0 10px 30px -10px hsl(var(--festival-orange) / 0.3);
+    /* Theme Gradients & Accents */
+    --festival-primary: 24 90% 53%;
+    --festival-secondary: 45 100% 55%;
+    --gradient-primary: linear-gradient(135deg, hsl(24 95% 59%), hsl(45 100% 60%));
+    --gradient-soft: linear-gradient(to bottom right, hsl(35 30% 95%), hsl(35 30% 90%));
+    --glass-border: 255 255 255; /* RGB for opacity usage */
 
-    --radius: 0.75rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
+    /* Sidebar */
+    --sidebar-background: 35 30% 96%;
+    --sidebar-foreground: 20 14% 10%;
+    --sidebar-primary: 24 90% 53%;
     --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 35 20% 90%;
+    --sidebar-accent-foreground: 20 14% 10%;
+    --sidebar-border: 35 20% 85%;
+    --sidebar-ring: 24 90% 53%;
   }
 
+  /* THEME 2: BHAKTI (Royal/Spiritual) */
+  [data-theme="bhakti"] {
+    --background: 220 30% 96%; /* Crisp Light Blue */
+    --foreground: 222 47% 15%;
+
+    --card: 220 30% 98%;
+    --card-foreground: 222 47% 15%;
+    --card-border: 220 20% 90%;
+
+    --popover: 220 30% 99%;
+    --popover-foreground: 222 47% 15%;
+
+    --primary: 243 85% 65%; /* Indigo */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 199 90% 55%; /* Sky Blue */
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 220 20% 92%;
+    --muted-foreground: 222 47% 55%;
+
+    --accent: 220 30% 94%;
+    --accent-foreground: 222 47% 15%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 20% 88%;
+    --input: 220 20% 88%;
+    --ring: 243 85% 65%;
+
+    --festival-primary: 243 75% 59%;
+    --festival-secondary: 199 89% 48%;
+    --gradient-primary: linear-gradient(135deg, hsl(243 85% 65%), hsl(199 90% 55%));
+    --gradient-soft: linear-gradient(to bottom right, hsl(220 30% 96%), hsl(220 30% 92%));
+
+    --sidebar-background: 220 30% 97%;
+    --sidebar-foreground: 222 47% 15%;
+    --sidebar-primary: 243 85% 65%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 220 20% 92%;
+    --sidebar-accent-foreground: 222 47% 15%;
+    --sidebar-border: 220 20% 88%;
+    --sidebar-ring: 243 85% 65%;
+  }
+
+  /* THEME 3: PRAKRITI (Eco/Nature) */
+  [data-theme="prakriti"] {
+    --background: 140 25% 96%; /* Clean Mint */
+    --foreground: 164 25% 20%;
+
+    --card: 140 25% 98%;
+    --card-foreground: 164 25% 20%;
+    --card-border: 140 20% 90%;
+
+    --popover: 140 25% 99%;
+    --popover-foreground: 164 25% 20%;
+
+    --primary: 142 60% 45%; /* Emerald */
+    --primary-foreground: 140 20% 98%;
+
+    --secondary: 32 40% 50%; /* Wood/Earth */
+    --secondary-foreground: 140 20% 98%;
+
+    --muted: 140 20% 92%;
+    --muted-foreground: 164 10% 50%;
+
+    --accent: 140 30% 94%;
+    --accent-foreground: 164 25% 20%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 140 20% 98%;
+
+    --border: 140 15% 88%;
+    --input: 140 15% 88%;
+    --ring: 142 60% 45%;
+
+    --festival-primary: 142 71% 45%;
+    --festival-secondary: 32 30% 40%;
+    --gradient-primary: linear-gradient(135deg, hsl(142 60% 45%), hsl(84 60% 40%));
+    --gradient-soft: linear-gradient(to bottom right, hsl(140 25% 96%), hsl(140 25% 92%));
+
+    --sidebar-background: 140 15% 97%;
+    --sidebar-foreground: 164 25% 20%;
+    --sidebar-primary: 142 60% 45%;
+    --sidebar-primary-foreground: 140 20% 98%;
+    --sidebar-accent: 140 15% 92%;
+    --sidebar-accent-foreground: 164 25% 20%;
+    --sidebar-border: 140 15% 88%;
+    --sidebar-ring: 142 60% 45%;
+  }
+
+  /* DARK MODE OVERRIDES */
   .dark {
-    --background: 20 14.3% 4.1%;
+    /* UTSAV DARK */
+    --background: 224 71% 4%;
     --foreground: 35 25% 96%;
-
-    --card: 20 14.3% 4.1%;
+    --card: 224 71% 6%;
     --card-foreground: 35 25% 96%;
-
-    --popover: 20 14.3% 4.1%;
+    --card-border: 224 71% 12%;
+    --popover: 224 71% 5%;
     --popover-foreground: 35 25% 96%;
-
     --primary: 24 90% 53%;
     --primary-foreground: 0 0% 98%;
-
-    --secondary: 15 7.1% 15.9%;
-    --secondary-foreground: 35 25% 96%;
-
-    --muted: 15 7.1% 15.9%;
-    --muted-foreground: 24 5.4% 63.9%;
-
-    --accent: 15 7.1% 15.9%;
+    --secondary: 45 100% 55%;
+    --secondary-foreground: 224 71% 4%;
+    --muted: 224 50% 12%;
+    --muted-foreground: 224 20% 60%;
+    --accent: 224 50% 12%;
     --accent-foreground: 35 25% 96%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-
-    --border: 15 7.1% 15.9%;
-    --input: 15 7.1% 15.9%;
+    --border: 224 50% 12%;
+    --input: 224 50% 12%;
     --ring: 24 90% 53%;
+    --glass-border: 255 255 255;
+    
+    --gradient-soft: linear-gradient(to bottom right, hsl(224 71% 6%), hsl(224 71% 4%));
 
-    --festival-gold: 45 100% 65%;
-    --festival-orange: 24 90% 63%;
-    --festival-deep-orange: 16 100% 60%;
-    --festival-red: 0 72% 60%;
-    --festival-blue: 210 100% 50%;
-    --festival-cream: 20 14.3% 4.1%;
-
-    --gradient-festive: linear-gradient(135deg, hsl(var(--festival-orange)), hsl(var(--festival-gold)));
-    --gradient-header: linear-gradient(135deg, hsl(var(--festival-blue)), hsl(var(--festival-deep-orange)));
-    --shadow-festive: 0 10px 30px -10px hsl(var(--festival-orange) / 0.4);
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 224 71% 5%;
+    --sidebar-foreground: 35 25% 96%;
+    --sidebar-primary: 24 90% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 224 50% 12%;
+    --sidebar-accent-foreground: 35 25% 96%;
+    --sidebar-border: 224 50% 12%;
+    --sidebar-ring: 24 90% 53%;
+  }
+
+  .dark[data-theme="bhakti"] {
+    --background: 222 47% 5%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 98%;
+    --card-border: 222 47% 15%;
+    --popover: 222 47% 7%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 243 75% 65%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 199 89% 60%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 217 33% 15%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 33% 15%;
+    --accent-foreground: 210 40% 98%;
+    --border: 217 33% 15%;
+    --input: 217 33% 15%;
+    --ring: 243 75% 65%;
+    --gradient-soft: linear-gradient(to bottom right, hsl(222 47% 8%), hsl(222 47% 5%));
+
+    --sidebar-background: 222 47% 6%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 243 75% 65%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 217 33% 15%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 15%;
+    --sidebar-ring: 243 75% 65%;
+  }
+
+  .dark[data-theme="prakriti"] {
+    --background: 164 40% 5%;
+    --foreground: 140 20% 98%;
+    --card: 164 40% 8%;
+    --card-foreground: 140 20% 98%;
+    --card-border: 164 40% 15%;
+    --popover: 164 40% 7%;
+    --popover-foreground: 140 20% 98%;
+    --primary: 142 71% 50%;
+    --primary-foreground: 140 20% 98%;
+    --secondary: 32 40% 50%;
+    --secondary-foreground: 140 20% 98%;
+    --muted: 160 30% 15%;
+    --muted-foreground: 140 10% 70%;
+    --accent: 160 30% 15%;
+    --accent-foreground: 140 20% 98%;
+    --border: 160 30% 15%;
+    --input: 160 30% 15%;
+    --ring: 142 71% 50%;
+    --gradient-soft: linear-gradient(to bottom right, hsl(164 40% 8%), hsl(164 40% 5%));
+
+    --sidebar-background: 164 40% 6%;
+    --sidebar-foreground: 140 20% 98%;
+    --sidebar-primary: 142 71% 50%;
+    --sidebar-primary-foreground: 140 20% 98%;
+    --sidebar-accent: 160 30% 15%;
+    --sidebar-accent-foreground: 140 20% 98%;
+    --sidebar-border: 160 30% 15%;
+    --sidebar-ring: 142 71% 50%;
   }
 }
 
@@ -120,8 +255,64 @@ All colors MUST be HSL.
   * {
     @apply border-border;
   }
+  
+  html {
+     scroll-behavior: smooth;
+  }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans transition-colors duration-500 ease-in-out antialiased;
+    /* Subtle texture overlay for premium feel */
+    background-image: 
+        radial-gradient(circle at 15% 50%, hsla(var(--primary) / 0.08), transparent 25%), 
+        radial-gradient(circle at 85% 30%, hsla(var(--secondary) / 0.08), transparent 25%);
+    background-attachment: fixed;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/70 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-sm supports-[backdrop-filter]:bg-white/60;
+  }
+  
+  .glass-card {
+    @apply bg-card/80 dark:bg-card/60 backdrop-blur-md border border-white/20 dark:border-white/5 shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+
+  .text-balance {
+    @supports (text-wrap: balance) {
+      text-wrap: balance;
+    }
+  }
+
+  .text-festive-gradient {
+    @apply bg-clip-text text-transparent bg-[image:var(--gradient-primary)];
+  }
+
+  .bg-gradient-festive {
+    @apply bg-[image:var(--gradient-primary)];
+  }
+  
+  .bg-gradient-soft {
+    @apply bg-[image:var(--gradient-soft)];
+  }
+  
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(3deg); }
+    50% { transform: translateY(-10px) rotate(5deg); }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 }

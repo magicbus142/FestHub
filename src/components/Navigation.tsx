@@ -1,27 +1,30 @@
-import { Home, Receipt, Image, BarChart3, Settings } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Home, Receipt, Image, BarChart3, Settings, Vote } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useFestival } from '@/contexts/FestivalContext';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 
 export const Navigation = () => {
   const { t } = useLanguage();
   const { currentOrganization, isAuthenticated } = useOrganization();
+  const { selectedFestival } = useFestival();
   const navigate = useNavigate();
   const location = useLocation();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
-  // Hide/show navigation on scroll for mobile
+  // Smart hide on scroll for mobile
   useEffect(() => {
     let ticking = false;
-
     const handleScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
           const currentScrollY = window.scrollY;
-          if (currentScrollY > lastScrollY && currentScrollY > 100) {
+          // Hide only on substantial downward scroll, show immediately on up
+          if (currentScrollY > lastScrollY && currentScrollY > 50) {
             setIsVisible(false);
           } else {
             setIsVisible(true);
@@ -32,10 +35,9 @@ export const Navigation = () => {
         ticking = true;
       }
     };
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [lastScrollY]);
 
   const orgPrefix = currentOrganization ? `/org/${currentOrganization.slug}` : '';
 
@@ -43,7 +45,7 @@ export const Navigation = () => {
     {
       path: `${orgPrefix}/dashboard`,
       icon: Home,
-      label: t('డాష్‌బోర్డ్', 'Dashboard'),
+      label: t('డాష్‌బోర్డ్', 'Home'),
       requiresAuth: false
     },
     {
@@ -61,7 +63,13 @@ export const Navigation = () => {
     {
       path: `${orgPrefix}/images`,
       icon: Image,
-      label: t('చిత్రాలు', 'Images'),
+      label: t('చిత్రాలు', 'Gallery'), // Shortened label
+      requiresAuth: false
+    },
+    {
+      path: `${orgPrefix}/voting`,
+      icon: Vote,
+      label: t('ఓటింగ్', 'Voting'),
       requiresAuth: false
     },
     {
@@ -72,32 +80,61 @@ export const Navigation = () => {
     }
   ];
 
-  // Filter items based on authentication
-  const visibleNavItems = navItems.filter(item => !item.requiresAuth || isAuthenticated);
+  // Logic to determine visible items
+  const visibleNavItems = navItems.filter(item => {
+    if (item.requiresAuth && !isAuthenticated) return false;
+    // @ts-ignore
+    if (item.requiresFestival && !selectedFestival) return false;
+
+    if (selectedFestival?.enabled_pages && Array.isArray(selectedFestival.enabled_pages)) {
+       const pageMap: Record<string, string> = {
+         'dashboard': 'dashboard',
+         'chandas': 'chandas', 
+         'expenses': 'expenses',
+         'images': 'images',
+         'voting': 'voting'
+       };
+       const routeName = item.path.split('/').pop();
+       if (routeName && pageMap[routeName]) {
+          // @ts-ignore
+          if (!selectedFestival.enabled_pages.includes(pageMap[routeName])) {
+              return false;
+          }
+       }
+    }
+    return true;
+  });
 
   return (
-    <nav className={`fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-t border-border transition-transform duration-300 ease-in-out lg:fixed lg:top-4 lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:bottom-auto lg:border lg:rounded-xl lg:w-auto lg:shadow-lg md:relative md:bottom-auto md:border-0 md:bg-transparent z-50 ${
-      isVisible ? 'translate-y-0' : 'translate-y-full lg:translate-y-0'
-    }`}>
-      <div className="flex items-center justify-around md:justify-start md:gap-2 p-2 md:p-0 lg:bg-card lg:px-4 lg:py-3">
-        {/* Organization Logo */}
+    <motion.nav
+        initial={{ y: 100 }}
+        animate={{ y: isVisible ? 0 : 100 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        className="fixed bottom-0 left-0 right-0 z-50 w-full md:bottom-6 md:left-1/2 md:right-auto md:w-auto md:max-w-[95vw] md:-translate-x-1/2 lg:hidden"
+    >
+      <div className={cn(
+          "flex items-center justify-around md:justify-center md:gap-1 p-3 md:p-2",
+          "bg-background/85 backdrop-blur-xl border-t border-white/20 dark:border-white/10 shadow-2xl",
+          "md:rounded-full md:border",
+          "supports-[backdrop-filter]:bg-background/60"
+      )}>
         {currentOrganization?.logo_url && (
-          <div 
-            className="hidden lg:flex items-center gap-2 pr-3 mr-3 border-r border-border cursor-pointer"
-            onClick={() => navigate(`/org/${currentOrganization.slug}`)}
-          >
-            <img 
-              src={currentOrganization.logo_url} 
-              alt={currentOrganization.name}
-              className="w-8 h-8 rounded-lg object-cover"
-            />
-            <span className="text-sm font-semibold text-foreground max-w-[120px] truncate">
-              {currentOrganization.name}
-            </span>
-          </div>
+            <motion.div 
+                className="hidden md:flex items-center pl-2 pr-4 mr-2 border-r border-white/20 cursor-pointer"
+                onClick={() => navigate(`/org/${currentOrganization.slug}`)}
+                whileHover={{ scale: 1.05 }}
+            >
+            <div className="relative w-7 h-7">
+                <div className="absolute inset-0 bg-primary/20 blur-sm rounded-md" />
+                <img 
+                    src={currentOrganization.logo_url} 
+                    alt={currentOrganization.name}
+                    className="w-full h-full rounded-md object-cover relative z-10"
+                />
+            </div>
+            </motion.div>
         )}
-        
-        {/* Navigation Items */}
+
         {visibleNavItems.map((item) => {
           const Icon = item.icon;
           const isRootDashboard = item.path === '/dashboard' && location.pathname === '/';
@@ -106,26 +143,32 @@ export const Navigation = () => {
           const isActive = isRootDashboard || isSamePath || isChildPath;
 
           return (
-            <Button
+            <button
               key={item.path}
-              variant={isActive ? "default" : "ghost"}
-              size="sm"
               onClick={() => navigate(item.path)}
-              className={`relative flex flex-col md:flex-row items-center gap-1 md:gap-2 h-auto py-2.5 px-3 md:px-4 min-w-0 transition-all duration-200 hover:scale-105 active:scale-95 ${
-                isActive
-                  ? 'bg-primary text-primary-foreground shadow-md'
-                  : 'hover:bg-accent hover:text-accent-foreground'
-              }`}
-            >
-              <Icon className="h-4 w-4 md:h-5 md:w-5 shrink-0" />
-              <span className="text-xs md:text-sm font-medium truncate">{item.label}</span>
-              {isActive && (
-                <div className="absolute -top-0.5 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-primary-foreground rounded-full lg:hidden" />
+              className={cn(
+                "relative flex flex-col items-center justify-center px-4 py-2 min-w-[64px] rounded-full transition-all duration-300 group outline-none",
+                isActive ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
               )}
-            </Button>
+            >
+                {isActive && (
+                    <motion.div
+                        layoutId="nav-pill"
+                        className="absolute inset-0 bg-primary rounded-full shadow-lg"
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                )}
+                
+                <span className="relative z-10 flex flex-col items-center gap-0.5">
+                    <Icon className={cn("h-5 w-5", isActive && "scale-110 transition-transform")} />
+                    <span className="text-[10px] font-medium leading-none opacity-90">
+                        {item.label}
+                    </span>
+                </span>
+            </button>
           );
         })}
       </div>
-    </nav>
+    </motion.nav>
   );
 };

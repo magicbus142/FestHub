@@ -12,9 +12,10 @@ interface DonationCardProps {
   onDelete: (id: string) => void;
   onAuthRequired: () => void;
   namePreference?: 'telugu' | 'english';
+  className?: string;
 }
 
-export const DonationCard = ({ donation, onEdit, onDelete, onAuthRequired, namePreference = 'telugu' }: DonationCardProps) => {
+export const DonationCard = ({ donation, onEdit, onDelete, onAuthRequired, namePreference = 'telugu', className }: DonationCardProps) => {
   const { isAuthenticated } = useOrganization();
   const { t } = useLanguage();
 
@@ -38,7 +39,7 @@ export const DonationCard = ({ donation, onEdit, onDelete, onAuthRequired, nameP
     }
   };
   return (
-    <Card className="bg-card border-border hover:shadow-festive transition-all duration-200">
+    <Card className={`bg-card border-border hover:shadow-festive transition-all duration-200 ${className}`}>
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-2">
           <div className="flex-1">
@@ -97,12 +98,36 @@ export const DonationCard = ({ donation, onEdit, onDelete, onAuthRequired, nameP
           </div>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-muted-foreground text-sm bg-accent px-2 py-1 rounded-full">
-            {donation.type}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            {donation.category === 'chanda' ? t('చందా', 'Chanda') : t('స్పాన్సర్‌షిప్', 'Sponsorship')}
-          </span>
+          <div className="flex items-center gap-2">
+             <span className="text-muted-foreground text-sm bg-accent px-2 py-1 rounded-full">
+               {donation.type}
+              </span>
+              {/* Status Badge */}
+             {(donation.received_amount || 0) >= donation.amount ? (
+               <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
+                 {t('స్వీకరించబడింది', 'Received')}
+               </span>
+             ) : (donation.received_amount || 0) > 0 ? (
+               <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
+                  {t('పాక్షికం', 'Partial')}
+               </span>
+             ) : (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium">
+                  {t('బాకీ', 'Pending')}
+               </span>
+             )}
+          </div>
+          <div className="text-right">
+             <span className="text-xs text-muted-foreground block">
+                {donation.category === 'chanda' ? t('చందా', 'Chanda') : t('స్పాన్సర్‌షిప్', 'Sponsorship')}
+             </span>
+             {/* Show pending amount if any */}
+             {(donation.amount - (donation.received_amount || 0)) > 0 && (
+                 <span className="text-xs text-red-500 font-semibold">
+                    {t('బాకీ: ', 'Pending: ')} ₹{(donation.amount - (donation.received_amount || 0)).toLocaleString()}
+                 </span>
+             )}
+          </div>
         </div>
       </CardContent>
     </Card>

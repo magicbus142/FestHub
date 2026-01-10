@@ -58,7 +58,7 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
 
   return (
     <Card 
-      className="relative overflow-hidden cursor-pointer hover:shadow-festive transition-all duration-300 hover:scale-105 aspect-[4/3] group"
+      className="relative overflow-hidden cursor-pointer hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] aspect-[4/3] group border-0 ring-1 ring-white/20"
       onClick={onClick}
     >
       {/* Background Image */}
@@ -67,7 +67,7 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
           <img 
             src={festival.background_image} 
             alt={festival.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
         ) : (
           <div 
@@ -78,7 +78,7 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
           />
         )}
         {/* Overlay for better text readability */}
-        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300" />
+        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300" />
       </div>
 
       {/* Content */}
@@ -90,7 +90,7 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
             variant="ghost"
             size="sm"
             onClick={handleShare}
-            className="text-white hover:bg-white/20 hover:text-white transition-colors"
+            className="text-white hover:bg-white/20 hover:text-white transition-colors bg-black/20 backdrop-blur-sm"
             title="Copy shareable link"
           >
             <Share2 className="h-4 w-4" />
@@ -109,7 +109,7 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
                     handleDelete(e);
                   }}
                   disabled={deleteMutation.isPending}
-                  className="text-white hover:bg-red-500/20 hover:text-red-100 transition-colors"
+                  className="text-white hover:bg-red-500/80 hover:text-white transition-colors bg-black/20 backdrop-blur-sm"
                 >
                   {isAuthenticated ? (
                     <Trash2 className="h-4 w-4" />
@@ -127,12 +127,12 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
           </TooltipProvider>
         </div>
         
-        {/* Festival info */}
-        <div className="absolute bottom-4 left-4 right-4">
-          <h3 className="text-2xl font-bold mb-1 drop-shadow-lg">
+        {/* Festival info with Glassmorphic Footer */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-black/40 backdrop-blur-md border-t border-white/10 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+          <h3 className="text-2xl font-bold mb-1 drop-shadow-sm text-white">
             {festival.name}
           </h3>
-          <p className="text-lg font-medium drop-shadow-md">
+          <p className="text-sm font-medium text-white/90">
             {festival.year}
           </p>
         </div>

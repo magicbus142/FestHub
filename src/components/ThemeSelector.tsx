@@ -40,30 +40,45 @@ export function ThemeSelector({ value, onChange, label = 'Select Theme' }: Theme
   return (
     <div className="space-y-3">
       <Label>{label}</Label>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-4">
         {themes.map((theme) => (
           <button
             key={theme.id}
             type="button"
             onClick={() => onChange(theme.id)}
             className={cn(
-              "relative flex flex-col items-center p-3 rounded-lg border-2 transition-all",
+              "relative flex flex-col items-center p-4 rounded-2xl border-2 transition-all group",
               value === theme.id
                 ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50"
+                : "border-border bg-background hover:border-primary/50"
             )}
           >
-            <div className="flex gap-1 mb-2">
-              {theme.colors.map((color, i) => (
-                <div
-                  key={i}
-                  className="w-6 h-6 rounded-full border border-border/50"
-                  style={{ backgroundColor: color }}
-                />
-              ))}
+            <div className="flex -space-x-2 mb-3">
+              {theme.colors.map((color, i) => {
+                const colorClass = color === 'hsl(25, 95%, 53%)' ? 'bg-[#f58021]' :
+                                 color === 'hsl(43, 96%, 56%)' ? 'bg-[#f5b821]' :
+                                 color === 'hsl(0, 0%, 98%)' ? 'bg-[#fafafa]' :
+                                 color === 'hsl(221, 83%, 53%)' ? 'bg-[#1d63ed]' :
+                                 color === 'hsl(262, 83%, 58%)' ? 'bg-[#823cf3]' :
+                                 color === 'hsl(340, 82%, 52%)' ? 'bg-[#ec1b5c]' :
+                                 color === 'hsl(270, 50%, 40%)' ? 'bg-[#663399]' :
+                                 color === 'hsl(45, 80%, 50%)' ? 'bg-[#cca31a]' :
+                                 color === 'hsl(0, 0%, 15%)' ? 'bg-[#262626]' : '';
+                return (
+                  <div
+                    key={i}
+                    className={cn("w-8 h-8 rounded-full border-2 border-background shadow-sm", colorClass)}
+                  />
+                );
+              })}
             </div>
-            <span className="text-sm font-medium">{theme.name}</span>
-            <span className="text-xs text-muted-foreground">{theme.description}</span>
+            <span className={cn(
+              "text-sm font-bold transition-colors",
+              value === theme.id ? "text-foreground" : "text-muted-foreground"
+            )}>
+              {theme.name}
+            </span>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground/40 font-medium">{theme.description}</span>
           </button>
         ))}
       </div>

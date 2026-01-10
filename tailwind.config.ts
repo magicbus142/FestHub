@@ -18,6 +18,9 @@ export default {
 			}
 		},
 		extend: {
+      fontFamily: {
+        sans: ['Outfit', 'sans-serif'],
+      },
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -53,12 +56,9 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				festival: {
-					gold: 'hsl(var(--festival-gold))',
-					orange: 'hsl(var(--festival-orange))',
-					'deep-orange': 'hsl(var(--festival-deep-orange))',
-					red: 'hsl(var(--festival-red))',
-					blue: 'hsl(var(--festival-blue))',
-					cream: 'hsl(var(--festival-cream))'
+					primary: 'hsl(var(--festival-primary))',
+					secondary: 'hsl(var(--festival-secondary))',
+					accent: 'hsl(var(--festival-accent))',
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
@@ -76,34 +76,30 @@ export default {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
-			backgroundImage: {
-				'gradient-festive': 'var(--gradient-festive)',
-				'gradient-header': 'var(--gradient-header)'
-			},
-			boxShadow: {
-				'festive': 'var(--shadow-festive)'
-			},
 			keyframes: {
 				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
+					from: { height: '0' },
+					to: { height: 'var(--radix-accordion-content-height)' }
 				},
 				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
+					from: { height: 'var(--radix-accordion-content-height)' },
+					to: { height: '0' }
+				},
+				shake: {
+					'0%, 100%': { transform: 'translateX(0)' },
+					'10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-10px)' },
+					'20%, 40%, 60%, 80%': { transform: 'translateX(10px)' }
+				},
+				'bounce-slow': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-20px)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				shake: 'shake 0.5s ease-in-out',
+				'bounce-slow': 'bounce-slow 3s ease-in-out infinite'
 			}
 		}
 	},

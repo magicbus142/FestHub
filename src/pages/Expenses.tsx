@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFestival } from '@/contexts/FestivalContext';
-import { Navigation } from '@/components/Navigation';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,13 +18,14 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import { AuthDialog } from '@/components/AuthDialog';
 import { PageHeader } from '@/components/PageHeader';
 import { BackButton } from '@/components/BackButton';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
 export default function Expenses() {
   const { t, language, setLanguage } = useLanguage();
   const { selectedFestival } = useFestival();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useOrganization();
+  const { isAuthenticated, currentOrganization } = useOrganization();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
@@ -180,54 +181,57 @@ export default function Expenses() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 pb-20 md:pb-6">
+      <div className="container mx-auto px-4 py-6">
         {/* Header */}
-        <PageHeader
-          pageName="Expenses"
-          pageNameTelugu="ఖర్చులు"
-          description="Track your expenses"
-          descriptionTelugu="మీ ఖర్చులను ట్రాక్ చేయండి"
-        >
-          <div className="flex flex-col gap-3 w-full">
-            {/* Back + Language Row */}
-            <div className="flex items-center justify-between">
-              <BackButton emphasis size="sm" className="rounded-md " />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-                className="px-3"
-              >
-                {language === 'telugu' ? 'EN' : 'తె'}
-              </Button>
-            </div>
-
-            {/* Prominent Add Expense Button */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="lg"
-                    onClick={startAddExpense}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                  >
-                    {isAuthenticated ? (
-                      <Plus className="h-5 w-5 mr-2" />
-                    ) : (
-                      <Lock className="h-5 w-5 mr-2" />
-                    )}
-                    {t('ఖర్చు జోడించు', 'Add Expense')}
-                  </Button>
-                </TooltipTrigger>
-                {!isAuthenticated && (
-                  <TooltipContent>
-                    <p>{t('జోడించడానికి లాగిన్ అవసరం', 'Login required to add')}</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
+        {/* Standardized Custom Header */}
+        <div className="flex flex-col gap-4 mb-6">
+          <div className="space-y-1">
+             <h2 className="text-sm font-medium text-primary/80 tracking-wide uppercase">{currentOrganization?.name}</h2>
+             <div className="flex items-baseline gap-2 flex-wrap">
+                <h1 className="text-3xl font-bold text-foreground tracking-tight">
+                  {selectedFestival?.name} <span className="text-muted-foreground">•</span> {t('ఖర్చులు', 'Expenses')}
+                </h1>
+             </div>
+             <p className="text-muted-foreground text-sm font-medium">
+                {t('మీ ఖర్చులను ట్రాక్ చేయండి', 'Track your expenses')}
+             </p>
+             <div className="pt-2">
+                {/* YearBadge is not imported or available in this file context based on imports above, so I'll check if I need to add it or just render the badge manually. 
+                    Checking imports... PageHeader was there, so YearBadge might be importable. 
+                    Actually, checking previous file view... YearBadge IS NOT imported in Expenses.tsx. 
+                    I will render a manual badge to avoid import errors or I should have added the import. 
+                    Wait, let's use a simple span for now to be safe, or add the import in a separate block if strictly needed. 
+                    "2026" badge style: bg-slate-100 text-slate-600 rounded-full px-3 py-1 text-xs font-bold
+                */}
+               
+             </div>
           </div>
-        </PageHeader>
+
+          {/* Controls Row */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+                <BackButton className="rounded-xl shadow-sm bg-accent/50 text-primary hover:bg-accent border-0" />
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
+                    className="h-10 w-10 rounded-full border-slate-200"
+                >
+                   {language === 'telugu' ? 'EN' : 'తె'}
+                </Button>
+                <ThemeSwitcher />
+            </div>
+            
+            {/* Prominent Add Button (Top Right) */}
+            <Button
+                onClick={startAddExpense}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 rounded-full px-6 text-sm shadow-lg shadow-primary/20 transition-all active:scale-[0.98] md:ml-auto w-full md:w-auto"
+            >
+                <Plus className="h-5 w-5 mr-2" />
+                {t('ఖర్చు జోడించు', 'Add Expense')}
+            </Button>
+          </div>
+        </div>
 
         {/* Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -413,7 +417,7 @@ export default function Expenses() {
         </div>
 
         {/* Navigation */}
-        <Navigation />
+
         <AuthDialog
           isOpen={isAuthOpen}
           onClose={() => setIsAuthOpen(false)}

@@ -1,7 +1,7 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFestival } from '@/contexts/FestivalContext';
 import { useEffect, useState } from 'react';
-import { Navigation } from '@/components/Navigation';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -19,7 +19,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ChandasPreview } from '@/components/ChandasPreview';
 import { ExpensesPreview } from '@/components/ExpensesPreview';
 import { ImagesPreview } from '@/components/ImagesPreview';
+import { VotingPreview } from '@/components/VotingPreview';
 import { BackButton } from '@/components/BackButton';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
+import { PageOption } from '@/components/PageSelector';
 
 export default function Dashboard() {
   const { t, language, setLanguage } = useLanguage();
@@ -136,7 +139,7 @@ export default function Dashboard() {
     color: 'text-green-600'
   }];
   return <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 pb-20 md:pb-6">
+      <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <PageHeader
           pageName="Dashboard"
@@ -160,6 +163,7 @@ export default function Dashboard() {
             >
               {language === 'telugu' ? 'EN' : 'తె'}
             </Button>
+            <ThemeSwitcher />
           </div>
         </PageHeader>
 
@@ -254,10 +258,17 @@ export default function Dashboard() {
           <ChandasPreview />
           <ExpensesPreview />
           <ImagesPreview />
+          {(() => {
+            const pages = (selectedFestival?.enabled_pages as unknown as PageOption[]) || [];
+            if (pages.includes('voting')) {
+              return <VotingPreview />;
+            }
+            return null;
+          })()}
         </div>
 
         {/* Navigation */}
-        <Navigation />
+
       </div>
     </div>;
 }

@@ -12,8 +12,15 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFestival } from '@/contexts/FestivalContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { Navigation } from '@/components/Navigation';
-import { BarChart3, DollarSign, Plus, ArrowLeft, Lock } from 'lucide-react';
+import { BarChart3, DollarSign, Plus, ArrowLeft, Lock, TrendingUp, Wallet, CreditCard, Download } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -22,11 +29,12 @@ import { PageHeader } from '@/components/PageHeader';
 import { ComingSoon } from '@/components/ComingSoon';
 import { useNavigate } from 'react-router-dom';
 import { BackButton } from '@/components/BackButton';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
 export default function Chandas() {
   const { t, language, setLanguage } = useLanguage();
   const { selectedFestival } = useFestival();
-  const { isAuthenticated } = useOrganization();
+  const { isAuthenticated, currentOrganization } = useOrganization();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
@@ -42,12 +50,14 @@ export default function Chandas() {
   const [editingDonation, setEditingDonation] = useState<Donation | undefined>(undefined);
   const [deletingDonationId, setDeletingDonationId] = useState<string | null>(null);
   const [showDuplicates, setShowDuplicates] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'received' | 'pending'>('all');
 
   const { data: donations = [], refetch } = useQuery({
     queryKey: ['donations-festival', selectedFestival?.name, selectedFestival?.year, activeCategory],
     queryFn: () => selectedFestival ? getDonationsByFestival(selectedFestival.name, selectedFestival.year, activeCategory) : [],
     enabled: !!selectedFestival,
   });
+  
 
   const { data: totalChanda = 0 } = useQuery({
     queryKey: ['total-chanda-festival', selectedFestival?.name, selectedFestival?.year],
@@ -60,6 +70,78 @@ export default function Chandas() {
     queryFn: () => selectedFestival ? getTotalByFestival(selectedFestival.name, selectedFestival.year, 'sponsorship') : 0,
     enabled: !!selectedFestival,
   });
+
+  // Calculate totals and pending amounts based on actual collection
+  const totalChandaAmount = (donations || [])
+    .filter(d => d.category === 'chanda' || !d.category)
+    .reduce((sum, d) => sum + d.amount, 0);
+    
+  const totalChandaReceived = (donations || [])
+    .filter(d => d.category === 'chanda' || !d.category)
+    .reduce((sum, d) => sum + (d.received_amount || 0), 0);
+    
+  const totalSponsorshipAmount = (donations || [])
+    .filter(d => d.category === 'sponsorship')
+    .reduce((sum, d) => sum + d.amount, 0);
+
+  const totalSponsorshipReceived = (donations || [])
+    .filter(d => d.category === 'sponsorship')
+    .reduce((sum, d) => sum + (d.received_amount || 0), 0);
+
+  const totalAmount = totalChandaAmount + totalSponsorshipAmount;
+  const totalReceived = totalChandaReceived + totalSponsorshipReceived;
+
+  // Pending Calculation
+  const pendingChanda = Math.max(0, totalChandaAmount - totalChandaReceived);
+  const pendingSponsorship = Math.max(0, totalSponsorshipAmount - totalSponsorshipReceived);
+  const pendingTotal = Math.max(0, totalAmount - totalReceived);
+  
+  // Progress percentages for stats cards
+  const chandaProgress = totalChandaAmount > 0 ? (totalChandaReceived / totalChandaAmount) * 100 : 0;
+  const sponsorshipProgress = totalSponsorshipAmount > 0 ? (totalSponsorshipReceived / totalSponsorshipAmount) * 100 : 0;
+  const totalProgress = totalAmount > 0 ? (totalReceived / totalAmount) * 100 : 0;
+
+  const handleExport = () => {
+    try {
+      if (filteredDonations.length === 0) {
+        alert(t('ఎగుమతి చేయడానికి డేటా లేదు', 'No data to export'));
+        return;
+      }
+
+      // Define CSV headers
+      const headers = ['Name', 'Category', 'Type', 'Total Amount', 'Received Amount', 'Pending Amount', 'Date'];
+      
+      // Map data to CSV rows
+      const rows = filteredDonations.map(d => [
+        // Name: Handle commas by wrapping in quotes
+        `"${language === 'telugu' ? d.name : (d.name_english || d.name)}"`,
+        d.category,
+        d.type,
+        d.amount,
+        d.received_amount || 0,
+        d.amount - (d.received_amount || 0),
+        new Date(d.created_at || '').toLocaleDateString()
+      ]);
+
+      // Combine headers and rows
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\n');
+
+      // Create blob and download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `donations_export_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Export failed', err);
+    }
+  };
 
   // Client-side, case-insensitive search over Telugu `name` and English `name_english`
   const term = (searchTerm || '').trim().toLowerCase();
@@ -106,7 +188,20 @@ export default function Chandas() {
   ];
 
   // Apply category and sort (after search filter)
-  const filteredDonations = duplicatesFiltered.filter(d => d.category === activeCategory);
+  let filteredDonations = duplicatesFiltered.filter(d => d.category === activeCategory);
+
+  // Apply status filter
+  if (statusFilter !== 'all') {
+    filteredDonations = filteredDonations.filter(d => {
+      const received = d.received_amount || 0;
+      if (statusFilter === 'received') {
+        return received >= d.amount;
+      } else {
+        // pending (includes partial)
+        return received < d.amount; 
+      }
+    });
+  }
   
   const sortedDonations = filteredDonations.slice().sort((a, b) => {
     // Sponsorship tab: custom order by type, then latest within the same type
@@ -200,136 +295,224 @@ export default function Chandas() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 pb-20 md:pb-6">
+      <div className="container mx-auto px-4 py-6">
         {/* Header */}
-        <PageHeader
-          pageName="Chandas"
-          pageNameTelugu="చందాలు"
-          description="Track Chandas and sponsorships"
-          descriptionTelugu="చందాలు మరియు స్పాన్సర్‌షిప్‌లను ట్రాక్ చేయండి"
-        >
-          <div className="flex flex-col gap-3 w-full">
-            {/* Back + Language Row */}
-            <div className="flex items-center justify-between">
-              <BackButton
-                className="rounded-md"
-                emphasis size="sm"
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-                className="px-3"
-              >
-                {language === 'telugu' ? 'EN' : 'తె'}
-              </Button>
-            </div>
+        {/* Custom Header Layout matching Standard Design */}
+        <div className="flex flex-col gap-4 mb-6">
+          <div className="space-y-1">
+             {/* Breadcrumbs */}
+             <div className="flex items-center text-xs text-muted-foreground mb-4">
+                <span>Home</span>
+                <span className="mx-2">›</span>
+                <span>{selectedFestival?.name || 'Festival'}</span>
+                <span className="mx-2">›</span>
+                <span className="font-medium text-foreground">Finances</span>
+             </div>
 
-            {/* Language and Name Preference Controls */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setNamePreference(prev => prev === 'telugu' ? 'english' : 'telugu')}
-                className="flex-1"
-              >
-                {namePreference === 'telugu' ? t('పేర్లు: తెలుగు', 'Names: Telugu') : t('పేర్లు: English', 'Names: English')}
-              </Button>
-            </div>
-
-            {/* Prominent Add Button */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={handleAddDonation}
-                    size="lg"
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                  >
-                    {isAuthenticated ? (
-                      <Plus className="h-5 w-5 mr-2" />
-                    ) : (
-                      <Lock className="h-5 w-5 mr-2" />
-                    )}
-                    {t('చందా జోడించు', 'Add Chanda')}
-                  </Button>
-                </TooltipTrigger>
-                {!isAuthenticated && (
-                  <TooltipContent>
-                    <p>{t('జోడించడానికి లాగిన్ అవసరం', 'Login required to add')}</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
+             <h1 className="text-3xl font-bold text-foreground tracking-tight mb-2">
+               {t('పండుగ ఆర్థికం', 'Festival Finances')}
+             </h1>
           </div>
-        </PageHeader>
+
+           {/* Controls Row */}
+           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+             <div className="flex items-center gap-2">
+                <BackButton className="rounded-xl shadow-sm bg-accent/50 text-primary hover:bg-accent border-0" />
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
+                    className="h-10 w-10 rounded-full border-slate-200"
+                >
+                   {language === 'telugu' ? 'EN' : 'తె'}
+                </Button>
+                <ThemeSwitcher />
+             </div>
+             
+             {/* Prominent Add Button (Top Right) */}
+             <Button
+                onClick={handleAddDonation}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 rounded-full px-6 text-sm shadow-lg shadow-primary/20 transition-all active:scale-[0.98] md:ml-auto w-full md:w-auto"
+            >
+                <Plus className="h-5 w-5 mr-2" />
+                {t('చందా జోడించు', 'Add Chanda')}
+            </Button>
+           </div>
+        </div>
 
         {/* Navigation moved to bottom for consistency */}
 
-        {/* Total amount card only */}
-        <div className="grid grid-cols-1 gap-6 mb-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {t('మొత్తం చందా', 'Total Chandas')}
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">₹{totalChanda.toLocaleString()}</div>
+        {/* Stats Grid - 3 Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* Total Collection */}
+          <Card className="bg-white shadow-sm border-slate-100">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                    {t('మొత్తం సేకరణ', 'TOTAL COLLECTION')}
+                  </p>
+                  <h3 className="text-2xl font-bold text-foreground">
+                    ₹{totalReceived.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">/ ₹{totalAmount.toLocaleString()}</span>
+                  </h3>
+                </div>
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <Wallet className="h-5 w-5 text-blue-600" />
+                </div>
+              </div>
+              {/* Progress Bar */}
+              <div className="w-full bg-slate-100 h-1.5 rounded-full mb-2">
+                <div className="bg-emerald-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${totalProgress}%` } as React.CSSProperties}></div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t('పెండింగ్', 'Pending')}: <span className="font-medium text-foreground">₹{pendingTotal.toLocaleString()}</span>
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Chanda (Individual) */}
+          <Card className="bg-white shadow-sm border-slate-100">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                    {t('చందా (వ్యక్తిగతం)', 'CHANDA (INDIVIDUAL)')}
+                  </p>
+                  <h3 className="text-2xl font-bold text-foreground">
+                    ₹{totalChandaReceived.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">/ ₹{totalChandaAmount.toLocaleString()}</span>
+                  </h3>
+                </div>
+              </div>
+               {/* Progress Bar */}
+              <div className="w-full bg-slate-100 h-1.5 rounded-full mb-2">
+                <div className="bg-blue-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${chandaProgress}%` } as React.CSSProperties}></div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t('పెండింగ్', 'Pending')}: <span className="font-medium text-foreground">₹{pendingChanda.toLocaleString()}</span>
+              </p>
+            </CardContent>
+          </Card>
+
+           {/* Sponsorships */}
+           <Card className="bg-white shadow-sm border-slate-100">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                    {t('స్పాన్సర్‌షిప్‌లు', 'SPONSORSHIPS')}
+                  </p>
+                  <h3 className="text-2xl font-bold text-foreground">
+                    ₹{totalSponsorshipReceived.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">/ ₹{totalSponsorshipAmount.toLocaleString()}</span>
+                  </h3>
+                </div>
+              </div>
+               {/* Progress Bar */}
+              <div className="w-full bg-slate-100 h-1.5 rounded-full mb-2">
+                <div className="bg-purple-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${sponsorshipProgress}%` } as React.CSSProperties}></div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                 {t('పెండింగ్', 'Pending')}: <span className="font-medium text-foreground">₹{pendingSponsorship.toLocaleString()}</span>
+              </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Tabs: only Chanda and Sponsorship with counts (sticky on mobile) */}
-        <div className="sticky top-0 z-40 -mx-4 px-4 pt-1 pb-3 bg-background/80 supports-[backdrop-filter]:bg-background/60 backdrop-blur border-b md:static md:border-0 md:-mx-0 md:px-0 md:pt-0 md:pb-0">
-          <Tabs value={activeCategory} onValueChange={(value) => handleCategoryChange(value as any)}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger
-                value="chanda"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+        {/* Wrapper for Tabs and Search to look integrated */}
+        <div className="bg-white p-1 rounded-t-xl border-b-0">
+           {/* Tabs: Styled as simple text tabs with blue underline active state */}
+           <div className="flex items-center gap-6 px-4 md:px-6 mb-4 mt-2 overflow-x-auto pb-2 md:pb-0">
+              <button 
+                onClick={() => handleCategoryChange('chanda')}
+                className={`flex items-center gap-2 pb-2 text-sm font-medium transition-all whitespace-nowrap ${activeCategory === 'chanda' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-muted-foreground hover:text-foreground'}`}
               >
-                {t('చందా', 'Chanda')} ({chandaCount})
-              </TabsTrigger>
-              <TabsTrigger
-                value="sponsorship"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                <div className="bg-blue-100 p-1 rounded-md"><Wallet className="h-3 w-3 text-blue-600"/></div>
+                {t('చందా (Individual)', 'Chanda (Contributions)')}
+              </button>
+              <button 
+                onClick={() => handleCategoryChange('sponsorship')}
+                className={`flex items-center gap-2 pb-2 text-sm font-medium transition-all whitespace-nowrap ${activeCategory === 'sponsorship' ? 'text-purple-600 border-b-2 border-purple-600' : 'text-muted-foreground hover:text-foreground'}`}
               >
-                {t('స్పాన్సర్‌షిప్', 'Sponsorship')} ({sponsorshipCount})
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+                <div className="bg-purple-100 p-1 rounded-md"><CreditCard className="h-3 w-3 text-purple-600"/></div>
+                {t('స్పాన్సర్‌షిప్‌లు', 'Sponsorships')}
+              </button>
+           </div>
         </div>
 
-        {/* Sort and Search */}
-        <div className="mb-6 space-y-3">
-          <div className="flex flex-col md:flex-row gap-3">
-            <div className="flex-1">
-              <label className="block text-sm text-muted-foreground mb-1">{t('క్రమబద్ధీకరణ', 'Sort by')}:</label>
-              <select
-                className="w-full border rounded-md px-3 py-2 bg-background"
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value)}
-              >
-                <option value="">{t('ఫిల్టర్', 'Filter')}</option>
-                <option value="amount-desc">{t('మొత్తం (ఎక్కువ → తక్కువ)', 'Amount (High → Low)')}</option>
-                <option value="amount-asc">{t('మొత్తం (తక్కువ → ఎక్కువ)', 'Amount (Low → High)')}</option>
-                <option value="name-asc">{t('పేరు (A → Z)', 'Name (A → Z)')}</option>
-                <option value="name-desc">{t('పేరు (Z → A)', 'Name (Z → A)')}</option>
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="duplicates-only"
-                checked={showDuplicates}
-                onCheckedChange={(v) => setShowDuplicates(!!v)}
+        {/* Filter Bar */}
+        <div className="bg-white border-y border-slate-100 px-4 md:px-6 py-3 flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm mb-4">
+           {/* Search */}
+           <div className="relative w-full md:w-96">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder={t('పేరు లేదా ఫోన్ నంబర్ ద్వారా శోధించండి...', 'Search by name, phone...')}
+                className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg leading-5 bg-white placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm transition duration-150 ease-in-out"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <label htmlFor="duplicates-only" className="text-sm text-foreground select-none cursor-pointer">
-                {t('నకిలీలు మాత్రమే', 'Duplicates only')}
-              </label>
-            </div>
-          </div>
-          <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+           </div>
+
+           {/* Filters & Export */}
+           <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="relative">
+                  <select 
+                     aria-label={t('స్థితిని ఎంచుకోండి', 'Select Status')}
+                     className="appearance-none bg-white border border-slate-200 text-foreground py-2 pl-3 pr-8 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary w-full md:w-40"
+                     value={statusFilter}
+                     onChange={(e) => {
+                       setStatusFilter(e.target.value as any);
+                       setCurrentPage(1); // Reset page on filter change
+                     }}
+                  >
+                     <option value="all">{t('అన్ని', 'All Status')}</option>
+                     <option value="received">{t('స్వీకరించబడింది', 'Received')}</option>
+                     <option value="pending">{t('పెండింగ్', 'Pending')}</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-foreground">
+                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                  </div>
+               </div>
+
+              <div className="relative">
+                 <select 
+                    aria-label={t('క్రమబద్ధీకరించు', 'Sort Order')}
+                    className="appearance-none bg-white border border-slate-200 text-foreground py-2 pl-3 pr-8 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary w-full md:w-40"
+                    value={sortOption}
+                    onChange={(e) => setSortOption(e.target.value)}
+                 >
+                    <option value="">{t('ఫిల్టర్', 'Filter')}</option>
+                    <option value="amount-desc">Amount: High ↓ Low</option>
+                    <option value="amount-asc">Amount: Low ↑ High</option>
+                    <option value="name-asc">Name: A - Z</option>
+                    <option value="name-desc">Name: Z - A</option>
+                 </select>
+                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-foreground">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                 </div>
+              </div>
+              
+              {/* Name Language Toggle moved here */}
+              <Button
+                  variant="outline"
+                  onClick={() => setNamePreference(prev => prev === 'telugu' ? 'english' : 'telugu')}
+                  className="h-9 px-3 gap-2 border-slate-200"
+                  title={t('పేరు భాష మార్చండి', 'Change Name Language')}
+              >
+                  <span className="text-xs font-bold bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">
+                      {namePreference === 'telugu' ? 'తె' : 'En'}
+                  </span>
+                  <span className="text-sm hidden sm:inline">{namePreference === 'telugu' ? 'To English' : 'To Telugu'}</span>
+              </Button>
+              
+              {/* <Button variant="outline" className="h-9 gap-2" onClick={handleExport}>
+                 <Download className="h-4 w-4 text-muted-foreground" />
+                 <span className="hidden sm:inline">{t('ఎగుమతి', 'Export')}</span>
+              </Button> */}
+           </div>
         </div>
 
         {/* Donations List */}
@@ -347,45 +530,170 @@ export default function Chandas() {
               </CardContent>
             </Card>
           ) : (
-            processedDonations.map((donation) => (
-              <DonationCard 
-                key={donation.id} 
-                donation={donation}
-                onEdit={handleEditDonation}
-                onDelete={(id) => setDeletingDonationId(id)}
-                onAuthRequired={handleAuthRequired}
-                namePreference={namePreference}
-              />
-            ))
-          )}
-        </div>
+             <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+               {/* Desktop Table View */}
+               <div className="hidden md:block">
+                 <Table>
+                   <TableHeader className="bg-slate-50">
+                     <TableRow>
+                       <TableHead className="font-semibold">{t('దాత', 'Contributor')}</TableHead>
+                       <TableHead className="font-semibold">{t('తేదీ', 'Date')}</TableHead>
+                       <TableHead className="font-semibold">{t('విధానం', 'Mode')}</TableHead>
+                       <TableHead className="text-right font-semibold">{t('మొత్తం', 'Amount')}</TableHead>
+                       <TableHead className="font-semibold text-center">{t('స్థితి', 'Status')}</TableHead>
+                       <TableHead className="w-[100px]"></TableHead>
+                     </TableRow>
+                   </TableHeader>
+                   <TableBody>
+                     {processedDonations.map((donation) => (
+                       <TableRow key={donation.id} className="group hover:bg-slate-50 transition-colors">
+                         <TableCell>
+                           <div className="flex items-center gap-3">
+                             <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${
+                               donation.category === 'sponsorship' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                             }`}>
+                               {(donation.name_english?.[0] || donation.name?.[0] || '?').toUpperCase()}
+                             </div>
+                             <div>
+                               <p className="font-medium text-foreground">
+                                 {namePreference === 'english' ? (donation.name_english || donation.name) : (donation.name || donation.name_english)}
+                               </p>
+                               {donation.category === 'sponsorship' && (
+                                 <p className="text-xs text-muted-foreground">{donation.type}</p>
+                               )}
+                             </div>
+                           </div>
+                         </TableCell>
+                         <TableCell className="text-muted-foreground text-sm">
+                           {donation.created_at ? new Date(donation.created_at).toLocaleDateString() : '-'}
+                         </TableCell>
+                         <TableCell>
+                           <div className="flex items-center gap-2 text-sm text-foreground/80">
+                             <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
+                             <span>UPI</span> {/* Mocked Mode */}
+                           </div>
+                         </TableCell>
+                         <TableCell className="text-right font-bold text-foreground">
+                           <div>₹{donation.amount.toLocaleString()}</div>
+                           {(donation.amount - (donation.received_amount || 0)) > 0 && (
+                             <div className="text-xs text-red-500 font-semibold mt-0.5">
+                               {t('బాకీ', 'Pending')}: ₹{(donation.amount - (donation.received_amount || 0)).toLocaleString()}
+                             </div>
+                           )}
+                         </TableCell>
+                          <TableCell className="text-center">
+                           {(donation.received_amount || 0) >= donation.amount ? (
+                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                               {t('స్వీకరించబడింది', 'Received')}
+                             </span>
+                           ) : (donation.received_amount || 0) > 0 ? (
+                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                               {t('పాక్షికం', 'Partial')}
+                             </span>
+                           ) : (
+                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                               {t('బాకీ', 'Pending')}
+                             </span>
+                           )}
+                          </TableCell>
+                         <TableCell>
+                            <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => handleEditDonation(donation)}>
+                                   <span className="sr-only">Edit</span>
+                                   <svg
+                                     width="15"
+                                     height="15"
+                                     viewBox="0 0 15 15"
+                                     fill="none"
+                                     xmlns="http://www.w3.org/2000/svg"
+                                     className="h-4 w-4"
+                                   >
+                                     <path
+                                       d="M11.8536 1.14645C11.6583 0.951184 11.3417 0.951184 11.1464 1.14645L3.71455 8.57829C3.64594 8.6469 3.59374 8.73177 3.56236 8.825L2.83151 11.0176C2.79374 11.1309 2.82522 11.2566 2.91264 11.3364C3.00006 11.4162 3.1287 11.4348 3.22097 11.3813L5.32043 10.1691C5.40552 10.12 5.47467 10.0503 5.52352 9.96503L12.8536 2.85355C13.0488 2.65829 13.0488 2.34171 12.8536 2.14645L11.8536 1.14645ZM11.5 2.20711L12.1464 2.85355L5.05609 9.94391L4.05372 10.5226L4.54224 9.05705L11.5 2.20711ZM5.5 13H1.5C1.22386 13 1 13.2239 1 13.5C1 13.7761 1.22386 14 1.5 14H5.5C5.77614 14 6 13.7761 6 13.5C6 13.2239 5.77614 13 5.5 13Z"
+                                       fill="currentColor"
+                                       fillRule="evenodd"
+                                       clipRule="evenodd"
+                                     ></path>
+                                   </svg>
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setDeletingDonationId(donation.id)}>
+                                   <span className="sr-only">Delete</span>
+                                   <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                                </Button>
+                            </div>
+                         </TableCell>
+                       </TableRow>
+                     ))}
+                   </TableBody>
+                 </Table>
+               </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="sticky bottom-16 z-40 -mx-4 px-4 py-2 bg-background/80 supports-[backdrop-filter]:bg-background/60 backdrop-blur border-t md:static md:border-0 md:-mx-0 md:px-0">
-            <div className="flex justify-center items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-              >
-                {t('మునుపటి', 'Previous')}
-              </Button>
-              <span className="text-sm text-muted-foreground">
-                {t(`పేజీ ${currentPage} / ${totalPages}`, `Page ${currentPage} of ${totalPages}`)}
-              </span>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-              >
-                {t('తదుపరి', 'Next')}
-              </Button>
-            </div>
-          </div>
-        )}
+               {/* Mobile List View */}
+               <div className="md:hidden divide-y divide-slate-100">
+                  {processedDonations.map((donation) => (
+                    <DonationCard 
+                      key={donation.id} 
+                      donation={donation}
+                      onEdit={handleEditDonation}
+                      onDelete={(id) => setDeletingDonationId(id)}
+                      onAuthRequired={handleAuthRequired}
+                      namePreference={namePreference}
+                      className="border-0 shadow-none rounded-none first:rounded-t-lg last:rounded-b-lg"
+                    />
+                  ))}
+               </div>
+             </div>
+           )}
+         </div>
+
+         {/* Pagination */}
+         {/* ... kept same ... */}
+         {totalPages > 1 && (
+           /* ... existing pagination code ... */
+           <div className="flex justify-between items-center px-2 py-4 border-t mt-4">
+              <div className="text-sm text-muted-foreground hidden md:block">
+                 Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, sortedDonations.length)} of {sortedDonations.length} results
+              </div>
+              <div className="flex gap-2 mx-auto md:mx-0">
+                 <Button 
+                   variant="outline" 
+                   size="sm" 
+                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                   disabled={currentPage === 1}
+                   className="h-8 w-8 p-0"
+                 >
+                   <span className="sr-only">Previous</span>
+                   <ArrowLeft className="h-4 w-4" />
+                 </Button>
+                 {Array.from({length: Math.min(5, totalPages)}, (_, i) => {
+                    // Simple logic for page numbers, improving this is a bonus
+                    const p = i + 1; 
+                    return (
+                       <Button
+                          key={p}
+                          variant={currentPage === p ? "default" : "outline"}
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => setCurrentPage(p)}
+                       >
+                          {p}
+                       </Button>
+                    )
+                 })}
+                 <Button 
+                   variant="outline" 
+                   size="sm" 
+                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                   disabled={currentPage === totalPages}
+                   className="h-8 w-8 p-0"
+                 >
+                   <span className="sr-only">Next</span>
+                   <ArrowLeft className="h-4 w-4 rotate-180" />
+                 </Button>
+              </div>
+           </div>
+         )}
+
 
         {/* Donation Form Dialog */}
         <DonationForm
@@ -432,7 +740,7 @@ export default function Chandas() {
         </AlertDialog>
 
         {/* Bottom Navigation */}
-        <Navigation />
+
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ export interface Donation {
   name: string; // Telugu name in DB
   name_english?: string;
   amount: number;
+  received_amount?: number;
   type: string;
   category: 'chanda' | 'sponsorship';
   festival_name?: string;
@@ -29,6 +30,7 @@ export const addDonation = async (donation: Omit<Donation, 'id' | 'created_at' |
       name: donation.name,
       name_english: donation.name_english,
       amount: donation.amount,
+      received_amount: donation.received_amount,
       type: donation.type,
       category: donation.category,
       festival_name: donation.festival_name,
@@ -49,6 +51,7 @@ export const updateDonation = async (id: string, donation: Omit<Donation, 'id' |
       name: donation.name,
       name_english: donation.name_english,
       amount: donation.amount,
+      received_amount: donation.received_amount,
       type: donation.type,
       category: donation.category,
       festival_name: donation.festival_name,

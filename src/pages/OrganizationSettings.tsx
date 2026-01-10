@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,6 +25,7 @@ export default function OrganizationSettings() {
 
   const [name, setName] = useState(currentOrganization?.name || '');
   const [description, setDescription] = useState(currentOrganization?.description || '');
+  const [email, setEmail] = useState(currentOrganization?.email || '');
   const [newPasscode, setNewPasscode] = useState(''); // Only for changing passcode
   const [showPasscode, setShowPasscode] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -32,13 +33,24 @@ export default function OrganizationSettings() {
   const [isPasscodeDialogOpen, setIsPasscodeDialogOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
+  // Sync state when organization changes
+  useEffect(() => {
+    if (currentOrganization) {
+      setName(currentOrganization.name || '');
+      setDescription(currentOrganization.description || '');
+      setEmail(currentOrganization.email || '');
+      setLogoPreview(currentOrganization.logo_url || null);
+    }
+  }, [currentOrganization]);
+
   const updateMutation = useMutation({
-    mutationFn: async (data: { name: string; description: string; newPasscode?: string; logo_url?: string }) => {
+    mutationFn: async (data: { name: string; description: string; email: string; newPasscode?: string; logo_url?: string }) => {
       if (!currentOrganization) throw new Error('No organization selected');
 
       const updateData: Record<string, any> = {
         name: data.name,
         description: data.description,
+        email: data.email,
         logo_url: data.logo_url || currentOrganization.logo_url
       };
 
@@ -62,6 +74,7 @@ export default function OrganizationSettings() {
           ...currentOrganization,
           name: data.name,
           description: data.description,
+          email: data.email,
           logo_url: data.logo_url || currentOrganization.logo_url
         });
       }
@@ -143,6 +156,7 @@ export default function OrganizationSettings() {
     updateMutation.mutate({
       name,
       description,
+      email,
       newPasscode: newPasscode.trim() || undefined,
       logo_url: logoUrl
     });
@@ -219,10 +233,12 @@ export default function OrganizationSettings() {
                   </div>
                   <input
                     ref={fileInputRef}
+                    id="org-logo-upload"
                     type="file"
                     accept="image/*"
                     onChange={handleLogoChange}
                     className="hidden"
+                    title="Upload Logo"
                   />
                 </div>
               </div>
@@ -235,6 +251,19 @@ export default function OrganizationSettings() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder={t('మీ సంస్థ పేరు', 'Your organization name')}
+                  required
+                />
+              </div>
+
+              {/* Organization Email */}
+              <div className="space-y-2">
+                <Label htmlFor="email">{t('సంస్థ ఈమెయిల్', 'Organization Email')}</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t('సంస్థ ఈమెయిల్ (పాస్‌కోడ్ రికవరీ కోసం)', 'Organization email (for passcode recovery)')}
                   required
                 />
               </div>

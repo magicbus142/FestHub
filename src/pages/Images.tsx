@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Navigation } from '@/components/Navigation';
+
 import { Upload, Image as ImageIcon, Calendar, Trash2, X, Download, Pin, Lock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
@@ -22,12 +22,13 @@ import { PageHeader } from '@/components/PageHeader';
 import { ComingSoon } from '@/components/ComingSoon';
 import { setFestivalBackgroundImage } from '@/lib/festivals';
 import { BackButton } from '@/components/BackButton';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
 export default function Images() {
   const { t, language, setLanguage } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useOrganization();
+  const { isAuthenticated, currentOrganization } = useOrganization();
   const { selectedFestival } = useFestival();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -161,7 +162,7 @@ export default function Images() {
             year={new Date().getFullYear()}
             message={t('ఉత్సవాన్ని ఎంచుకోండి', 'Please select a festival first')}
           />
-          <Navigation />
+
         </div>
       </div>
     );
@@ -169,60 +170,53 @@ export default function Images() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 pb-20 md:pb-6">
+      <div className="container mx-auto px-4 py-6">
         {/* Header */}
-        <PageHeader
-          pageName="Images"
-          pageNameTelugu="చిత్రాలు"
-          description="Upload and manage your photos"
-          descriptionTelugu="మీ ఫోటోలను అప్‌లోడ్ చేయండి మరియు నిర్వహించండి"
-        >
-          <div className="flex flex-col gap-3 w-full">
-            {/* Back + Language Row */}
-            <div className="flex items-center justify-between">
-              <BackButton emphasis size="sm" className="rounded-md" />
-               <Button
-                 variant="outline"
-                 size="sm"
-                 onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-                 className="px-3"
-               >
-                 {language === 'telugu' ? 'EN' : 'తె'}
-               </Button>
-            </div>
-
-            {/* Prominent Upload Button */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="lg"
-                    onClick={() => {
-                      if (isAuthenticated) {
-                        setIsDialogOpen(true);
-                      } else {
-                        setIsAuthOpen(true);
-                      }
-                    }}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                  >
-                    {isAuthenticated ? (
-                      <Upload className="h-5 w-5 mr-2" />
-                    ) : (
-                      <Lock className="h-5 w-5 mr-2" />
-                    )}
-                    {t('చిత్రం అప్‌లోడ్ చేయండి', 'Upload Image')}
-                  </Button>
-                </TooltipTrigger>
-                {!isAuthenticated && (
-                  <TooltipContent>
-                    <p>{t('అప్‌లోడ్ చేయడానికి లాగిన్ అవసరం', 'Login required to upload')}</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
+        {/* Standardized Custom Header */}
+        <div className="flex flex-col gap-4 mb-6">
+          <div className="space-y-1">
+             <h2 className="text-sm font-medium text-primary/80 tracking-wide uppercase">{currentOrganization?.name}</h2>
+             <div className="flex items-baseline gap-2 flex-wrap">
+                <h1 className="text-3xl font-bold text-foreground tracking-tight">
+                  {selectedFestival?.name} <span className="text-muted-foreground">•</span> {t('చిత్రాలు', 'Images')}
+                </h1>
+             </div>
+             <p className="text-muted-foreground text-sm font-medium">
+                {t('మీ ఫోటోలను అప్‌లోడ్ చేయండి మరియు నిర్వహించండి', 'Upload and manage your photos')}
+             </p>
           </div>
-        </PageHeader>
+
+          {/* Controls Row */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+                <BackButton className="rounded-xl shadow-sm bg-accent/50 text-primary hover:bg-accent border-0" />
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
+                    className="h-10 w-10 rounded-full border-slate-200"
+                >
+                   {language === 'telugu' ? 'EN' : 'తె'}
+                </Button>
+                <ThemeSwitcher />
+            </div>
+            
+            {/* Prominent Upload Button */}
+            <Button
+                onClick={() => {
+                  if (isAuthenticated) {
+                    setIsDialogOpen(true);
+                  } else {
+                    setIsAuthOpen(true);
+                  }
+                }}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 rounded-full px-6 text-sm shadow-lg shadow-primary/20 transition-all active:scale-[0.98] md:ml-auto w-full md:w-auto"
+            >
+                {isAuthenticated ? <Upload className="h-5 w-5 mr-2" /> : <Lock className="h-5 w-5 mr-2" />}
+                {t('చిత్రం అప్‌లోడ్ చేయండి', 'Upload Image')}
+            </Button>
+          </div>
+        </div>
 
         {/* Upload Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -527,7 +521,7 @@ export default function Images() {
         </AlertDialog>
 
         {/* Navigation */}
-        <Navigation />
+
         
         <AuthDialog
           isOpen={isAuthOpen}

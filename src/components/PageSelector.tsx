@@ -1,8 +1,9 @@
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Home, Receipt, Wallet, Image, Users } from 'lucide-react';
+import { Home, Receipt, Wallet, Image, Users, Vote } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-export type PageOption = 'dashboard' | 'chandas' | 'expenses' | 'images' | 'organizers';
+export type PageOption = 'dashboard' | 'chandas' | 'expenses' | 'images' | 'organizers' | 'voting';
 
 interface PageSelectorProps {
   value: PageOption[];
@@ -36,10 +37,10 @@ const pages: { id: PageOption; name: string; description: string; icon: React.El
     icon: Image
   },
   {
-    id: 'organizers',
-    name: 'Organizers',
-    description: 'Team members',
-    icon: Users
+    id: 'voting',
+    name: 'Voting',
+    description: 'Competitions & Polls',
+    icon: Vote
   }
 ];
 
@@ -66,22 +67,34 @@ export function PageSelector({ value, onChange, label = 'Select Pages to Show' }
           return (
             <div
               key={page.id}
-              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+              className={cn(
+                "flex items-center space-x-4 p-4 rounded-2xl transition-all border border-transparent",
+                isChecked ? "bg-primary/5 border-primary/10" : "hover:bg-muted/50"
+              )}
             >
               <Checkbox
                 id={page.id}
                 checked={isChecked}
                 onCheckedChange={() => handleToggle(page.id)}
+                className="w-5 h-5 rounded-lg border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
               />
-              <Icon className="h-4 w-4 text-muted-foreground" />
+              <div className={cn(
+                "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                isChecked ? "bg-background text-primary shadow-sm" : "bg-muted text-muted-foreground/40"
+              )}>
+                <Icon className="h-5 w-5" />
+              </div>
               <div className="flex-1">
                 <label
                   htmlFor={page.id}
-                  className="text-sm font-medium cursor-pointer"
+                  className={cn(
+                    "text-sm font-bold cursor-pointer transition-colors",
+                    isChecked ? "text-foreground" : "text-muted-foreground"
+                  )}
                 >
                   {page.name}
                 </label>
-                <p className="text-xs text-muted-foreground">{page.description}</p>
+                <p className="text-xs text-muted-foreground/60 leading-tight">{page.description}</p>
               </div>
             </div>
           );

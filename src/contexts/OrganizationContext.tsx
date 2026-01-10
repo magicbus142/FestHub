@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Organization {
@@ -7,7 +7,10 @@ export interface Organization {
   slug: string;
   description?: string;
   logo_url?: string;
+  email?: string;
   theme?: string;
+  plan?: string;
+  subscription_status?: string;
   enabled_pages?: string[];
   created_at?: string;
   updated_at?: string;
@@ -57,10 +60,16 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const setCurrentOrganization = (org: Organization) => {
+  const setCurrentOrganization = useCallback((org: Organization) => {
     // Ensure passcode is never stored
     const { passcode, ...cleanOrg } = org as Organization & { passcode?: string };
-    setCurrentOrgState(cleanOrg);
+    
+    // Only update if ID has changed to prevent unnecessary re-renders
+    setCurrentOrgState(prev => {
+        if (prev?.id === cleanOrg.id) return prev;
+        return cleanOrg;
+    });
+
     localStorage.setItem('currentOrganization', JSON.stringify(cleanOrg));
     
     // Check if we're already authenticated for this org
@@ -72,10 +81,10 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
     } else {
       setIsAuthenticated(false);
     }
-  };
+  }, []);
 
   // Server-side passcode verification
-  const authenticate = async (passcode: string): Promise<boolean> => {
+  const authenticate = useCallback(async (passcode: string): Promise<boolean> => {
     if (!currentOrganization) return false;
     
     try {
@@ -101,22 +110,24 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       console.error('Authentication error:', error);
       return false;
     }
-  };
+  }, [currentOrganization]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setIsAuthenticated(false);
     localStorage.removeItem('orgAuthenticated');
     localStorage.removeItem('orgAuthId');
-  };
+  }, []);
 
-  return (
-    <OrganizationContext.Provider value={{
+  const value = useMemo(() => ({
       currentOrganization,
       setCurrentOrganization,
       isAuthenticated,
       authenticate,
       logout
-    }}>
+  }), [currentOrganization, setCurrentOrganization, isAuthenticated, authenticate, logout]);
+
+  return (
+    <OrganizationContext.Provider value={value}>
       {children}
     </OrganizationContext.Provider>
   );

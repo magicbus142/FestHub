@@ -13,6 +13,7 @@ import { Plus, ArrowLeft, Share2, Lock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import type { Festival } from '@/lib/festivals';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
 export default function FestivalSelection() {
   const { t, language, setLanguage } = useLanguage();
@@ -38,15 +39,46 @@ export default function FestivalSelection() {
     queryFn: async () => {
       if (!currentOrganization) return [];
       
-      const { data, error } = await supabase
+      const { data: festivals, error } = await supabase
         .from('festivals')
-        .select('*')
+        .select(`
+          *,
+          background_image_rel:images!festivals_background_image_id_fkey(image_url)
+        `)
         .eq('organization_id', currentOrganization.id)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Festival[];
+      
+      // Get images for each festival to use as background when no specific background is set
+      const festivalsWithImages = await Promise.all(
+        (festivals || []).map(async (festival: any) => {
+          // First check if festival has a specific background image
+          const rel = festival.background_image_rel;
+          let backgroundImage = (Array.isArray(rel) ? rel?.[0]?.image_url : rel?.image_url) || festival.background_image;
+          
+          // If no specific background, get the latest image from this festival
+          if (!backgroundImage) {
+            const { data: festivalImages } = await supabase
+              .from('images')
+              .select('image_url')
+              .eq('festival_name', festival.name)
+              .eq('festival_year', festival.year)
+              .order('created_at', { ascending: false })
+              .limit(1);
+            
+            backgroundImage = festivalImages?.[0]?.image_url || null;
+          }
+          
+          return {
+            ...festival,
+            background_image: backgroundImage
+          };
+        })
+      );
+      
+      return festivalsWithImages as Festival[];
     },
     enabled: !!currentOrganization
   });
@@ -69,10 +101,13 @@ export default function FestivalSelection() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+       {/* Small Decorative Elements */}
+       <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-primary/20 blur-[100px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/2" />
+
+      <div className="container mx-auto px-4 py-6 relative z-10">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
             <Button
               variant="ghost"
@@ -83,17 +118,17 @@ export default function FestivalSelection() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               All Organizations
             </Button>
-            <h1 className="text-3xl font-bold text-foreground">
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
               {currentOrganization?.name}
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm md:text-base text-muted-foreground mt-1">
               {t('ఉత్సవాన్ని ఎంచుకోండి', 'Select Festival')}
             </p>
           </div>
           
           <div className="flex flex-col gap-3 w-full sm:w-auto">
-            {/* Language Toggle + Share */}
-            <div className="flex justify-end gap-2">
+            {/* Language Toggle + Share + Theme */}
+            <div className="flex justify-end gap-2 text-accent-foreground">
               <Button
                 variant="outline"
                 size="sm"
@@ -103,16 +138,7 @@ export default function FestivalSelection() {
                 <Share2 className="h-4 w-4 mr-1" />
                 {t('షేర్', 'Share')}
               </Button>
-              {/* Language toggle button - commented out
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-                className="px-3"
-              >
-                {language === 'telugu' ? 'EN' : 'తె'}
-              </Button>
-              */}
+              <ThemeSwitcher />
             </div>
 
             {/* Add Festival Button */}
@@ -162,6 +188,9 @@ export default function FestivalSelection() {
           </div>
         ) : (
           <div className="text-center py-12">
+             <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                <Plus className="h-10 w-10 text-muted-foreground" />
+             </div>
             <p className="text-lg text-muted-foreground">
               {t('ఇంకా ఉత్సవాలు జోడించబడలేదు', 'No festivals available')}
             </p>
