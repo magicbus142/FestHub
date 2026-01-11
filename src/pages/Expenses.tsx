@@ -48,12 +48,14 @@ export default function Expenses() {
   });
 
   const addExpenseMutation = useMutation({
-    mutationFn: (expense: { type: string; amount: number; description?: string }) =>
-      addExpense({
+    mutationFn: (expense: { type: string; amount: number; description?: string }) => {
+      if (!currentOrganization?.id) throw new Error("Organization ID is missing");
+      return addExpense({
         ...expense,
         festival_name: selectedFestival?.name || 'Ganesh',
         festival_year: selectedFestival?.year || 2025,
-      }, null),
+      }, currentOrganization.id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-expenses-festival', selectedFestival?.name, selectedFestival?.year] });
       queryClient.invalidateQueries({ queryKey: ['total-expenses-festival', selectedFestival?.name, selectedFestival?.year] });
@@ -65,6 +67,7 @@ export default function Expenses() {
       });
     },
     onError: (error) => {
+      console.error("Add Expense Error:", error);
       toast({
         title: t('లోపం', 'Error'),
         description: error.message,
@@ -117,6 +120,7 @@ export default function Expenses() {
       });
     },
     onError: (error) => {
+      console.error("Delete Expense Error:", error);
       toast({
         title: t('లోపం', 'Error'),
         description: error.message,
@@ -332,76 +336,70 @@ export default function Expenses() {
                         </CardDescription>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold text-red-600">
-                        ₹{expense.amount.toLocaleString()}
-                      </span>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="outline" size="sm" onClick={() => startEditExpense(expense)}>
+                      <div className="flex items-center gap-1">
+                        <span className="text-lg font-bold text-red-600 mr-2">
+                          ₹{expense.amount.toLocaleString()}
+                        </span>
+                        
+                        {/* Edit Button */}
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          onClick={() => startEditExpense(expense)}
+                          disabled={!isAuthenticated}
+                          title={isAuthenticated ? t('సవరించు', 'Edit') : t('సవరించడానికి లాగిన్ అవసరం', 'Login required to edit')}
+                        >
+                          {isAuthenticated ? (
+                            <Edit2 className="h-4 w-4" />
+                          ) : (
+                            <Lock className="h-4 w-4" />
+                          )}
+                        </Button>
+
+                        {/* Delete Button */}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              disabled={!isAuthenticated}
+                              title={isAuthenticated ? t('తొలగించు', 'Delete') : t('తొలగించడానికి లాగిన్ అవసరం', 'Login required to delete')}
+                            >
                               {isAuthenticated ? (
-                                <Edit2 className="h-4 w-4" />
+                                <Trash2 className="h-4 w-4" />
                               ) : (
-                                <Lock className="h-4 w-4 text-muted-foreground" />
+                                <Lock className="h-4 w-4" />
                               )}
                             </Button>
-                          </TooltipTrigger>
-                          {!isAuthenticated && (
-                            <TooltipContent>
-                              <p>{t('సవరించడానికి లాగిన్ అవసరం', 'Login required to edit')}</p>
-                            </TooltipContent>
-                          )}
-                        </Tooltip>
-                      </TooltipProvider>
-                      
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm">
-                                  {isAuthenticated ? (
-                                    <Trash2 className="h-4 w-4" />
-                                  ) : (
-                                    <Lock className="h-4 w-4 text-muted-foreground" />
-                                  )}
-                                </Button>
-                              </TooltipTrigger>
-                              {!isAuthenticated && (
-                                <TooltipContent>
-                                  <p>{t('తొలగించడానికి లాగిన్ అవసరం', 'Login required to delete')}</p>
-                                </TooltipContent>
-                              )}
-                            </Tooltip>
-                          </TooltipProvider>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              {t('ఖర్చు తొలగించు', 'Delete Expense')}
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              {t('మీరు ఈ ఖర్చును తొలగించాలని ఖచ్చితంగా అనుకుంటున్నారా? ఈ చర్య రద్దు చేయబడదు.', 'Are you sure you want to delete this expense? This action cannot be undone.')}
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>
-                              {t('రద్దు', 'Cancel')}
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => {
-                                if (!isAuthenticated) { setIsAuthOpen(true); return; }
-                                deleteExpenseMutation.mutate(expense.id!);
-                              }}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              {t('తొలగించు', 'Delete')}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                {t('ఖర్చు తొలగించు', 'Delete Expense')}
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {t('మీరు ఈ ఖర్చును తొలగించాలని ఖచ్చితంగా అనుకుంటున్నారా? ఈ చర్య రద్దు చేయబడదు.', 'Are you sure you want to delete this expense? This action cannot be undone.')}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>
+                                {t('రద్దు', 'Cancel')}
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => {
+                                  if (!isAuthenticated) { setIsAuthOpen(true); return; }
+                                  if (expense.id) deleteExpenseMutation.mutate(expense.id);
+                                }}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {t('తొలగించు', 'Delete')}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                   </div>
                 </CardHeader>
                 {/* {expense.created_at && (

@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'; // Add Tabs
 import { Donation, addDonation, updateDonation, type NameSuggestion, searchNameSuggestions } from '@/lib/database';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { X, Plus, Trash2, Package, Coins, HandHelping, Wallet, CreditCard } from 'lucide-react';
 
 interface DonationItem {
@@ -55,6 +56,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { currentOrganization } = useOrganization();
 
   // Suggestions state
   const [suggestions, setSuggestions] = useState<NameSuggestion[]>([]);
@@ -181,22 +183,38 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
             type: item.type.trim(),
             category,
             donation_mode: mode,
-            payment_method: item.paymentMethod || 'cash'
+            payment_method: item.paymentMethod || 'cash',
+            festival_name: selectedFestival?.name || donation?.festival_name,
+            festival_year: selectedFestival?.year || donation?.festival_year
         });
 
+        // Debug logging
+        const payload = prepareDonation(donationItems[0]);
+        console.log("Saving Donation:", payload, "Org:", currentOrganization.id);
+
         if (donation?.id) {
-            await updateDonation(donation.id, prepareDonation(donationItems[0]));
+            await updateDonation(donation.id, payload);
         } else {
+             if (!currentOrganization?.id) {
+                toast({ title: "Error", description: "Organization not found", variant: "destructive" });
+                setLoading(false);
+                return;
+            }
             for (const item of donationItems) {
-                await addDonation(prepareDonation(item), null);
+                await addDonation(prepareDonation(item), currentOrganization.id);
             }
         }
         
         toast({ title: t("విజయవంతం", "Success"), description: "Saved successfully" });
         onDonationSaved();
         onOpenChange(false);
-    } catch(err) {
-        toast({ title: "Error", description: "Failed to save", variant: "destructive" });
+    } catch(err: any) {
+        console.error("Donation Save Error:", err);
+        toast({ 
+            title: "Error", 
+            description: err.message || "Failed to save", 
+            variant: "destructive" 
+        });
     } finally {
         setLoading(false);
     }
