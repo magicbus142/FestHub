@@ -6,11 +6,13 @@ import { useFestival } from '@/contexts/FestivalContext';
 import { useQuery } from '@tanstack/react-query';
 import { getExpensesByFestival } from '@/lib/expenses';
 import { useNavigate } from 'react-router-dom';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 export function ExpensesPreview() {
   const { t } = useLanguage();
   const { selectedFestival } = useFestival();
   const navigate = useNavigate();
+  const { currentOrganization } = useOrganization();
 
   const { data: expenses = [] } = useQuery({
     queryKey: ['expenses-preview', selectedFestival?.name, selectedFestival?.year],
@@ -37,7 +39,7 @@ export function ExpensesPreview() {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => navigate('expenses')}
+          onClick={() => currentOrganization && navigate(`/org/${currentOrganization.slug}/expenses`)}
         >
           {t('అన్నీ చూడండి', 'View All')}
         </Button>
