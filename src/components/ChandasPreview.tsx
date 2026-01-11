@@ -6,11 +6,13 @@ import { useFestival } from '@/contexts/FestivalContext';
 import { useQuery } from '@tanstack/react-query';
 import { getDonationsByFestival } from '@/lib/database';
 import { useNavigate } from 'react-router-dom';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 export function ChandasPreview() {
   const { t } = useLanguage();
   const { selectedFestival } = useFestival();
   const navigate = useNavigate();
+  const { currentOrganization } = useOrganization();
 
   const { data: donations = [] } = useQuery({
     queryKey: ['donations-preview', selectedFestival?.name, selectedFestival?.year, 'chanda'],
@@ -37,7 +39,7 @@ export function ChandasPreview() {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => navigate('chandas')}
+          onClick={() => currentOrganization && navigate(`/org/${currentOrganization.slug}/chandas`)}
         >
           {t('అన్నీ చూడండి', 'View All')}
         </Button>
