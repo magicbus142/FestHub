@@ -1,0 +1,91 @@
+# Ganesh Chanda Tracker / Festhub - Product Documentation
+
+## 1. Product Purpose
+The **Ganesh Chanda Tracker (Festhub)** is a comprehensive management and engagement platform designed for community festival committees. Its primary goals are to:
+- **Streamline Administration:** Digitize the collection of donations (Chanda) and tracking of expenses.
+- **Ensure Transparency:** Provide real-time financial dashboards for committee members.
+- **Engage the Community:** Foster community spirit through digital galleries and interactive competitions (voting).
+- **Simplify Operations:** Manage multiple festivals and years under a single organization umbrella.
+
+---
+
+## 2. Core Features & Functionality
+
+### A. Authentication & Onboarding
+- **Organization Login:** Secure login for committee members using a simpler "Passcode" system rather than complex passwords, designed for ease of use by volunteers.
+- **Super Admin:** Dedicated portal for system administrators to manage organizations and subscriptions.
+
+### B. Dashboard (Command Center)
+- **Financial Overview:** Real-time visibility into Total Collections, Total Expenses, and Current Balance.
+- **Quick Stats:** At-a-glance metrics for total donors, transaction counts, and recent activity.
+- **Module Shortcuts:** Quick access to key actions like "Add Chanda" or "Add Expense".
+
+### C. Chanda (Donations) Management
+- **Record Donations:** Form to capture donor details (Name, Amount, Payment Mode, Phone Number).
+- **Digital Receipts:** Ability to generate and share receipt links (often via WhatsApp) with donors.
+- **Phone Number Autofill:** Smart prediction of donor details based on previously entered phone numbers.
+- **Tracking:** List view of all donations with filters for date and payment mode.
+
+### D. Expense Management
+- **Record Expenses:** Log every expenditure with categories (e.g., Decoration, Prasad, Sound System).
+- **Bill Uploads:** Option to attach images of bills/invoices for audit purposes.
+- **Categorization:** Group expenses to see where money is being spent.
+
+### E. Voting & Competitions
+- **Competition Management:** Create contests (e.g., "Best Rangoli", "Best Decor") with custom rules (vote limits per user).
+- **Public Voting Gallery:** A public-facing link where community members can view entries and vote.
+- **Secure Voting:** simple authentication (like mobile number or device ID) to prevent spam voting.
+- **Results:** Automated tallying of votes and display of winners after a set "Results Date".
+- **Sharing:** Robust mobile-friendly sharing of voting links.
+
+### F. Community Gallery
+- **Image Upload:** Admins can upload daily photos of the festival events.
+- **Public View:** A masonry-style grid for the community to browse festival memories.
+
+### G. Settings & Administration
+- **Festival Switcher:** Manage multiple festivals (e.g., "Ganesh 2024", "Ganesh 2025") without losing data.
+- **Organization Profile:** Manage logo, contact details, and UPI IDs (for donations).
+- **Page Visibility:** Toggle specific modules (like Expenses or Gallery) on/off for different festivals.
+- **Team Management:** Add or remove committee members (if applicable).
+
+---
+
+## 3. How It Should Work (Test Scenarios)
+
+### Scenario 1: Collecting a Donation
+1.  **Login** as a committee member using the Organization Passcode.
+2.  Navigate to the **Chanda** tab.
+3.  Click **"Add Chanda"**.
+4.  Enter donor Name (e.g., "Ramesh"), Amount (e.g., "501"), and Mode (e.g., "UPI").
+5.  **Verify:** The "Total Collections" on the Dashboard increases by 501.
+6.  **Verify:** The donor receives a receipt (mock/link).
+
+### Scenario 2: Managing Expenses
+1.  Navigate to the **Expenses** tab.
+2.  Click **"Add Expense"**.
+3.  Enter Item (e.g., "Flowers"), Amount (e.g., "200"), and Category ("Decoration").
+4.  **Verify:** The "Total Expenses" on the Dashboard increases.
+5.  **Verify:** The "Current Balance" (Collections - Expenses) updates correctly.
+
+### Scenario 3: Running a Competition
+1.  Go to **Settings > Festival > Voting Games**.
+2.  Create a new competition named "Best Rangoli".
+3.  **Upload Entries:** Add participant photos to the competition.
+4.  **Share Link:** Copy the "Public Voting Link" using the 3-dot menu.
+5.  **Test Voting:** Open the link in an Incognito window (simulating a public user).
+6.  Vote for an image.
+7.  **Verify:** The vote count increases in the Admin panel.
+
+### Scenario 4: Mobile Usage
+1.  Open the app on a mobile device.
+2.  Try **Copying Links** (Voting or various share buttons).
+3.  **Verify:** Results are copied to clipboard instantly (testing the fallback mechanism).
+4.  Check that the UI (tables, cards) is responsive and readable on a small screen.
+
+---
+
+## 4. Technical Stack
+- **Frontend:** React.js, Tailwind CSS, ShadCN UI
+- **Backend/Database:** Supabase (PostgreSQL)
+- **State Management:** React Query (TanStack Query)
+- **Routing:** React Router DOM

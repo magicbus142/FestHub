@@ -48,9 +48,30 @@ export function CreateOrganizationDialog({ open, onOpenChange }: CreateOrganizat
 
   const createMutation = useMutation({
     mutationFn: async () => {
+      // 1. Password Strength Validation (Supabase Auth Requirements)
+      if (passcode.length < 6) {
+        throw new Error("Passcode must be at least 6 characters long.");
+      }
+
       // Create slug from name
       const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
       
+      // 2. Create Supabase Auth User (This sends confirmation email depending on project settings)
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password: passcode,
+        options: {
+          data: {
+            organization_name: name,
+          }
+        }
+      });
+
+      if (authError) throw authError;
+
+      // 3. Create Organization Record
+      // Note: We're keeping the 'passcode' column in DB for now as a fallback/legacy support
+      // but the primary auth is now managed by Supabase Auth.
       const { data, error } = await supabase
         .from('organizations')
         .insert([{
@@ -58,7 +79,7 @@ export function CreateOrganizationDialog({ open, onOpenChange }: CreateOrganizat
           slug,
           description: description || null,
           email,
-          passcode,
+          passcode, // Storing for legacy consistency
           theme: 'classic',
           enabled_pages: enabledPages
         }])
@@ -71,7 +92,7 @@ export function CreateOrganizationDialog({ open, onOpenChange }: CreateOrganizat
     onSuccess: (data) => {
       toast({
         title: 'Organization created',
-        description: 'Your organization has been created successfully.'
+        description: 'Your organization account has been set up successfully.'
       });
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
       onOpenChange(false);
@@ -79,7 +100,7 @@ export function CreateOrganizationDialog({ open, onOpenChange }: CreateOrganizat
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
+        title: 'Creation Failed',
         description: error.message || 'Failed to create organization',
         variant: 'destructive'
       });
@@ -88,10 +109,10 @@ export function CreateOrganizationDialog({ open, onOpenChange }: CreateOrganizat
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !passcode.trim()) {
+    if (!name.trim() || !passcode.trim() || !email.trim()) {
       toast({
         title: 'Missing fields',
-        description: 'Please fill in organization name and passcode',
+        description: 'Please fill in organization name, email, and passcode',
         variant: 'destructive'
       });
       return;

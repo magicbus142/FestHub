@@ -220,7 +220,7 @@ export default function ManageCompetitionPage() {
                 </Button>
                 <div>
                     <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Manage Entries</h1>
-                    <p className="text-sm text-slate-500 font-medium flex items-center gap-2">
+                    <div className="text-sm text-slate-500 font-medium flex items-center gap-2">
                         <Trophy className="h-3.5 w-3.5 text-primary" />
                         {competition?.name}
                         <Badge className={cn(
@@ -229,7 +229,7 @@ export default function ManageCompetitionPage() {
                         )} variant="outline">
                             {competition?.status === 'closed' ? 'Closed' : 'Live'}
                         </Badge>
-                    </p>
+                    </div>
                 </div>
              </div>
              

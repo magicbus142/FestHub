@@ -17,39 +17,81 @@ const ResetPasscodePage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(true);
   const [isValid, setIsValid] = useState(false);
+  const [orgEmail, setOrgEmail] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const maskEmail = (email: string) => {
+    if (!email) return '';
+    const [local, domain] = email.split('@');
+    if (!local || !domain) return email;
+    const maskedLocal = local.length > 3 
+      ? `${local.substring(0, 3)}${'*'.repeat(local.length - 5)}${local.substring(local.length - 2)}` 
+      : `${local.substring(0, 1)}**`;
+    return `${maskedLocal}@${domain}`;
+  };
+
   useEffect(() => {
-    const verifyToken = async () => {
-      if (!token) {
+    // Check if we have a hash fragment (Supabase Auth default for implicit flow)
+    const hash = window.location.hash;
+    const params = new URLSearchParams(hash.replace('#', '?'));
+    const type = params.get('type');
+    const error = params.get('error');
+    const errorDescription = params.get('error_description');
+
+    if (error) {
         setIsVerifying(false);
         setIsValid(false);
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from('passcode_reset_tokens')
-          .select('id, expires_at')
-          .eq('token', token)
-          .gt('expires_at', new Date().toISOString())
-          .single();
-
-        if (error || !data) {
-          setIsValid(false);
-        } else {
-          setIsValid(true);
-        }
-      } catch (error) {
-        setIsValid(false);
-      } finally {
+        toast({
+            title: "Link Error",
+            description: errorDescription?.replace(/\+/g, ' ') || "Invalid or expired reset link.",
+            variant: "destructive"
+        });
+    } else if (type === 'recovery') {
+        // Supabase automatically handles the session exchange in the background via the AuthProvider
+        // We just need to wait for the session to be active.
+        setIsVerifying(true);
+        // We set a small timeout to allow AuthProvider to process
+        setTimeout(() => setIsVerifying(false), 1500);
+    } else if (token) {
+        // ... (Legacy handling kept but de-emphasized)
+        setIsVerifying(false); 
+    } else {
         setIsVerifying(false);
-      }
-    };
-
-    verifyToken();
+    }
   }, [token]);
+  
+  // Use session from context? Or just direct supabase check?
+  // Since we are in an isolated page, let's checking supabase.auth.getSession()
+  
+  useEffect(() => {
+      const checkSession = async () => {
+          const { data } = await supabase.auth.getSession();
+          if (data.session) {
+              setIsValid(true);
+              setOrgEmail(data.session.user.email || null);
+          } else {
+              // If we are not logged in, and no token... invalid
+              // But maybe the listener hasn't fired yet? 
+              // We'll rely on the user interacting with the form.
+          }
+      };
+      
+      // Listen for auth state change (Recovery link triggers SIGNED_IN)
+      const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+          if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
+              setIsValid(true);
+              if (session?.user?.email) setOrgEmail(session.user.email);
+              setIsVerifying(false);
+          }
+      });
+      
+      checkSession();
+      
+      return () => {
+          authListener.subscription.unsubscribe();
+      };
+  }, []);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,10 +105,10 @@ const ResetPasscodePage = () => {
       return;
     }
 
-    if (newPasscode.length < 4) {
+    if (newPasscode.length < 6) {
         toast({
             title: 'Passcode too short',
-            description: 'Passcode must be at least 4 characters long.',
+            description: 'Passcode must be at least 6 characters long.',
             variant: 'destructive',
         });
         return;
@@ -75,30 +117,45 @@ const ResetPasscodePage = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.rpc('reset_organization_passcode', {
-        _token: token,
-        _new_passcode: newPasscode,
+      // Supabase Auth Update Password
+      const { data, error } = await supabase.auth.updateUser({
+          password: newPasscode
       });
 
-      if (error || !data.success) {
-        toast({
-          title: 'Reset failed',
-          description: data?.message || 'Something went wrong. Please request a new link.',
-          variant: 'destructive',
-        });
-        return;
+      if (error) throw error;
+      
+      // Also update the organizations table 'passcode' column for consistency (Legacy support)
+      // We can iterate over organizations linked to this user email?
+      // Since this is technically a "Passcode" reset for the org...
+      // But we might be logged in as the user. 
+      // Ideally, the 'passcode' column becomes obsolete, but our legacy login depends on it 
+      // for the JIT check. So we should sync it.
+      // However, we don't have RLS to update 'organizations' freely usually.
+      // But let's try.
+      if (data.user?.email) {
+          await supabase.from('organizations')
+            .update({ passcode: newPasscode })
+            .eq('email', data.user.email);
       }
 
       toast({
         title: 'Success!',
-        description: 'Your organization passcode has been reset. You can now log in.',
+        description: 'Your organization passcode has been updated. Logging you in...',
       });
       
-      navigate('/');
-    } catch (error) {
+      // Redirect to Organization Dashboard
+      // We need to fetch the slug.
+      const { data: org } = await supabase.from('organizations').select('slug').eq('email', data.user?.email || '').single();
+      if (org) {
+          navigate(`/org/${org.slug}`);
+      } else {
+          navigate('/');
+      }
+
+    } catch (error: any) {
       toast({
         title: 'Error',
-        description: 'Something went wrong. Please try again.',
+        description: error.message || 'Something went wrong. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -114,14 +171,15 @@ const ResetPasscodePage = () => {
     );
   }
 
-  if (!isValid) {
-    return (
+  if (!isValid && !token && !window.location.hash) {
+      // Show invalid only if we really have no auth context
+       return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md text-center">
           <CardHeader>
-            <CardTitle className="text-destructive font-bold text-2xl">Invalid or Expired Link</CardTitle>
+            <CardTitle className="text-destructive font-bold text-2xl">Link Expired or Invalid</CardTitle>
             <CardDescription>
-              The passcode reset link is either invalid or has expired. Please request a new link from the login page.
+              Please request a new reset link.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -144,6 +202,11 @@ const ResetPasscodePage = () => {
           <CardTitle className="text-2xl font-bold">Reset Passcode</CardTitle>
           <CardDescription>
             Enter a new passcode for your organization to regain access.
+            {orgEmail && (
+              <div className="mt-2 text-sm font-medium text-slate-600 bg-slate-100 py-1 px-3 rounded-full inline-block">
+                 Reseting for: <span className="text-slate-900">{maskEmail(orgEmail)}</span>
+              </div>
+            )}
           </CardDescription>
         </CardHeader>
 

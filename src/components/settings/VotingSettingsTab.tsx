@@ -289,6 +289,7 @@ export function VotingSettingsTab() {
                                         <SelectItem value="grid">Grid</SelectItem>
                                         <SelectItem value="list">List</SelectItem>
                                         <SelectItem value="large">Big Cards</SelectItem>
+                                        <SelectItem value="compact">Compact</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
