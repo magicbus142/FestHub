@@ -50,7 +50,7 @@ export function VotingPreview() {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => navigate('voting')}
+          onClick={() => navigate(`/org/${currentOrganization?.slug}/voting`)}
         >
           {t('అన్నీ చూడండి', 'View All')}
         </Button>

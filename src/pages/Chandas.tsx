@@ -12,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFestival } from '@/contexts/FestivalContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { BarChart3, DollarSign, Plus, ArrowLeft, Lock, TrendingUp, Wallet, CreditCard, Download } from 'lucide-react';
+import { BarChart3, DollarSign, Plus, ArrowLeft, Lock, TrendingUp, Wallet, CreditCard, Download, Package, HandHelping } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -30,6 +30,8 @@ import { ComingSoon } from '@/components/ComingSoon';
 import { useNavigate } from 'react-router-dom';
 import { BackButton } from '@/components/BackButton';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
+import { generateReceipt } from '@/utils/receiptGenerator';
+import { FileDown } from 'lucide-react';
 
 export default function Chandas() {
   const { t, language, setLanguage } = useLanguage();
@@ -53,8 +55,8 @@ export default function Chandas() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'received' | 'pending'>('all');
 
   const { data: donations = [], refetch } = useQuery({
-    queryKey: ['donations-festival', selectedFestival?.name, selectedFestival?.year, activeCategory],
-    queryFn: () => selectedFestival ? getDonationsByFestival(selectedFestival.name, selectedFestival.year, activeCategory) : [],
+    queryKey: ['donations-festival', selectedFestival?.name, selectedFestival?.year],
+    queryFn: () => selectedFestival ? getDonationsByFestival(selectedFestival.name, selectedFestival.year) : [],
     enabled: !!selectedFestival,
   });
   
@@ -72,13 +74,17 @@ export default function Chandas() {
   });
 
   // Calculate totals and pending amounts based on actual collection
+  // Logic: If received_amount is NULL/Undefined, assume it equals amount (Legacy Data is likely paid).
+  // If received_amount is explicitly 0, it means Pending.
+  const getReceived = (d: Donation) => d.received_amount ?? d.amount;
+
   const totalChandaAmount = (donations || [])
     .filter(d => d.category === 'chanda' || !d.category)
     .reduce((sum, d) => sum + d.amount, 0);
     
   const totalChandaReceived = (donations || [])
     .filter(d => d.category === 'chanda' || !d.category)
-    .reduce((sum, d) => sum + (d.received_amount || 0), 0);
+    .reduce((sum, d) => sum + getReceived(d), 0);
     
   const totalSponsorshipAmount = (donations || [])
     .filter(d => d.category === 'sponsorship')
@@ -86,7 +92,7 @@ export default function Chandas() {
 
   const totalSponsorshipReceived = (donations || [])
     .filter(d => d.category === 'sponsorship')
-    .reduce((sum, d) => sum + (d.received_amount || 0), 0);
+    .reduce((sum, d) => sum + getReceived(d), 0);
 
   const totalAmount = totalChandaAmount + totalSponsorshipAmount;
   const totalReceived = totalChandaReceived + totalSponsorshipReceived;
@@ -293,6 +299,9 @@ export default function Chandas() {
     }
   };
 
+  /* Removed local generateReceipt function in favor of utility */
+
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6">
@@ -356,8 +365,13 @@ export default function Chandas() {
                     ₹{totalReceived.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">/ ₹{totalAmount.toLocaleString()}</span>
                   </h3>
                 </div>
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <Wallet className="h-5 w-5 text-blue-600" />
+                <div className="flex flex-col items-end gap-1">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <Wallet className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <span className="text-xs font-medium bg-slate-100 px-2 py-0.5 rounded-full text-slate-600">
+                    {searchFiltered.length} {t('దాతలు', 'Donors')}
+                  </span>
                 </div>
               </div>
               {/* Progress Bar */}
@@ -382,6 +396,12 @@ export default function Chandas() {
                     ₹{totalChandaReceived.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">/ ₹{totalChandaAmount.toLocaleString()}</span>
                   </h3>
                 </div>
+                 <div className="flex flex-col items-end gap-1">
+                   {/* Placeholder for alignment or specific icon */}
+                   <span className="text-xs font-medium bg-slate-100 px-2 py-0.5 rounded-full text-slate-600">
+                     {chandaCount} {t('దాతలు', 'Donors')}
+                   </span>
+                 </div>
               </div>
                {/* Progress Bar */}
               <div className="w-full bg-slate-100 h-1.5 rounded-full mb-2">
@@ -405,6 +425,11 @@ export default function Chandas() {
                     ₹{totalSponsorshipReceived.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">/ ₹{totalSponsorshipAmount.toLocaleString()}</span>
                   </h3>
                 </div>
+                 <div className="flex flex-col items-end gap-1">
+                   <span className="text-xs font-medium bg-slate-100 px-2 py-0.5 rounded-full text-slate-600">
+                     {sponsorshipCount} {t('దాతలు', 'Donors')}
+                   </span>
+                 </div>
               </div>
                {/* Progress Bar */}
               <div className="w-full bg-slate-100 h-1.5 rounded-full mb-2">
@@ -426,14 +451,14 @@ export default function Chandas() {
                 className={`flex items-center gap-2 pb-2 text-sm font-medium transition-all whitespace-nowrap ${activeCategory === 'chanda' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 <div className="bg-blue-100 p-1 rounded-md"><Wallet className="h-3 w-3 text-blue-600"/></div>
-                {t('చందా (Individual)', 'Chanda (Contributions)')}
+                {t('చందా', 'Chanda')} <span className="text-xs bg-slate-100 px-1.5 py-0.5 rounded-full text-slate-600">{chandaCount}</span>
               </button>
               <button 
                 onClick={() => handleCategoryChange('sponsorship')}
                 className={`flex items-center gap-2 pb-2 text-sm font-medium transition-all whitespace-nowrap ${activeCategory === 'sponsorship' ? 'text-purple-600 border-b-2 border-purple-600' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 <div className="bg-purple-100 p-1 rounded-md"><CreditCard className="h-3 w-3 text-purple-600"/></div>
-                {t('స్పాన్సర్‌షిప్‌లు', 'Sponsorships')}
+                {t('స్పాన్సర్‌షిప్‌లు', 'Sponsorships')} <span className="text-xs bg-slate-100 px-1.5 py-0.5 rounded-full text-slate-600">{sponsorshipCount}</span>
               </button>
            </div>
         </div>
@@ -564,35 +589,46 @@ export default function Chandas() {
                              </div>
                            </div>
                          </TableCell>
-                         <TableCell className="text-muted-foreground text-sm">
-                           {donation.created_at ? new Date(donation.created_at).toLocaleDateString() : '-'}
-                         </TableCell>
-                         <TableCell>
-                           <div className="flex items-center gap-2 text-sm text-foreground/80">
-                             <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
-                             <span>UPI</span> {/* Mocked Mode */}
-                           </div>
-                         </TableCell>
-                         <TableCell className="text-right font-bold text-foreground">
-                           <div>₹{donation.amount.toLocaleString()}</div>
-                           {(donation.amount - (donation.received_amount || 0)) > 0 && (
-                             <div className="text-xs text-red-500 font-semibold mt-0.5">
-                               {t('బాకీ', 'Pending')}: ₹{(donation.amount - (donation.received_amount || 0)).toLocaleString()}
-                             </div>
-                           )}
-                         </TableCell>
-                          <TableCell className="text-center">
-                           {(donation.received_amount || 0) >= donation.amount ? (
-                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                               {t('స్వీకరించబడింది', 'Received')}
-                             </span>
-                           ) : (donation.received_amount || 0) > 0 ? (
-                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                               {t('పాక్షికం', 'Partial')}
-                             </span>
-                           ) : (
-                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                               {t('బాకీ', 'Pending')}
+                          <TableCell className="text-muted-foreground text-sm">
+                            {donation.created_at ? new Date(donation.created_at).toLocaleDateString() : '-'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2 text-sm text-foreground/80">
+                                {donation.donation_mode === 'goods' ? <Package className="h-3.5 w-3.5 text-orange-500" /> :
+                                 donation.donation_mode === 'service' ? <HandHelping className="h-3.5 w-3.5 text-purple-500" /> :
+                                 donation.payment_method === 'upi' ? <CreditCard className="h-3.5 w-3.5 text-blue-500" /> : // UPI
+                                 <Wallet className="h-3.5 w-3.5 text-emerald-500" /> // Cash
+                                }
+                              <span className="capitalize">
+                                  {donation.donation_mode === 'cash' ? (donation.payment_method === 'upi' ? 'UPI' : 'Cash') : (donation.donation_mode || 'Cash')}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right font-bold text-foreground">
+                            <div>₹{donation.amount.toLocaleString()}</div>
+                            {/* Pending Logic: Treat null received_amount as 0 ONLY if explicitly not matching amount? 
+                                Actually, for legacy compatibility: if received_amount is null, assume IT IS PAID (amount). 
+                                BUT for this specific requirement, the user wants to see pending. 
+                                Let's assume database handles defaults or we stick to: received_amount || 0.
+                            */}
+                            {(donation.amount - (donation.received_amount ?? donation.amount)) > 0 && (
+                              <div className="text-xs text-red-500 font-semibold mt-0.5">
+                                {t('బాకీ', 'Pending')}: ₹{(donation.amount - (donation.received_amount ?? 0)).toLocaleString()}
+                              </div>
+                            )}
+                          </TableCell>
+                           <TableCell className="text-center">
+                            {(donation.received_amount ?? donation.amount) >= donation.amount ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                {t('స్వీకరించబడింది', 'Received')}
+                              </span>
+                            ) : (donation.received_amount || 0) > 0 ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                {t('పాక్షికం', 'Partial')}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                {t('బాకీ', 'Pending')}
                              </span>
                            )}
                           </TableCell>
@@ -620,6 +656,23 @@ export default function Chandas() {
                                    <span className="sr-only">Delete</span>
                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
                                 </Button>
+                                <Button 
+                                   variant="ghost" 
+                                   size="icon" 
+                                   className="h-8 w-8 text-muted-foreground hover:text-blue-600" 
+                                   onClick={() => {
+                                      const settings = selectedFestival?.receipt_settings as any; // Cast from Json
+                                      generateReceipt(donation, { 
+                                          ...settings,
+                                          organization_name: currentOrganization?.name,
+                                          // sub_title default to festival name if not configured
+                                          sub_title: settings?.sub_title || selectedFestival?.name 
+                                      });
+                                   }}
+                                   title="Download Receipt"
+                                >
+                                   <FileDown className="h-4 w-4" />
+                                </Button>
                             </div>
                          </TableCell>
                        </TableRow>
@@ -636,6 +689,14 @@ export default function Chandas() {
                       donation={donation}
                       onEdit={handleEditDonation}
                       onDelete={(id) => setDeletingDonationId(id)}
+                      onReceipt={(d) => {
+                          const settings = selectedFestival?.receipt_settings as any;
+                          generateReceipt(d, { 
+                              ...settings,
+                              organization_name: currentOrganization?.name,
+                              sub_title: settings?.sub_title || selectedFestival?.name 
+                          });
+                      }}
                       onAuthRequired={handleAuthRequired}
                       namePreference={namePreference}
                       className="border-0 shadow-none rounded-none first:rounded-t-lg last:rounded-b-lg"

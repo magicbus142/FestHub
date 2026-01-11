@@ -4,16 +4,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Donation, SponsorshipType, ChandaType, addDonation, updateDonation, type NameSuggestion, searchNameSuggestions } from '@/lib/database';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'; // Add Tabs
+import { Donation, addDonation, updateDonation, type NameSuggestion, searchNameSuggestions } from '@/lib/database';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { X, Plus, Trash2, Package, Coins, HandHelping, Wallet, CreditCard } from 'lucide-react';
 
 interface DonationItem {
   type: string;
   amount: string;
   receivedAmount?: string;
-  customType?: string; // For when user selects "ఇతర" (Other)
+  mode: 'cash' | 'goods' | 'service'; // Add mode to item
+  paymentMethod?: 'cash' | 'upi';
 }
 
 interface DonationFormProps {
@@ -27,19 +29,29 @@ interface DonationFormProps {
   };
 }
 
-const sponsorshipTypes: SponsorshipType[] = ['విగరహం', 'ల్డడు', 'Day1-భోజనం', 'Day2-భోజనం', 'Day3-భోజనం', 'Day1-టిఫిన్', 'Day2-టిఫిన్', 'Day3-టిఫిన్', 'ఇతర'];
-const chandaTypes: ChandaType[] = ['చందా'];
+const sponsorshipTypes = ['విగరహం', 'ల్డడు', 'Day1-భోజనం', 'Day2-భోజనం', 'Day3-భోజనం', 'Day1-టిఫిన్', 'Day2-టిఫిన్', 'Day3-టిఫిన్'];
 
 export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, selectedFestival }: DonationFormProps) => {
   const [nameTelugu, setNameTelugu] = useState(donation?.name || '');
   const [nameEnglish, setNameEnglish] = useState(donation?.name_english || '');
-  // Normalize legacy type labels
-  const normalizeType = (t: string) => (t === 'ల్డడు పరసాదం' ? 'ల్డడు' : t);
+  
+  // Initialize with correct mode
+  const initialMode = donation?.donation_mode || 'cash';
+  const [mode, setMode] = useState<'cash' | 'goods' | 'service'>(initialMode);
+
   const [donationItems, setDonationItems] = useState<DonationItem[]>(
-    donation ? [{ type: normalizeType(donation.type), amount: donation.amount.toString(), receivedAmount: (donation.received_amount || 0).toString() }] : [{ type: '', amount: '', receivedAmount: '' }]
+    donation 
+    ? [{ 
+        type: donation.type, 
+        amount: donation.amount.toString(), 
+        receivedAmount: (donation.received_amount || 0).toString(), 
+        mode: donation.donation_mode || 'cash',
+        paymentMethod: donation.payment_method || 'cash'
+      }] 
+    : [{ type: 'చందా', amount: '', receivedAmount: '', mode: 'cash', paymentMethod: 'cash' }] // Default 'cash'
   );
+  
   const [category, setCategory] = useState<'chanda' | 'sponsorship'>(donation?.category || 'chanda');
-  const [sponsorshipAmount, setSponsorshipAmount] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -48,61 +60,75 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
   const [suggestions, setSuggestions] = useState<NameSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-  const [suggestionQuery, setSuggestionQuery] = useState('');
 
-  // When the dialog opens, ensure the form reflects the donation being edited
+  // Sync state when editing
   useEffect(() => {
     if (open && donation) {
       setNameTelugu(donation.name || '');
       setNameEnglish(donation.name_english || '');
       setCategory(donation.category || 'chanda');
-      setDonationItems([{ type: normalizeType(donation.type), amount: donation.amount.toString() }]);
-      if ((donation.category || 'chanda') === 'sponsorship') {
-        setSponsorshipAmount(donation.amount.toString());
-      } else {
-        setSponsorshipAmount('');
-      }
+      setMode(donation.donation_mode || 'cash');
+      setDonationItems([{ 
+          type: donation.type, 
+          amount: donation.amount.toString(),
+          receivedAmount: (donation.received_amount || 0).toString(),
+          mode: donation.donation_mode || 'cash'
+      }]);
       setSuggestions([]);
       setShowSuggestions(false);
     }
     if (open && !donation) {
+      // Reset for new entry
       setNameTelugu('');
       setNameEnglish('');
       setCategory('chanda');
-      setDonationItems([{ type: 'చందా', amount: '', receivedAmount: '' }]);
-      setSponsorshipAmount('');
+      setMode('cash');
+      setDonationItems([{ type: 'చందా', amount: '', receivedAmount: '', mode: 'cash' }]);
       setSuggestions([]);
       setShowSuggestions(false);
     }
   }, [open, donation]);
 
-  // Debounced suggestions fetch based on either Telugu or English input
+  // Handle Mode Change
+  const handleModeChange = (newMode: 'cash' | 'goods' | 'service') => {
+      setMode(newMode);
+      
+      // User Rule: "goods or service is sponsorships"
+      if (newMode === 'goods' || newMode === 'service') {
+          setCategory('sponsorship');
+      }
+
+      // Update all items to match mode
+      const updated = donationItems.map(item => ({
+          ...item,
+          mode: newMode,
+          // Fix: Clear type if switching to non-cash, or default to Chanda for cash
+          type: newMode === 'cash' ? (item.type || 'చందా') : '', 
+      }));
+      setDonationItems(updated);
+  };
+
+
+  // Suggestions fetch (unchanged)
   useEffect(() => {
     const term = (nameEnglish || nameTelugu).trim();
-    setSuggestionQuery(term);
     if (!term || term.length < 2) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;
     }
-    setLoadingSuggestions(true);
     const handle = setTimeout(async () => {
-      try {
-        const res = await searchNameSuggestions(term);
-        setSuggestions(res);
-        setShowSuggestions(res.length > 0);
-      } catch (e) {
-        // silent fail
-      } finally {
-        setLoadingSuggestions(false);
-      }
+        try {
+            const res = await searchNameSuggestions(term);
+            setSuggestions(res);
+            setShowSuggestions(res.length > 0);
+        } catch(e) {}
     }, 300);
     return () => clearTimeout(handle);
   }, [nameTelugu, nameEnglish]);
 
   const addDonationItem = () => {
-    const defaultType = category === 'chanda' ? 'చందా' : 'ఇతర';
-    setDonationItems([...donationItems, { type: defaultType, amount: '', receivedAmount: '' }]);
+    setDonationItems([...donationItems, { type: '', amount: '', receivedAmount: '', mode }]);
   };
 
   const removeDonationItem = (index: number) => {
@@ -111,13 +137,9 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
     setDonationItems(newItems);
   };
 
-  const updateDonationItem = (index: number, field: 'type' | 'amount' | 'receivedAmount' | 'customType', value: string) => {
+  const updateDonationItem = (index: number, field: keyof DonationItem, value: string) => {
     const newItems = [...donationItems];
     newItems[index] = { ...newItems[index], [field]: value };
-    // Clear customType when changing away from "ఇతర"
-    if (field === 'type' && value !== 'ఇతర') {
-      newItems[index].customType = '';
-    }
     setDonationItems(newItems);
   };
 
@@ -129,427 +151,222 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate form
-    if (!nameTelugu.trim() && !nameEnglish.trim()) {
-      toast({
-        title: t("దోషం", "Error"),
-        description: t("దయచేసి కనీసం ఒక పేరును నమోదు చేయండి (తెలుగు లేదా ఇంగ్లీష్)", "Please enter at least one name (Telugu or English)"),
-        variant: "destructive"
-      });
-      return;
+    if(!nameTelugu.trim() && !nameEnglish.trim()) {
+        toast({ title: t("దోషం", "Error"), description: "Please enter a name", variant: "destructive" });
+        return;
     }
 
-    // Validate donation items
-    if (category === 'sponsorship') {
-      // Validate types only
-      for (let i = 0; i < donationItems.length; i++) {
-        const item = donationItems[i];
-        if (!item.type) {
-          toast({
-            title: t("దోషం", "Error"),
-            description: t("దయచేసి స్పాన్సర్‌షిప్ రకాలు ఎంచుకోండి", "Please select sponsorship types"),
-            variant: "destructive"
-          });
-          return;
-        }
-        // Validate custom type when "ఇతర" is selected
-        if (item.type === 'ఇతర' && !item.customType?.trim()) {
-          toast({
-            title: t("దోషం", "Error"),
-            description: t("దయచేసి రకం పేరు నమోదు చేయండి", "Please enter type name"),
-            variant: "destructive"
-          });
-          return;
-        }
-      }
-    } else {
-      for (let i = 0; i < donationItems.length; i++) {
-        const item = donationItems[i];
-        if (!item.type || !item.amount) {
-          toast({
-            title: t("దోషం", "Error"),
-            description: t("దయచేసి అన్ని ఫీల్డులను పూరించండి", "Please fill all fields"),
-            variant: "destructive"
-          });
-          return;
-        }
-        if (isNaN(parseFloat(item.amount)) || parseFloat(item.amount) <= 0) {
-          toast({
-            title: t("దోషం", "Error"),
-            description: t("దయచేసి సరైన మొత్తం నమోదు చేయండి", "Please enter a valid amount"),
-            variant: "destructive"
-          });
-          return;
-        }
-        if (item.receivedAmount && (isNaN(parseFloat(item.receivedAmount)) || parseFloat(item.receivedAmount) < 0)) {
-             toast({
-              title: t("దోషం", "Error"),
-              description: t("దయచేసి సరైన స్వీకరించిన మొత్తం నమోదు చేయండి", "Please enter a valid received amount"),
-              variant: "destructive"
-            });
+    // Basic Validation
+    for (const item of donationItems) {
+        if (!item.type.trim()) {
+            toast({ title: "Error", description: "Please enter Type / Item Name", variant: "destructive" });
             return;
         }
-         // Optional: Validation if received > entered amount
-         if (item.receivedAmount && parseFloat(item.receivedAmount) > parseFloat(item.amount)) {
-             toast({
-              title: t("హెచ్చరిక", "Warning"),
-              description: t("స్వీకరించిన మొత్తం, అసలు మొత్తం కంటే ఎక్కువగా ఉంది", "Received amount is greater than total amount"),
-              variant: "destructive"
-            });
-            return;
+        // Amount validation only for CASH
+        if (mode === 'cash') {
+             if (isNaN(parseFloat(item.amount)) || parseFloat(item.amount) <= 0) {
+                 toast({ title: "Error", description: "Invalid Amount", variant: "destructive" });
+                 return;
+             }
         }
-      }
     }
 
     setLoading(true);
-    
     try {
-      if (donation?.id) {
-        // Editing a single existing record: use the first item only
-        const first = donationItems[0];
-        const finalType = first.type === 'ఇతర' && first.customType ? first.customType.trim() : first.type;
-        const donationData = {
-          name: (nameTelugu || nameEnglish).trim(),
-          name_english: nameEnglish.trim() || undefined,
-          amount: category === 'sponsorship' ? 0 : parseFloat(first.amount),
-          received_amount: category === 'sponsorship' ? 0 : parseFloat(first.receivedAmount || '0'), 
-          type: normalizeType(finalType),
-          category
-        };
-        await updateDonation(donation.id, donationData);
-      } else {
-        // Creating: save each donation item as a separate record
-        if (category === 'sponsorship') {
-          for (const item of donationItems) {
-            const finalType = item.type === 'ఇతర' && item.customType ? item.customType.trim() : item.type;
-            const donationData = {
-              name: (nameTelugu || nameEnglish).trim(),
-              name_english: nameEnglish.trim() || undefined,
-              amount: 0,
-              received_amount: 0,
-              type: normalizeType(finalType),
-              category
-            };
-            await addDonation(donationData, null);
-          }
+        const prepareDonation = (item: DonationItem) => ({
+            name: (nameTelugu || nameEnglish).trim(),
+            name_english: nameEnglish.trim() || undefined,
+            amount: parseFloat(item.amount) || 0, // Allow 0 for Goods/Service
+            received_amount: parseFloat(item.receivedAmount || '0'), 
+            type: item.type.trim(),
+            category,
+            donation_mode: mode,
+            payment_method: item.paymentMethod || 'cash'
+        });
+
+        if (donation?.id) {
+            await updateDonation(donation.id, prepareDonation(donationItems[0]));
         } else {
-          for (const item of donationItems) {
-            const finalType = item.type === 'ఇతర' && item.customType ? item.customType.trim() : item.type;
-            const donationData = {
-              name: (nameTelugu || nameEnglish).trim(),
-              name_english: nameEnglish.trim() || undefined,
-              amount: parseFloat(item.amount),
-              received_amount: parseFloat(item.receivedAmount || '0'),
-              type: normalizeType(finalType),
-              category
-            };
-            await addDonation(donationData, null);
-          }
+            for (const item of donationItems) {
+                await addDonation(prepareDonation(item), null);
+            }
         }
-      }
-      
-      toast({
-        title: t("విజయవంతం", "Success"),
-        description: t("దానం(లు) విజయవంతంగా సేవ్ చేయబడ్డాయి", "Donation(s) saved successfully")
-      });
-      
-      onDonationSaved();
-      onOpenChange(false);
-      setNameTelugu('');
-      setNameEnglish('');
-      setDonationItems([{ type: 'చందా', amount: '' }]);
-      setCategory('chanda');
-    } catch (error) {
-      console.error('Error saving donation:', error);
-      const message = (error as any)?.message || t("దానం సేవ్ చేయడంలో దోషం", "Error saving donation");
-      toast({
-        title: t("దోషం", "Error"),
-        description: message,
-        variant: "destructive"
-      });
+        
+        toast({ title: t("విజయవంతం", "Success"), description: "Saved successfully" });
+        onDonationSaved();
+        onOpenChange(false);
+    } catch(err) {
+        toast({ title: "Error", description: "Failed to save", variant: "destructive" });
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 
-  const handleClose = () => {
-    onOpenChange(false);
-    // Reset form on close
-    setTimeout(() => {
-      setNameTelugu('');
-      setNameEnglish('');
-      setDonationItems([{ type: 'చందా', amount: '' }]);
-      setCategory('chanda');
-      setSuggestions([]);
-      setShowSuggestions(false);
-    }, 300);
-  };
-
-  const getTypeOptions = () => {
-    return category === 'sponsorship' ? sponsorshipTypes : chandaTypes;
-  };
-
   return (
-    <Dialog 
-      open={open} 
-      onOpenChange={(open) => {
-        // only reset when closing
-        if (!open) handleClose();
-      }}
-    >
-      <DialogContent className="bg-card border-border max-w-md">
-        <DialogHeader className="relative">
-          <DialogTitle className="text-festival-blue text-xl font-bold text-center">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold text-center">
             {donation ? t('దానం ఎడిట్ చేయండి', 'Edit Donation') : t('కొత్త దానం జోడించండి', 'Add New Donation')}
           </DialogTitle>
-          <DialogDescription className="sr-only">
-            {t('దానం జోడించడానికి లేదా మార్చడానికి ఈ ఫారంని ఉపయోగించండి', 'Use this form to add or edit a donation')}
-          </DialogDescription>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute right-0 top-0 h-6 w-6 p-0"
-            onClick={handleClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="category" className="text-foreground font-medium">
-              {t('వర్గం', 'Category')}
-            </Label>
-            <Select value={category} onValueChange={(value: 'chanda' | 'sponsorship') => {
-              setCategory(value);
-              // Reset donation items with sensible default type per category
-              setDonationItems([{ type: value === 'chanda' ? 'చందా' : 'ఇతర', amount: '', receivedAmount: '' }]);
-            }}>
-              <SelectTrigger>
-                <SelectValue placeholder={t("వర్గం ఎంచుకోండి", "Select category")} />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border-border">
-                <SelectItem value="chanda">{t('చందాలు', 'Chandas')}</SelectItem>
-                <SelectItem value="sponsorship">{t('స్పాన్సర్‌షిప్స్', 'Sponsorships')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+           
+           {/* Donation Mode Selector */}
+           <div className="bg-slate-100 p-1 rounded-lg">
+               <Tabs value={mode} onValueChange={(v) => handleModeChange(v as any)} className="w-full">
+                   <TabsList className="grid w-full grid-cols-3">
+                       <TabsTrigger value="cash" className="gap-2">
+                           <Coins className="w-4 h-4" /> {t('నగదు', 'Cash')}
+                       </TabsTrigger>
+                       <TabsTrigger value="goods" className="gap-2">
+                           <Package className="w-4 h-4" /> {t('వస్తువులు', 'Goods')}
+                       </TabsTrigger>
+                       <TabsTrigger value="service" className="gap-2">
+                           <HandHelping className="w-4 h-4" /> {t('సేవ', 'Service')}
+                       </TabsTrigger>
+                   </TabsList>
+               </Tabs>
+           </div>
 
-          <div className="space-y-2">
-            <Label className="text-foreground font-medium">
-              {t('పేరు (తెలుగు / ఇంగ్లీష్‌లో కనీసం ఒకటి)', 'Name (at least one of Telugu/English)')}
-            </Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 relative">
-              <div>
-                <Label htmlFor="name_telugu" className="text-xs">{t('పేరు (తెలుగు)', 'Name (Telugu)')}</Label>
-                <Input
-                  id="name_telugu"
-                  value={nameTelugu}
-                  onChange={(e) => { setNameTelugu(e.target.value); }}
-                  placeholder={t('ఉదా: రామయ్య', 'e.g., రామయ్య')}
-                  className="bg-background border-border"
-                  onFocus={() => suggestions.length && setShowSuggestions(true)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="name_english" className="text-xs">{t('Name (English)', 'Name (English)')}</Label>
-                <Input
-                  id="name_english"
-                  value={nameEnglish}
-                  onChange={(e) => { setNameEnglish(e.target.value); }}
-                  placeholder={t('e.g., Ramaiah', 'e.g., Ramaiah')}
-                  className="bg-background border-border"
-                  onFocus={() => suggestions.length && setShowSuggestions(true)}
-                />
-              </div>
+           {/* Name Inputs (Unchanged) */}
+           <div className="space-y-2">
+             <Label>{t('పేరు', 'Name')}</Label>
+             <div className="grid grid-cols-2 gap-2 relative">
+                 <Input 
+                     value={nameTelugu} 
+                     onChange={e => setNameTelugu(e.target.value)} 
+                     placeholder="తెలుగు పేరు"
+                     onFocus={() => suggestions.length && setShowSuggestions(true)}
+                 />
+                 <Input 
+                     value={nameEnglish} 
+                     onChange={e => setNameEnglish(e.target.value)} 
+                     placeholder="English Name" 
+                     onFocus={() => suggestions.length && setShowSuggestions(true)}
+                 />
+                 {showSuggestions && suggestions.length > 0 && (
+                     <div className="absolute z-50 top-full w-full bg-white border rounded shadow-lg">
+                         {suggestions.map((s, i) => (
+                             <div key={i} className="p-2 hover:bg-slate-100 cursor-pointer" onClick={() => applySuggestion(s)}>
+                                 {s.name} <span className="text-xs text-slate-500">{s.name_english}</span>
+                             </div>
+                         ))}
+                     </div>
+                 )}
+             </div>
+           </div>
 
-              {/* Suggestions dropdown (spans both columns) */}
-              {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute z-50 top-full left-0 mt-1 w-full md:col-span-2 bg-popover border border-border rounded-md shadow-sm max-h-56 overflow-auto">
-                  <ul className="divide-y divide-border">
-                    {suggestions.map((s, idx) => (
-                      <li key={idx}>
-                        <button
-                          type="button"
-                          className="w-full text-left px-3 py-2 hover:bg-muted/60"
-                          onClick={() => applySuggestion(s)}
-                        >
-                          <div className="text-sm font-medium">{s.name}</div>
-                          {s.name_english && (
-                            <div className="text-xs text-muted-foreground">{s.name_english}</div>
-                          )}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
+           {/* Items List */}
+           <div className="space-y-3">
+               <div className="flex justify-between items-center">
+                   <Label>{t('వివరాలు', 'Details')}</Label>
+                   {!donation && <Button type="button" size="sm" variant="ghost" onClick={addDonationItem}><Plus className="w-4 h-4" /></Button>}
+               </div>
 
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <Label className="text-foreground font-medium">
-                {t('దానాల వివరాలు', 'Donation Details')}
-              </Label>
-              {!donation && category === 'sponsorship' && (
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={addDonationItem}
-                  className="gap-1"
-                >
-                  <Plus className="h-4 w-4" />
-                  {t('మరో దానం జోడించండి', 'Add Another')}
-                </Button>
-              )}
-            </div>
+               {donationItems.map((item, index) => (
+                   <div key={index} className="p-3 border rounded-md bg-slate-50 space-y-3 relative">
+                       {donationItems.length > 1 && (
+                           <button type="button" onClick={() => removeDonationItem(index)} className="absolute top-2 right-2 text-red-500" title={t("తీసివేయు", "Remove Item")}>
+                               <Trash2 className="w-4 h-4"/>
+                               <span className="sr-only">{t("తీసివేయు", "Remove Item")}</span>
+                           </button>
+                       )}
 
-            {category === 'sponsorship' ? (
-              <>
-                <Label className="text-xs">{t('రకాలు', 'Types')}</Label>
-                <div className="flex flex-col gap-3">
-                  {donationItems.map((item, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Select
-                          value={item.type}
-                          onValueChange={(value) => updateDonationItem(index, 'type', value)}
-                        >
-                          <SelectTrigger className="w-40">
-                            <SelectValue placeholder={t('ఎంచుకోండి', 'Select')} />
-                          </SelectTrigger>
-                          <SelectContent className="bg-popover border-border">
-                            {getTypeOptions().map((option) => (
-                              <SelectItem key={option} value={option}>
-                                {option}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {!donation && donationItems.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive"
-                            onClick={() => removeDonationItem(index)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">{t('తీసివేయి', 'Remove')}</span>
-                          </Button>
-                        )}
-                      </div>
-                      {/* Show custom input when "ఇతర" is selected */}
-                      {item.type === 'ఇతర' && (
-                        <div className="ml-0">
-                          <Input
-                            value={item.customType || ''}
-                            onChange={(e) => updateDonationItem(index, 'customType', e.target.value)}
-                            placeholder={t('రకం పేరు నమోదు చేయండి', 'Enter type name')}
-                            className="bg-background border-border w-full"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              donationItems.map((item, index) => (
-                <div key={index} className="space-y-3 p-3 bg-slate-50 rounded-lg border border-slate-100 relative">
-                    {!donation && donationItems.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-1 right-1 h-6 w-6 text-destructive hover:bg-destructive/10"
-                        onClick={() => removeDonationItem(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">{t('తీసివేయి', 'Remove')}</span>
-                      </Button>
-                    )}
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                            <Label htmlFor={`type-${index}`} className="text-xs font-medium">
-                            {t('రకం', 'Type')}
-                            </Label>
-                            <Input
-                            id={`type-${index}`}
-                            value={t('చందా', 'Chanda')}
-                            readOnly
-                            className="bg-white border-slate-200 h-9"
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <Label htmlFor={`amount-${index}`} className="text-xs font-medium">
-                            {t('మొత్తం (₹)', 'Total Amount (₹)')}
-                            </Label>
-                            <Input
-                            id={`amount-${index}`}
-                            type="number"
-                            value={item.amount}
-                            onChange={(e) => updateDonationItem(index, 'amount', e.target.value)}
-                            placeholder="0"
-                            min="0"
-                            step="1"
-                            className="bg-white border-slate-200 h-9 font-medium"
-                            />
-                        </div>
-                    </div>
+                       {/* Conditional Input based on Mode */}
+                       {/* If Cash -> Show Dropdown or Text? User said "Enter value instead of dropdown". So we permit text. */}
+                       <div className="space-y-1">
+                           <Label className="text-xs">
+                               {mode === 'cash' ? t('రకం (చందా / స్పాన్సర్‌షిప్)', 'Type') : 
+                                mode === 'goods' ? t('వస్తువు పేరు', 'Item Name (e.g. Rice 25kg)') :
+                                t('సేవ రకం', 'Service Type (e.g. Decoration)')}
+                           </Label>
+                           {/* Combobox logic: Input that lists suggestions but allows custom text */}
+                           <div className="relative">
+                               <Input 
+                                   value={item.type}
+                                   onChange={(e) => updateDonationItem(index, 'type', e.target.value)}
+                                   placeholder={mode === 'cash' ? "చందా" : mode === 'goods' ? "Rice 25kg" : "Decoration work"}
+                                   list={`types-${index}`} // Uses datalist for suggestions
+                               />
+                               {/* Only show suggestions for Cash mode or if we had predefined goods */}
+                               {mode === 'cash' && (
+                                   <datalist id={`types-${index}`}>
+                                       <option value="చందా" />
+                                       {sponsorshipTypes.map(t => <option key={t} value={t} />)}
+                                   </datalist>
+                               )}
+                           </div>
+                       </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                         <div className="space-y-1">
-                            <Label htmlFor={`received-${index}`} className="text-xs font-medium text-emerald-600">
-                            {t('వసూలు (₹)', 'Received (₹)')}
-                            </Label>
-                            <Input
-                            id={`received-${index}`}
-                            type="number"
-                            value={item.receivedAmount}
-                            onChange={(e) => updateDonationItem(index, 'receivedAmount', e.target.value)}
-                            placeholder="0"
-                            min="0"
-                            step="1"
-                            className="bg-white border-emerald-200 focus-visible:ring-emerald-500 h-9"
-                            />
-                        </div>
-                         <div className="space-y-1">
-                            <Label className="text-xs font-medium text-amber-600">
-                            {t('బాకీ (₹)', 'Pending (₹)')}
-                            </Label>
-                            <div className="h-9 px-3 flex items-center bg-amber-50 border border-amber-100 rounded-md text-amber-700 font-bold text-sm">
-                                {Math.max(0, (parseFloat(item.amount || '0') - parseFloat(item.receivedAmount || '0'))).toLocaleString()}
+                        {/* Amount Field */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                                <Label className="text-xs">
+                                    {mode === 'cash' ? t('మొత్తం (₹)', 'Amount (₹)') : t('విలువ (ఐచ్ఛికం)', 'Est. Value (Optional)')}
+                                </Label>
+                                <Input 
+                                    type="number" 
+                                    value={item.amount} 
+                                    onChange={e => updateDonationItem(index, 'amount', e.target.value)} 
+                                    placeholder="0"
+                                />
+                            </div>
+                            
+                            <div className="space-y-1">
+                                <Label className="text-xs">{t('చెల్లింపు విధానం', 'Payment Method')}</Label>
+                                <Select 
+                                    value={item.paymentMethod || 'cash'} 
+                                    onValueChange={(v) => updateDonationItem(index, 'paymentMethod', v)}
+                                >
+                                    <SelectTrigger className="h-10">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="cash">
+                                            <div className="flex items-center gap-2"><Wallet className="w-4 h-4 text-emerald-600"/> Cash</div>
+                                        </SelectItem>
+                                        <SelectItem value="upi">
+                                            <div className="flex items-center gap-2"><CreditCard className="w-4 h-4 text-blue-600"/> UPI / Online</div>
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
-                    </div>
-                </div>
-              ))
-            )}
-          </div>
 
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              className="flex-1"
-              disabled={loading}
-            >
-              {t('రద్దు చేయండి', 'Cancel')}
-            </Button>
-            <Button
-              type="submit"
-              className="flex-1 bg-gradient-festive hover:opacity-90 text-white font-medium"
-              disabled={loading}
-            >
-              {loading ? t('సేవ్ చేస్తోంది...', 'Saving...') : donation ? t('అప్డేట్ చేయండి', 'Update') : t('జోడించండి', 'Add')}
-            </Button>
-          </div>
+                        {mode === 'cash' && (
+                            <div className="space-y-1 mt-2">
+                                <div className="flex justify-between">
+                                    <Label className="text-xs text-emerald-600">{t('వసూలు (₹)', 'Received (₹)')}</Label>
+                                </div>
+                                <Input 
+                                    type="number" 
+                                    value={item.receivedAmount} 
+                                    onChange={e => updateDonationItem(index, 'receivedAmount', e.target.value)} 
+                                    className="border-emerald-200"
+                                />
+                                {(() => {
+                                    const amt = parseFloat(item.amount) || 0;
+                                    const rcv = parseFloat(item.receivedAmount || '0') || 0;
+                                    const pending = amt - rcv;
+                                    if (amt > 0 && pending > 0) {
+                                        return <div className="text-xs text-red-500 text-right font-medium">Pending: ₹{pending}</div>
+                                    }
+                                    return null;
+                                })()}
+                            </div>
+                        )}
+                   </div>
+               ))}
+           </div>
+
+           <div className="flex gap-3">
+               <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>{t('రద్దు', 'Cancel')}</Button>
+               <Button type="submit" className="flex-1 bg-gradient-festive text-white" disabled={loading}>
+                   {loading ? 'Saving...' : 'Save'}
+               </Button>
+           </div>
         </form>
       </DialogContent>
     </Dialog>

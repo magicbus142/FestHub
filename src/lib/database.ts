@@ -9,6 +9,8 @@ export interface Donation {
   received_amount?: number;
   type: string;
   category: 'chanda' | 'sponsorship';
+  donation_mode?: 'cash' | 'goods' | 'service'; // New field
+  payment_method?: 'cash' | 'upi'; // New field for payment type
   festival_name?: string;
   festival_year?: number;
   created_at?: string;
@@ -33,6 +35,8 @@ export const addDonation = async (donation: Omit<Donation, 'id' | 'created_at' |
       received_amount: donation.received_amount,
       type: donation.type,
       category: donation.category,
+      donation_mode: donation.donation_mode || 'cash',
+      payment_method: donation.payment_method || 'cash',
       festival_name: donation.festival_name,
       festival_year: donation.festival_year,
       organization_id: organizationId
@@ -54,6 +58,7 @@ export const updateDonation = async (id: string, donation: Omit<Donation, 'id' |
       received_amount: donation.received_amount,
       type: donation.type,
       category: donation.category,
+      donation_mode: donation.donation_mode,
       festival_name: donation.festival_name,
       festival_year: donation.festival_year
     })

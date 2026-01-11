@@ -17,12 +17,15 @@ export interface Organization {
   // Note: passcode is intentionally NOT included - never expose it client-side
 }
 
+
 interface OrganizationContextType {
   currentOrganization: Organization | null;
   setCurrentOrganization: (org: Organization) => void;
   isAuthenticated: boolean;
   authenticate: (passcode: string) => Promise<boolean>;
   logout: () => void;
+  allowedPages: string[] | null; // null means all pages allowed
+  setAllowedPages: (pages: string[] | null) => void;
 }
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined);
@@ -36,6 +39,19 @@ export const useOrganization = () => {
 export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
   const [currentOrganization, setCurrentOrgState] = useState<Organization | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [allowedPages, setAllowedPagesState] = useState<string[] | null>(() => {
+    const saved = sessionStorage.getItem('allowedPages');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  const setAllowedPages = useCallback((pages: string[] | null) => {
+    setAllowedPagesState(pages);
+    if (pages) {
+      sessionStorage.setItem('allowedPages', JSON.stringify(pages));
+    } else {
+      sessionStorage.removeItem('allowedPages');
+    }
+  }, []);
 
   // Load organization and auth from localStorage
   useEffect(() => {
@@ -123,8 +139,10 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       setCurrentOrganization,
       isAuthenticated,
       authenticate,
-      logout
-  }), [currentOrganization, setCurrentOrganization, isAuthenticated, authenticate, logout]);
+      logout,
+      allowedPages,
+      setAllowedPages
+  }), [currentOrganization, setCurrentOrganization, isAuthenticated, authenticate, logout, allowedPages, setAllowedPages]);
 
   return (
     <OrganizationContext.Provider value={value}>

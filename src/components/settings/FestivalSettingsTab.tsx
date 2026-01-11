@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PageSelector, PageOption } from '@/components/PageSelector';
 import { Save, Loader2, Sparkles } from 'lucide-react';
 import { PasscodeDialog } from '@/components/PasscodeDialog';
+import { ReceiptSettings } from '@/components/settings/ReceiptSettings';
 
 export function FestivalSettingsTab() {
   const { currentOrganization, isAuthenticated, authenticate } = useOrganization();
@@ -257,6 +258,11 @@ export function FestivalSettingsTab() {
         </form>
       </CardContent>
     </Card>
+
+    )}
+    
+    {selectedFestival && (
+        <ReceiptSettings festival={selectedFestival} />
     )}
 
     <PasscodeDialog

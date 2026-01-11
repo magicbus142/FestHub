@@ -9,6 +9,7 @@ import { FestivalCard } from '@/components/FestivalCard';
 import { Button } from '@/components/ui/button';
 import { AddFestivalDialog } from '@/components/AddFestivalDialog';
 import { PasscodeDialog } from '@/components/PasscodeDialog';
+import { ShareDialog } from '@/components/ShareDialog'; // Import ShareDialog
 import { Plus, ArrowLeft, Share2, Lock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
@@ -16,22 +17,18 @@ import type { Festival } from '@/lib/festivals';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
 export default function FestivalSelection() {
-  const { t, language, setLanguage } = useLanguage();
+  const { t } = useLanguage();
   const { setSelectedFestival } = useFestival();
   const { currentOrganization, isAuthenticated, authenticate } = useOrganization();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isAddFestivalOpen, setIsAddFestivalOpen] = useState(false);
   const [isPasscodeOpen, setIsPasscodeOpen] = useState(false);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false); // State for ShareDialog
   const { toast } = useToast();
 
   const handleShareOrganization = () => {
-    const shareUrl = `${window.location.origin}/org/${currentOrganization?.slug}`;
-    navigator.clipboard.writeText(shareUrl);
-    toast({
-      title: t('లింక్ కాపీ చేయబడింది', 'Link Copied'),
-      description: t('సంస్థ లింక్ క్లిప్‌బోర్డ్‌కు కాపీ చేయబడింది', 'Organization link copied to clipboard'),
-    });
+    setIsShareDialogOpen(true);
   };
 
   const { data: festivals = [] } = useQuery({
@@ -81,6 +78,14 @@ export default function FestivalSelection() {
       return festivalsWithImages as Festival[];
     },
     enabled: !!currentOrganization
+  });
+
+  // Filter festivals based on 'festivals' query param
+  const displayedFestivals = festivals.filter(festival => {
+    const sharedIds = searchParams.get('festivals');
+    if (!sharedIds) return true; // If no param, show all
+    const allowedIds = sharedIds.split(',');
+    return allowedIds.includes(festival.id);
   });
 
   // Auto-select festival from URL query parameter (for shared links)
@@ -175,10 +180,10 @@ export default function FestivalSelection() {
           </div>
         </div>
 
-        {/* Festival Cards */}
-        {festivals.length > 0 ? (
+        {/* Festival Cards - Use displayedFestivals instead of festivals */}
+        {displayedFestivals.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {festivals.map((festival) => (
+            {displayedFestivals.map((festival) => (
               <FestivalCard 
                 key={festival.id} 
                 festival={festival}
@@ -192,7 +197,7 @@ export default function FestivalSelection() {
                 <Plus className="h-10 w-10 text-muted-foreground" />
              </div>
             <p className="text-lg text-muted-foreground">
-              {t('ఇంకా ఉత్సవాలు జోడించబడలేదు', 'No festivals available')}
+              {t('ఇంకా ఉత్సవాలు జోడించబడలేదు (లేదా ఏదీ భాగస్వామ్యం చేయబడలేదు)', 'No festivals available (or none shared)')}
             </p>
           </div>
         )}
@@ -208,6 +213,14 @@ export default function FestivalSelection() {
           onOpenChange={setIsPasscodeOpen}
           onAuthenticate={authenticate}
           organizationName={currentOrganization?.name || ''}
+        />
+
+        {/* Share Dialog */}
+        <ShareDialog 
+          open={isShareDialogOpen}
+          onOpenChange={setIsShareDialogOpen}
+          organizationSlug={currentOrganization?.slug || ''}
+          festivals={festivals} // Pass all festivals so user can choose what to share
         />
       </div>
     </div>

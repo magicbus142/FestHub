@@ -10,12 +10,13 @@ interface DonationCardProps {
   donation: Donation;
   onEdit: (donation: Donation) => void;
   onDelete: (id: string) => void;
+  onReceipt?: (donation: Donation) => void;
   onAuthRequired: () => void;
   namePreference?: 'telugu' | 'english';
   className?: string;
 }
 
-export const DonationCard = ({ donation, onEdit, onDelete, onAuthRequired, namePreference = 'telugu', className }: DonationCardProps) => {
+export const DonationCard = ({ donation, onEdit, onDelete, onReceipt, onAuthRequired, namePreference = 'telugu', className }: DonationCardProps) => {
   const { isAuthenticated } = useOrganization();
   const { t } = useLanguage();
 
@@ -95,6 +96,20 @@ export const DonationCard = ({ donation, onEdit, onDelete, onAuthRequired, nameP
                 )}
               </Tooltip>
             </TooltipProvider>
+            {/* Receipt Button */}
+            <Button
+                variant="ghost" 
+                size="sm"
+                className="h-8 w-8 p-0 hover:bg-blue-50 text-muted-foreground hover:text-blue-600"
+                onClick={() => onReceipt && onReceipt(donation)}
+             >
+                <div style={{ // Using explicit import or icon here? 
+                            // Lucide import check: we need FileDown.
+                }}>
+                  {/* FileDown from Lucide needs to be imported, assume FileDown is not imported yet in this file */}
+                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-file-down"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+                </div>
+            </Button>
           </div>
         </div>
         <div className="flex justify-between items-center">

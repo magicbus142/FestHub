@@ -15,6 +15,7 @@ export interface Festival {
   updated_at?: string;
   theme?: string | null;
   enabled_pages?: Json | null;
+  receipt_settings?: Json | null;
 }
 
 export async function getAllFestivals(): Promise<Festival[]> {

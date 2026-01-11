@@ -13,6 +13,7 @@ import { YearBadge } from '@/components/YearBadge';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/PageHeader';
+import { ActivityLog } from '@/components/ActivityLog';
 
 export default function Settings() {
   const { currentOrganization } = useOrganization();
@@ -59,7 +60,7 @@ export default function Settings() {
         </PageHeader>
 
         <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full space-y-6">
-          <TabsList className="w-full grid grid-cols-3 p-1 bg-muted/60 backdrop-blur rounded-xl h-12">
+          <TabsList className="w-full grid grid-cols-4 p-1 bg-muted/60 backdrop-blur rounded-xl h-12">
             <TabsTrigger 
                 value="organization" 
                 className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300 gap-2 h-10 font-bold"
@@ -81,6 +82,15 @@ export default function Settings() {
                 <CreditCard className="h-4 w-4" />
                 <span className="hidden sm:inline">{t('సబ్‌స్క్రిప్షన్', 'Subscription')}</span>
             </TabsTrigger>
+            <TabsTrigger 
+                value="activity" 
+                className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300 gap-2 h-10 font-bold"
+            >
+                <div className="flex items-center gap-2">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-history"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74-2.74L3 12"/><path d="M3 3v9h9"/></svg>
+                   <span className="hidden sm:inline">Activity</span>
+                </div>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="organization" className="space-y-4 focus-visible:outline-none focus-visible:ring-0">
@@ -93,6 +103,10 @@ export default function Settings() {
 
           <TabsContent value="subscription" className="space-y-4 focus-visible:outline-none focus-visible:ring-0">
              <SubscriptionTab />
+          </TabsContent>
+
+          <TabsContent value="activity" className="space-y-4 focus-visible:outline-none focus-visible:ring-0">
+             <ActivityLog organizationId={currentOrganization.id} />
           </TabsContent>
         </Tabs>
       </div>

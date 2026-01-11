@@ -10,7 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 export const SideNavigation = () => {
   const { t } = useLanguage();
-  const { currentOrganization, isAuthenticated } = useOrganization();
+  const { currentOrganization, isAuthenticated, allowedPages } = useOrganization();
   const { selectedFestival } = useFestival();
   const navigate = useNavigate();
   const location = useLocation();
@@ -58,10 +58,31 @@ export const SideNavigation = () => {
 
   // Logic to determine visible items
   const visibleNavItems = navItems.filter(item => {
+    // 1. Check Auth Requirement
     if (item.requiresAuth && !isAuthenticated) return false;
+    
+    // 2. Check Festival Requirement
     // @ts-ignore
     if (item.requiresFestival && !selectedFestival) return false;
 
+    // 3. Check Shared Link Page Restrictions (allowedPages from context) - ONLY IF NOT AUTHENTICATED
+    if (!isAuthenticated && allowedPages && Array.isArray(allowedPages)) {
+       const pageMap: Record<string, string> = {
+         'dashboard': 'dashboard',
+         'chandas': 'chandas', 
+         'expenses': 'expenses',
+         'images': 'images',
+         'voting': 'voting'
+       };
+       const routeName = item.path.split('/').pop();
+       if (routeName && pageMap[routeName]) {
+          if (!allowedPages.includes(pageMap[routeName])) {
+              return false;
+          }
+       }
+    }
+
+    // 4. Check Database Settings (Festival enabled_pages)
     if (selectedFestival?.enabled_pages && Array.isArray(selectedFestival.enabled_pages)) {
        const pageMap: Record<string, string> = {
          'dashboard': 'dashboard',

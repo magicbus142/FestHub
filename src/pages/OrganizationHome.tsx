@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Routes, Route } from 'react-router-dom';
+import { useParams, useNavigate, Routes, Route, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useOrganization, Organization } from '@/contexts/OrganizationContext';
@@ -22,8 +22,18 @@ import { MainLayout } from '@/components/layout/MainLayout';
 export default function OrganizationHome() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { setCurrentOrganization } = useOrganization();
+  const [searchParams] = useSearchParams(); // Add this
+  const { setCurrentOrganization, setAllowedPages } = useOrganization();
   const [isLoading, setIsLoading] = useState(true);
+
+  // Handle shared link query params
+  useEffect(() => {
+    const pagesParam = searchParams.get('pages');
+    if (pagesParam) {
+      const pages = pagesParam.split(',');
+      setAllowedPages(pages);
+    }
+  }, [searchParams, setAllowedPages]);
 
   const { data: organization } = useQuery({
     queryKey: ['organization', slug],

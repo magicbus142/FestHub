@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 
 export const Navigation = () => {
   const { t } = useLanguage();
-  const { currentOrganization, isAuthenticated } = useOrganization();
+  const { currentOrganization, isAuthenticated, allowedPages } = useOrganization();
   const { selectedFestival } = useFestival();
   const navigate = useNavigate();
   const location = useLocation();
@@ -85,6 +85,23 @@ export const Navigation = () => {
     if (item.requiresAuth && !isAuthenticated) return false;
     // @ts-ignore
     if (item.requiresFestival && !selectedFestival) return false;
+
+    // Check Shared Link Page Restrictions (allowedPages from context) - ONLY IF NOT AUTHENTICATED
+    if (!isAuthenticated && allowedPages && Array.isArray(allowedPages)) {
+       const pageMap: Record<string, string> = {
+         'dashboard': 'dashboard',
+         'chandas': 'chandas', 
+         'expenses': 'expenses',
+         'images': 'images',
+         'voting': 'voting'
+       };
+       const routeName = item.path.split('/').pop();
+       if (routeName && pageMap[routeName]) {
+          if (!allowedPages.includes(pageMap[routeName])) {
+              return false;
+          }
+       }
+    }
 
     if (selectedFestival?.enabled_pages && Array.isArray(selectedFestival.enabled_pages)) {
        const pageMap: Record<string, string> = {
