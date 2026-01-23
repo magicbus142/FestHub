@@ -15,6 +15,7 @@ import VotingLogin from "./pages/voting/VotingLogin";
 import VotingGallery from "./pages/voting/VotingGallery";
 import ResetPasscodePage from "./pages/ResetPasscodePage";
 import SuperAdmin from "./pages/SuperAdmin";
+import { AuthRedirectHandler } from "@/components/AuthRedirectHandler";
 
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
@@ -35,6 +36,7 @@ const App = () => (
                 <Toaster />
               <Sonner />
               <BrowserRouter>
+                <AuthRedirectHandler />
                 <Routes>
                   <Route path="/" element={<OrganizationsList />} />
                   <Route path="/auth" element={<Auth />} />

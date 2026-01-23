@@ -30,7 +30,7 @@ export default function Dashboard() {
     selectedFestival
   } = useFestival();
   const navigate = useNavigate();
-  const { currentOrganization } = useOrganization();
+  const { currentOrganization, allowedPages } = useOrganization();
   const {
     isAuthenticated
   } = useAuth();
@@ -255,12 +255,13 @@ export default function Dashboard() {
 
         {/* Module Previews */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-          <ChandasPreview />
-          <ExpensesPreview />
-          <ImagesPreview />
+          {(!allowedPages || allowedPages.includes('chandas')) && <ChandasPreview />}
+          {(!allowedPages || allowedPages.includes('expenses')) && <ExpensesPreview />}
+          {(!allowedPages || allowedPages.includes('images')) && <ImagesPreview />}
           {(() => {
-            const pages = (selectedFestival?.enabled_pages as unknown as PageOption[]) || [];
-            if (pages.includes('voting')) {
+            const festivalPages = (selectedFestival?.enabled_pages as unknown as PageOption[]) || [];
+            // Check both festival settings AND shared link restrictions
+            if (festivalPages.includes('voting') && (!allowedPages || allowedPages.includes('voting'))) {
               return <VotingPreview />;
             }
             return null;

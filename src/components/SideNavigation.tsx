@@ -65,8 +65,8 @@ export const SideNavigation = () => {
     // @ts-ignore
     if (item.requiresFestival && !selectedFestival) return false;
 
-    // 3. Check Shared Link Page Restrictions (allowedPages from context) - ONLY IF NOT AUTHENTICATED
-    if (!isAuthenticated && allowedPages && Array.isArray(allowedPages)) {
+    // 3. Check Shared Link Page Restrictions (allowedPages from context)
+    if (allowedPages && Array.isArray(allowedPages)) {
        const pageMap: Record<string, string> = {
          'dashboard': 'dashboard',
          'chandas': 'chandas', 

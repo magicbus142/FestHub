@@ -170,8 +170,8 @@ export function OrganizationLoginDialog({
         }
 
        // 2. Trigger Native Supabase Reset Email
-       // Use VITE_SITE_URL from env if available, otherwise use the deployed URL (so local testing generates valid prod links)
-       const siteUrl = import.meta.env.VITE_SITE_URL || 'https://fest-hub-livid.vercel.app';
+       // Use window.location.origin to ensure the link redirects back to the current domain (whether localhost or prod)
+       const siteUrl = window.location.origin;
        
        const { error } = await supabase.auth.resetPasswordForEmail(org.email, {
          redirectTo: `${siteUrl}/reset-passcode`,
