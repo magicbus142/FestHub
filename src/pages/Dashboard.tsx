@@ -47,49 +47,27 @@ export default function Dashboard() {
   const [prevInput, setPrevInput] = useState('' as string);
   const [editingCardType, setEditingCardType] = useState<'chandas' | 'expenses' | 'images' | null>(null);
 
-  // Previous amounts per festival and card type
-  const [previousAmounts, setPreviousAmounts] = useState<Record<string, Record<string, number>>>({});
+  // Read previous amounts directly from the selected festival
+  const chandasPrev = selectedFestival?.previous_chandas || 0;
+  const expensesPrev = selectedFestival?.previous_expenses || 0;
 
-  // Load previous amounts from localStorage
-  useEffect(() => {
+  const savePreviousAmount = async (cardType: 'chandas' | 'expenses' | 'images', value: number) => {
+    if (!selectedFestival || !selectedFestival.id) return;
     try {
-      const stored = localStorage.getItem('previous_amounts');
-      if (stored) {
-        setPreviousAmounts(JSON.parse(stored));
-      }
-    } catch { }
-  }, []);
+      const updates: Partial<typeof selectedFestival> = {};
+      if (cardType === 'chandas') updates.previous_chandas = value;
+      if (cardType === 'expenses') updates.previous_expenses = value;
 
-  // Get previous amount for specific festival and card type
-  const getPreviousAmount = (cardType: 'chandas' | 'expenses' | 'images') => {
-    if (!selectedFestival) return 0;
-    const festivalKey = `${selectedFestival.name}-${selectedFestival.year}`;
-    return previousAmounts[festivalKey]?.[cardType] || 0;
+      // Import updateFestival at the top if not present, but we will use the one imported earlier or add it now
+      const { updateFestival } = await import('@/lib/festivals');
+      const updatedFest = await updateFestival(selectedFestival.id, updates);
+      
+      // Update local context
+      setSelectedFestival(updatedFest);
+    } catch (e) {
+      console.error(e);
+    }
   };
-
-  // Save previous amount for specific festival and card type
-  const savePreviousAmount = (cardType: 'chandas' | 'expenses' | 'images', value: number) => {
-    if (!selectedFestival) return;
-
-    const festivalKey = `${selectedFestival.name}-${selectedFestival.year}`;
-    const updatedAmounts = {
-      ...previousAmounts,
-      [festivalKey]: {
-        ...previousAmounts[festivalKey],
-        [cardType]: value
-      }
-    };
-
-    setPreviousAmounts(updatedAmounts);
-    try {
-      localStorage.setItem('previous_amounts', JSON.stringify(updatedAmounts));
-    } catch { }
-  };
-
-  // Calculate balance using per-card previous amounts
-  const chandasPrev = getPreviousAmount('chandas');
-  const expensesPrev = getPreviousAmount('expenses');
-  const imagesPrev = getPreviousAmount('images');
 
   const {
     data: totalDonations = 0
@@ -198,7 +176,7 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-1">
-                <p className="text-sm font-bold text-muted-foreground tracking-tight">{t('Total Balance', 'మిగిలిన మొత్తం')}</p>
+                <p className="text-sm font-bold text-muted-foreground tracking-tight">{t('మిగిలిన మొత్తం', 'Total Balance')}</p>
                 <h2 className="text-5xl font-black text-emerald-600 tracking-tighter">
                   ₹{(totalDonations + chandasPrev - totalExpenses - expensesPrev).toLocaleString()}
                 </h2>
@@ -212,9 +190,9 @@ export default function Dashboard() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white/70 backdrop-blur-md p-5 rounded-3xl border border-white shadow-sm flex flex-col justify-between group/card hover:border-blue-100 transition-all">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase mb-1 tracking-wider">{t('Previous Amount', 'మునుపటి మొత్తం')}</p>
+                  <p className="text-[10px] font-black text-muted-foreground uppercase mb-1 tracking-wider">{t('మునుపటి మొత్తం', 'Previous Amount')}</p>
                   <div>
-                    <p className="text-xl font-black text-blue-600">₹{(totalDonations + chandasPrev).toLocaleString()}</p>
+                    <p className="text-xl font-black text-blue-600">₹{(chandasPrev || 0).toLocaleString()}</p>
                     {isAuthenticated && (
                       <button
                         onClick={() => { setPrevInput(String(chandasPrev || 0)); setEditingCardType('chandas'); setIsPrevDialogOpen(true); }}

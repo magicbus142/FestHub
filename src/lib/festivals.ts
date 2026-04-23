@@ -12,6 +12,8 @@ export interface Festival {
   end_date?: string;
   is_active?: boolean;
   is_hidden?: boolean;
+  previous_chandas?: number;
+  previous_expenses?: number;
   created_at?: string;
   updated_at?: string;
   theme?: string | null;
