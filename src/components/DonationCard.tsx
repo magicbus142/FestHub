@@ -1,7 +1,8 @@
 import { Donation } from '@/lib/database';
 import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, Lock } from 'lucide-react';
+import { Edit, Trash2, Lock, FileDown, Package, HandHelping } from 'lucide-react';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -40,109 +41,117 @@ export const DonationCard = ({ donation, onEdit, onDelete, onReceipt, onAuthRequ
     }
   };
   return (
-    <Card className={`bg-card border-border hover:shadow-festive transition-all duration-200 ${className}`}>
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <div className="flex-1">
-            <h3 className="font-semibold text-foreground text-lg">{displayName}</h3>
-            {donation.category === 'chanda' && (
-              <p className="text-festival-orange text-xl font-bold">₹{donation.amount.toLocaleString('en-IN')}</p>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleEdit}
-                    className="h-8 w-8 p-0 hover:bg-accent"
-                  >
-                    {isAuthenticated ? (
-                      <Edit className="h-4 w-4 text-festival-blue" />
-                    ) : (
-                      <Lock className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                {!isAuthenticated && (
-                  <TooltipContent>
-                    <p>{t('సవరించడానికి లాగిన్ అవసరం', 'Login required to edit')}</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleDelete}
-                    className="h-8 w-8 p-0 hover:bg-destructive/10"
-                  >
-                    {isAuthenticated ? (
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    ) : (
-                      <Lock className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                {!isAuthenticated && (
-                  <TooltipContent>
-                    <p>{t('తొలగించడానికి లాగిన్ అవసరం', 'Login required to delete')}</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
-            {/* Receipt Button */}
-            <Button
-                variant="ghost" 
-                size="sm"
-                className="h-8 w-8 p-0 hover:bg-blue-50 text-muted-foreground hover:text-blue-600"
-                onClick={() => onReceipt && onReceipt(donation)}
-             >
-                <div style={{ // Using explicit import or icon here? 
-                            // Lucide import check: we need FileDown.
-                }}>
-                  {/* FileDown from Lucide needs to be imported, assume FileDown is not imported yet in this file */}
-                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-file-down"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
-                </div>
-            </Button>
-          </div>
-        </div>
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-             <span className="text-muted-foreground text-sm bg-accent px-2 py-1 rounded-full">
-               {donation.type}
+    <Card className={cn(
+      "bg-white/80 backdrop-blur-sm border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group relative overflow-hidden",
+      donation.category === 'sponsorship' ? "hover:border-purple-100" : "hover:border-blue-100",
+      className
+    )}>
+      {/* Category Accent Line */}
+      <div className={cn(
+        "absolute top-0 left-0 w-1 h-full",
+        donation.category === 'sponsorship' ? "bg-purple-500" : "bg-blue-500"
+      )} />
+
+      <CardContent className="p-4 sm:p-5">
+        <div className="flex flex-col mb-4">
+           <div className="flex items-center gap-2 mb-1">
+              <span className={cn(
+                "text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md",
+                donation.category === 'sponsorship' ? "bg-purple-50 text-purple-600" : "bg-blue-50 text-blue-600"
+              )}>
+                {donation.category === 'chanda' ? t('చందా', 'Chanda') : t('స్పాన్సర్‌షిప్', 'Sponsorship')}
               </span>
+              <span className="text-[10px] font-bold text-muted-foreground">
+                 {donation.created_at ? new Date(donation.created_at).toLocaleDateString() : ''}
+              </span>
+           </div>
+          <h3 className="font-bold text-foreground text-lg break-words leading-tight mb-1">{displayName}</h3>
+          {donation.amount > 0 ? (
+            <p className="text-2xl font-black text-slate-900 tracking-tight">₹{donation.amount.toLocaleString('en-IN')}</p>
+          ) : (
+            <p className="text-lg font-bold text-slate-600 tracking-tight flex items-center gap-2 mt-1">
+              {donation.donation_mode === 'goods' ? <Package className="h-4 w-4 text-purple-500" /> : <HandHelping className="h-4 w-4 text-purple-500" />}
+              {donation.type}
+            </p>
+          )}
+        </div>
+
+        <div className="flex justify-between items-end pt-3 border-t border-slate-50 flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+             <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">
+                  {donation.amount === 0 ? t('రకం', 'Mode') : 'Type'}
+                </span>
+                <span className="text-sm font-semibold text-slate-700">
+                   {donation.amount === 0 ? (donation.donation_mode === 'goods' ? t('వస్తువులు', 'Goods') : t('సేవ', 'Service')) : donation.type}
+                </span>
+             </div>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-4 ml-auto">
+             {isAuthenticated && (
+                <div className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                    {onReceipt && donation.amount > 0 && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onReceipt(donation)}
+                            className="h-8 w-8 rounded-full hover:bg-blue-50 hover:text-blue-600"
+                            title={t('రసీదు', 'Receipt')}
+                        >
+                            <FileDown className="h-3.5 w-3.5" />
+                        </Button>
+                    )}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleEdit}
+                        className="h-8 w-8 rounded-full hover:bg-slate-100"
+                    >
+                        <Edit className="h-3.5 w-3.5 text-slate-600" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleDelete}
+                        className="h-8 w-8 rounded-full hover:bg-red-50 hover:text-red-600"
+                    >
+                        <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                </div>
+             )}
+
+             <div className="flex flex-col items-end">
               {/* Status Badge */}
-             {(donation.received_amount || 0) >= donation.amount ? (
-               <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
+             {donation.amount === 0 ? (
+               <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-purple-50 text-purple-600 border border-purple-100">
+                 {t('స్పాన్సర్ చేయబడింది', 'Sponsored')}
+               </span>
+             ) : (donation.received_amount || 0) >= donation.amount ? (
+               <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100">
                  {t('స్వీకరించబడింది', 'Received')}
                </span>
              ) : (donation.received_amount || 0) > 0 ? (
-               <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
-                  {t('పాక్షికం', 'Partial')}
-               </span>
+               <div className="flex flex-col items-end">
+                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-amber-50 text-amber-600 border border-amber-100 mb-1">
+                    {t('పాక్షికం', 'Partial')}
+                  </span>
+                  <span className="text-[10px] text-red-500 font-bold">
+                    {t('బాకీ: ', 'Due: ')} ₹{(donation.amount - (donation.received_amount || 0)).toLocaleString()}
+                  </span>
+               </div>
              ) : (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium">
-                  {t('బాకీ', 'Pending')}
-               </span>
+                <div className="flex flex-col items-end">
+                    <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-red-50 text-red-600 border border-red-100 mb-1">
+                        {t('బాకీ', 'Pending')}
+                    </span>
+                    <span className="text-[10px] text-red-500 font-bold">
+                        ₹{donation.amount.toLocaleString()} Due
+                    </span>
+                </div>
              )}
           </div>
-          <div className="text-right">
-             <span className="text-xs text-muted-foreground block">
-                {donation.category === 'chanda' ? t('చందా', 'Chanda') : t('స్పాన్సర్‌షిప్', 'Sponsorship')}
-             </span>
-             {/* Show pending amount if any */}
-             {(donation.amount - (donation.received_amount || 0)) > 0 && (
-                 <span className="text-xs text-red-500 font-semibold">
-                    {t('బాకీ: ', 'Pending: ')} ₹{(donation.amount - (donation.received_amount || 0)).toLocaleString()}
-                 </span>
-             )}
-          </div>
+        </div>
         </div>
       </CardContent>
     </Card>

@@ -196,7 +196,7 @@ export default function SuperAdmin() {
       return;
     }
 
-    logSecurityEvent(`Organization ${orgId} ${!currentStatus ? 'suspended' : 'activated'}`, 'info');
+    logSecurityEvent(`Organization ${orgId} ${isCurrentlySuspended ? 'activated' : 'suspended'}`, 'info');
     await queryClient.invalidateQueries({ queryKey: ['super-admin-stats'] });
   };
 
@@ -412,88 +412,108 @@ export default function SuperAdmin() {
 
   return (
     <div className="min-h-screen bg-[#FDFCF5] dark:bg-[#0A0A0A]">
-      {/* Header */}
-      <div className="border-b bg-white/50 backdrop-blur-md sticky top-0 z-10 dark:bg-black/50">
-        <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => navigate('/')}
-                className="rounded-full"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
-                <LayoutDashboard className="h-6 w-6 text-primary" />
-                Super Admin
-              </h1>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Platform Overview & Analytics</p>
-            </div>
+      {/* Unified Header */}
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex flex-col gap-4 mb-8">
+          <div className="flex items-center gap-2 bg-slate-100/50 w-fit px-3 py-1 rounded-full text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-slate-200/50 dark:bg-slate-800/50 dark:border-slate-700/50">
+             <span>Home</span>
+             <span className="opacity-30">/</span>
+             <span className="text-primary truncate max-w-[100px]">Admin</span>
           </div>
-          <div className="flex items-center gap-3">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={exportToCSV}
-              className="rounded-full border-primary/20 hover:bg-primary/5 text-primary font-bold decoration-none"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
-            </Button>
-            <ThemeSwitcher />
-            <Dialog open={showChangePasscode} onOpenChange={setShowChangePasscode}>
-              <DialogTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="rounded-full border-primary/20 hover:bg-primary/5 text-primary font-bold"
-                >
-                  <ShieldCheck className="h-4 w-4 mr-2" />
-                  Security
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="rounded-[2.5rem] border-none shadow-2xl sm:max-w-[425px]">
-                <DialogHeader className="pt-6">
-                  <DialogTitle className="text-2xl font-black">Change Master Passcode</DialogTitle>
-                  <DialogDescription className="font-medium pt-2">
-                    Update the security key used to access the platform overview.
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleChangePasscode} className="space-y-6 pt-4">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <p className="text-sm font-bold text-muted-foreground ml-1">New Passcode</p>
-                      <Input
-                        type="password"
-                        placeholder="Enter new master key"
-                        value={newPasscode}
-                        onChange={(e) => setNewPasscode(e.target.value)}
-                        className="h-14 px-6 rounded-2xl font-bold tracking-widest border-2 border-primary/10 focus:border-primary focus:ring-4 focus:ring-primary/10"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter className="pb-6 pt-2">
-                    <Button 
-                      type="submit" 
-                      className="w-full h-14 rounded-2xl font-black text-lg shadow-lg shadow-primary/20"
-                    >
-                      Update Security Key
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleLogout}
-              className="rounded-full border-primary/20 hover:bg-primary/5 text-primary font-bold"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
+
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+               <h1 className="text-4xl font-black text-foreground tracking-tight mb-1 flex items-center gap-2">
+                 <LayoutDashboard className="h-8 w-8 text-primary" />
+                 Super Admin
+               </h1>
+               <p className="text-sm text-muted-foreground font-medium">
+                  Platform Overview & Analytics
+               </p>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+               <div className="flex items-center bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100 dark:bg-black/50 dark:border-white/10">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => navigate('/')}
+                    className="h-9 rounded-xl bg-slate-50 border-none shadow-none text-slate-600 hover:bg-slate-100 hover:text-primary transition-all dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10" 
+                  >
+                    <ArrowLeft className="h-4 w-4 sm:mr-1" />
+                    <span className="hidden sm:inline">Back</span>
+                  </Button>
+                  <div className="w-px h-4 bg-slate-200 mx-1 dark:bg-slate-800"></div>
+                  <ThemeSwitcher />
+                  <div className="w-px h-4 bg-slate-200 mx-1 dark:bg-slate-800"></div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={exportToCSV}
+                    className="h-9 w-9 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-primary transition-all dark:text-slate-300 dark:hover:bg-white/10"
+                    title="Export CSV"
+                  >
+                    <Download className="h-4 w-4 text-emerald-500" />
+                  </Button>
+               </div>
+
+               <div className="flex items-center bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100 dark:bg-black/50 dark:border-white/10">
+                  <Dialog open={showChangePasscode} onOpenChange={setShowChangePasscode}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-9 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-primary transition-all dark:text-slate-300 dark:hover:bg-white/10"
+                      >
+                        <ShieldCheck className="h-4 w-4 mr-2 text-blue-500" />
+                        Security
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="rounded-[2.5rem] border-none shadow-2xl sm:max-w-[425px]">
+                      <DialogHeader className="pt-6">
+                        <DialogTitle className="text-2xl font-black">Change Master Passcode</DialogTitle>
+                        <DialogDescription className="font-medium pt-2">
+                          Update the security key used to access the platform overview.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handleChangePasscode} className="space-y-6 pt-4">
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <p className="text-sm font-bold text-muted-foreground ml-1">New Passcode</p>
+                            <Input
+                              type="password"
+                              placeholder="Enter new master key"
+                              value={newPasscode}
+                              onChange={(e) => setNewPasscode(e.target.value)}
+                              className="h-14 px-6 rounded-2xl font-bold tracking-widest border-2 border-primary/10 focus:border-primary focus:ring-4 focus:ring-primary/10"
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter className="pb-6 pt-2">
+                          <Button 
+                            type="submit" 
+                            className="w-full h-14 rounded-2xl font-black text-lg shadow-lg shadow-primary/20"
+                          >
+                            Update Security Key
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                  
+                  <div className="w-px h-4 bg-slate-200 mx-1 dark:bg-slate-800"></div>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleLogout}
+                    className="h-9 rounded-xl text-red-600 hover:bg-red-50 hover:text-red-700 transition-all dark:text-red-400 dark:hover:bg-red-950/30"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+               </div>
+            </div>
           </div>
         </div>
       </div>

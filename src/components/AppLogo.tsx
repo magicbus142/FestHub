@@ -31,12 +31,12 @@ export const AppLogo = ({ className, iconOnly = false, onClick }: AppLogoProps) 
       <div className="relative">
         <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full group-hover:bg-primary/30 transition-colors" />
         <img
-          src="/assets/images/logo.png"
+          src="/assets/images/logo3.png"
           alt="FestHub Logo"
           className="w-9 h-9 md:w-10 md:h-10 rounded-xl shadow-lg shadow-primary/20 object-contain relative z-10 transition-transform group-hover:rotate-6"
         />
       </div>
-      
+
       {!iconOnly && (
         <div className="flex flex-col">
           <span className="text-xl md:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary/80 to-primary/60 tracking-tight leading-none italic">

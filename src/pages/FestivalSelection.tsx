@@ -17,7 +17,7 @@ import type { Festival } from '@/lib/festivals';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
 export default function FestivalSelection() {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const { setSelectedFestival } = useFestival();
   const { currentOrganization, isAuthenticated, authenticate } = useOrganization();
   const navigate = useNavigate();
@@ -80,8 +80,10 @@ export default function FestivalSelection() {
     enabled: !!currentOrganization
   });
 
-  // Filter festivals based on 'festivals' query param
+  // Filter festivals based on 'festivals' query param and visibility
   const displayedFestivals = festivals.filter(festival => {
+    if (festival.is_hidden && !isAuthenticated) return false;
+
     const sharedIds = searchParams.get('festivals');
     if (!sharedIds) return true; // If no param, show all
     const allowedIds = sharedIds.split(',');
@@ -106,77 +108,73 @@ export default function FestivalSelection() {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50/50 relative overflow-hidden">
        {/* Small Decorative Elements */}
-       <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-primary/20 blur-[100px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/2" />
+       <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-purple-500/10 blur-[100px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/2" />
 
       <div className="container mx-auto px-4 py-6 relative z-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/')}
-              className="mb-2"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              All Organizations
-            </Button>
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
-              {currentOrganization?.name}
-            </h1>
-            <p className="text-sm md:text-base text-muted-foreground mt-1">
-              {t('ఉత్సవాన్ని ఎంచుకోండి', 'Select Festival')}
-            </p>
+        
+        {/* Unified Header */}
+        <div className="flex flex-col gap-4 mb-8">
+          <div className="flex items-center gap-2 bg-slate-100/50 w-fit px-3 py-1 rounded-full text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-slate-200/50">
+             <span>Home</span>
+             <span className="opacity-30">/</span>
+             <span className="text-primary truncate max-w-[100px]">Organizations</span>
           </div>
-          
-          <div className="flex flex-col gap-3 w-full sm:w-auto">
-            {/* Language Toggle + Share + Theme */}
-            <div className="flex justify-end gap-2 text-accent-foreground">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleShareOrganization}
-                className="px-3"
-              >
-                <Share2 className="h-4 w-4 mr-1" />
-                {t('షేర్', 'Share')}
-              </Button>
-              <ThemeSwitcher />
+
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+               <h1 className="text-4xl font-black text-foreground tracking-tight mb-1">
+                 {currentOrganization?.name}
+               </h1>
+               <p className="text-sm text-muted-foreground font-medium">
+                  {t('ఉత్సవాన్ని ఎంచుకోండి', 'Select Festival')}
+               </p>
             </div>
 
-            {/* Add Festival Button */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => {
-                      if (isAuthenticated) {
-                        setIsAddFestivalOpen(true);
-                      } else {
-                        setIsPasscodeOpen(true);
-                      }
-                    }}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                  >
-                    {isAuthenticated ? (
-                      <Plus className="h-5 w-5 mr-2" />
-                    ) : (
-                      <Lock className="h-5 w-5 mr-2" />
-                    )}
-                    {t('ఉత్సవం జోడించు', 'Add Festival')}
+            <div className="flex items-center gap-2">
+               <div className="flex items-center bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100">
+                  <Button variant="ghost" size="icon" onClick={handleShareOrganization} className="h-9 w-9 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-primary transition-all">
+                      <Share2 className="h-4 w-4" />
                   </Button>
-                </TooltipTrigger>
-                {!isAuthenticated && (
-                  <TooltipContent>
-                    <p>{t('జోడించడానికి లాగిన్ అవసరం', 'Login required to add')}</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
+                  <div className="w-px h-4 bg-slate-100 mx-1"></div>
+                  <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
+                      className="h-9 w-9 rounded-xl hover:bg-blue-50 text-blue-600 font-bold text-xs"
+                  >
+                     {language === 'telugu' ? 'EN' : 'తె'}
+                  </Button>
+                  <ThemeSwitcher />
+               </div>
+               
+               {/* Add Festival Button */}
+               <TooltipProvider>
+                 <Tooltip>
+                   <TooltipTrigger asChild>
+                     <Button
+                       onClick={() => {
+                         if (isAuthenticated) {
+                           setIsAddFestivalOpen(true);
+                         } else {
+                           setIsPasscodeOpen(true);
+                         }
+                       }}
+                       className="hidden sm:flex bg-purple-600 hover:bg-purple-700 text-white font-black h-11 rounded-2xl px-6 text-sm shadow-xl shadow-purple-200 transition-all active:scale-[0.95] items-center gap-2"
+                     >
+                       {isAuthenticated ? <Plus className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
+                       {t('ఉత్సవం జోడించు', 'Add Festival')}
+                     </Button>
+                   </TooltipTrigger>
+                   {!isAuthenticated && (
+                     <TooltipContent>
+                       <p>{t('జోడించడానికి లాగిన్ అవసరం', 'Login required to add')}</p>
+                     </TooltipContent>
+                   )}
+                 </Tooltip>
+               </TooltipProvider>
+            </div>
           </div>
         </div>
 

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { BarChart3, Receipt, Users, ArrowLeft, Image } from 'lucide-react';
+import { BarChart3, Receipt, Users, ArrowLeft, Image, Wallet, ArrowUpRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getTotalByFestival } from '@/lib/database';
 import { getTotalExpensesByFestival } from '@/lib/expenses';
@@ -34,7 +34,7 @@ export default function Dashboard() {
   const {
     isAuthenticated
   } = useAuth();
-  
+
   const orgPath = currentOrganization ? `/org/${currentOrganization.slug}` : '/';
 
   // Redirect to festival selection if no festival selected
@@ -57,7 +57,7 @@ export default function Dashboard() {
       if (stored) {
         setPreviousAmounts(JSON.parse(stored));
       }
-    } catch {}
+    } catch { }
   }, []);
 
   // Get previous amount for specific festival and card type
@@ -83,7 +83,7 @@ export default function Dashboard() {
     setPreviousAmounts(updatedAmounts);
     try {
       localStorage.setItem('previous_amounts', JSON.stringify(updatedAmounts));
-    } catch {}
+    } catch { }
   };
 
   // Calculate balance using per-card previous amounts
@@ -139,137 +139,179 @@ export default function Dashboard() {
     color: 'text-green-600'
   }];
   return <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6">
-        {/* Header */}
-        <PageHeader
-          pageName="Dashboard"
-          pageNameTelugu="డాష్‌బోర్డ్"
-        >
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(orgPath)}
-              className="flex items-center gap-2 hover:bg-accent"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              {t('ఉత్సవాలు', 'Festivals')}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-              className="px-3"
-            >
-              {language === 'telugu' ? 'EN' : 'తె'}
-            </Button>
-            <ThemeSwitcher />
-          </div>
-        </PageHeader>
+    <div className="container mx-auto px-4 py-6">
+      {/* Unified Header */}
+      <div className="flex flex-col gap-4 mb-8">
+        {/* Breadcrumbs Pill */}
+        <div className="flex items-center gap-2 bg-slate-100/50 w-fit px-3 py-1 rounded-full text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-slate-200/50">
+          <span>Home</span>
+          <span className="opacity-30">/</span>
+          <span className="text-primary truncate max-w-[100px]">{selectedFestival?.name || 'Festival'}</span>
+          <span className="opacity-30">/</span>
+          <span className="text-foreground">Dashboard</span>
+        </div>
 
-        {/* Quick Stats */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              {t('సంక్షిప్త గణాంకాలు', 'Quick Status')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-              <div className="text-center">
-                <p className="text-2xl sm:text-3xl font-bold text-blue-600 leading-tight">
-                  ₹{totalDonations.toLocaleString()}
-                </p>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                  {t('మొత్తం చందాలు (చందా మాత్రమే)', 'Total Amount (Chandas)')}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl sm:text-3xl font-bold text-red-600 leading-tight">
-                  ₹{totalExpenses.toLocaleString()}
-                </p>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                  {t('మొత్తం ఖర్చులు', 'Total Expenses')}
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
-                  <p className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
-                    ₹{chandasPrev.toLocaleString()}
-                  </p>
-                  {isAuthenticated && <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => {
-                  setPrevInput(String(chandasPrev || 0));
-                  setEditingCardType('chandas');
-                  setIsPrevDialogOpen(true);
-                }}>
-                      {t('సవరించు', 'Edit')}
-                    </Button>}
-                </div>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                  {t('మునుపటి చందాలు', 'Previous amountChandas')}
-                </p>
-              </div>
-              <div className="text-center sm:col-span-2 md:col-span-1">
-                <p className="text-2xl sm:text-3xl font-bold text-green-600 leading-tight">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <h1 className="text-4xl font-black text-foreground tracking-tight mb-1">
+              {selectedFestival?.name} {selectedFestival?.year}
+            </h1>
+            <p className="text-sm text-muted-foreground font-medium">
+              {t('పండుగ అవలోకనం మరియు గణాంకాలు', 'Festival overview and statistics')}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="flex items-center bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100">
+              <BackButton
+                variant="ghost"
+                size="sm"
+                className="h-9 rounded-xl bg-slate-50 border-none shadow-none text-slate-600 hover:bg-slate-100 hover:text-primary transition-all"
+              />
+              <div className="w-px h-4 bg-slate-100 mx-1"></div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
+                className="h-9 w-9 rounded-xl hover:bg-blue-50 text-blue-600 font-bold text-xs"
+              >
+                {language === 'telugu' ? 'EN' : 'తె'}
+              </Button>
+              <ThemeSwitcher />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Festival Pulse Dashboard */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Financial Health Summary */}
+        <Card className="lg:col-span-2 bg-gradient-to-br from-white to-slate-50 shadow-md border-none overflow-hidden relative group">
+          <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity pointer-events-none">
+            <BarChart3 className="h-40 w-40 rotate-12" />
+          </div>
+          <CardContent className="p-6 sm:p-8">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="bg-blue-100 p-2 rounded-xl"><Wallet className="h-5 w-5 text-blue-600" /></div>
+              <span className="text-xs font-black uppercase tracking-widest text-slate-400">{t('ఆర్థిక సారాంశం', 'FINANCIAL SUMMARY')}</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-muted-foreground tracking-tight">{t('Total Balance', 'మిగిలిన మొత్తం')}</p>
+                <h2 className="text-5xl font-black text-emerald-600 tracking-tighter">
                   ₹{(totalDonations + chandasPrev - totalExpenses - expensesPrev).toLocaleString()}
-                </p>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                  {t('మిగిలిన మొత్తం', 'Balance')}
-                </p>
+                </h2>
+                <div className="flex items-center gap-3 mt-4">
+                  <div className="h-2 w-32 bg-slate-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]" style={{ width: '75%' }}></div>
+                  </div>
+                  {/* <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider">{t('ఆరోగ్యకరమైనది', 'HEALTHY')}</span> */}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white/70 backdrop-blur-md p-5 rounded-3xl border border-white shadow-sm flex flex-col justify-between group/card hover:border-blue-100 transition-all">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase mb-1 tracking-wider">{t('Previous Amount', 'మునుపటి మొత్తం')}</p>
+                  <div>
+                    <p className="text-xl font-black text-blue-600">₹{(totalDonations + chandasPrev).toLocaleString()}</p>
+                    {isAuthenticated && (
+                      <button
+                        onClick={() => { setPrevInput(String(chandasPrev || 0)); setEditingCardType('chandas'); setIsPrevDialogOpen(true); }}
+                        className="text-[10px] font-bold text-blue-400 hover:text-blue-600 mt-1 underline decoration-dotted"
+                      >
+                        {t('మునుపటిది', 'Edit Prev')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="bg-white/70 backdrop-blur-md p-5 rounded-3xl border border-white shadow-sm flex flex-col justify-between group/card hover:border-red-100 transition-all">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase mb-1 tracking-wider">{t('ఖర్చులు', 'Expenses')}</p>
+                  <p className="text-xl font-black text-red-600">₹{(totalExpenses + expensesPrev).toLocaleString()}</p>
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Previous Amount Dialog */}
-        <Dialog open={isPrevDialogOpen} onOpenChange={setIsPrevDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingCardType === 'chandas' && t('మునుపటి చందాల మొత్తాన్ని సవరించు', 'Edit Previous Chandas Amount')}
-                {editingCardType === 'expenses' && t('మునుపటి ఖర్చుల మొత్తాన్ని సవరించు', 'Edit Previous Expenses Amount')}
-                {editingCardType === 'images' && t('మునుపటి చిత్రాల మొత్తాన్ని సవరించు', 'Edit Previous Images Amount')}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3">
-              <Input type="number" value={prevInput} onChange={e => setPrevInput(e.target.value)} placeholder={t('మొత్తం', 'Amount')} />
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setIsPrevDialogOpen(false)}>
-                  {t('రద్దు', 'Cancel')}
-                </Button>
-                <Button onClick={() => {
+        {/* Module Pulse Cards */}
+        <div className="grid grid-cols-1 gap-4">
+          <Card className="bg-white shadow-sm border border-slate-100 p-5 flex items-center justify-between group hover:shadow-lg hover:border-blue-200 transition-all cursor-pointer rounded-3xl" onClick={() => navigate('/chandas')}>
+            <div className="flex items-center gap-4">
+              <div className="h-14 w-14 bg-blue-50 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner shadow-blue-100/50">
+                <BarChart3 className="h-7 w-7 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('చందాలు', 'CHANDAS')}</p>
+                <p className="text-xl font-black text-slate-800">₹{totalDonations.toLocaleString()}</p>
+              </div>
+            </div>
+            <ArrowUpRight className="h-6 w-6 text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
+          </Card>
+
+          <Card className="bg-white shadow-sm border border-slate-100 p-5 flex items-center justify-between group hover:shadow-lg hover:border-purple-200 transition-all cursor-pointer rounded-3xl" onClick={() => navigate('/images')}>
+            <div className="flex items-center gap-4">
+              <div className="h-14 w-14 bg-purple-50 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner shadow-purple-100/50">
+                <Image className="h-7 w-7 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('చిత్రాలు', 'GALLERY')}</p>
+                <p className="text-xl font-black text-slate-800">{totalImages} {t('చిత్రాలు', 'Photos')}</p>
+              </div>
+            </div>
+            <ArrowUpRight className="h-6 w-6 text-slate-300 group-hover:text-purple-500 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
+          </Card>
+        </div>
+      </div>
+
+      {/* Previous Amount Dialog */}
+      <Dialog open={isPrevDialogOpen} onOpenChange={setIsPrevDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingCardType === 'chandas' && t('మునుపటి చందాల మొత్తాన్ని సవరించు', 'Edit Previous Chandas Amount')}
+              {editingCardType === 'expenses' && t('మునుపటి ఖర్చుల మొత్తాన్ని సవరించు', 'Edit Previous Expenses Amount')}
+              {editingCardType === 'images' && t('మునుపటి చిత్రాల మొత్తాన్ని సవరించు', 'Edit Previous Images Amount')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input type="number" value={prevInput} onChange={e => setPrevInput(e.target.value)} placeholder={t('మొత్తం', 'Amount')} />
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setIsPrevDialogOpen(false)}>
+                {t('రద్దు', 'Cancel')}
+              </Button>
+              <Button onClick={() => {
                 const val = Number(prevInput);
                 if (!Number.isFinite(val)) return;
                 savePreviousAmount(editingCardType!, val);
                 setIsPrevDialogOpen(false);
               }}>
-                  {t('సేవ్', 'Save')}
-                </Button>
-              </div>
+                {t('సేవ్', 'Save')}
+              </Button>
             </div>
-          </DialogContent>
-        </Dialog>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-        {/* Edit allowed only when logged in; no auth dialog shown */}
+      {/* Edit allowed only when logged in; no auth dialog shown */}
 
-        {/* Module Previews */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-          {(!allowedPages || allowedPages.includes('chandas')) && <ChandasPreview />}
-          {(!allowedPages || allowedPages.includes('expenses')) && <ExpensesPreview />}
-          {(!allowedPages || allowedPages.includes('images')) && <ImagesPreview />}
-          {(() => {
-            const festivalPages = (selectedFestival?.enabled_pages as unknown as PageOption[]) || [];
-            // Check both festival settings AND shared link restrictions
-            if (festivalPages.includes('voting') && (!allowedPages || allowedPages.includes('voting'))) {
-              return <VotingPreview />;
-            }
-            return null;
-          })()}
-        </div>
-
-        {/* Navigation */}
-
+      {/* Module Previews */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+        {(!allowedPages || allowedPages.includes('chandas')) && <ChandasPreview />}
+        {(!allowedPages || allowedPages.includes('expenses')) && <ExpensesPreview />}
+        {(!allowedPages || allowedPages.includes('images')) && <ImagesPreview />}
+        {(() => {
+          const festivalPages = (selectedFestival?.enabled_pages as unknown as PageOption[]) || [];
+          // Check both festival settings AND shared link restrictions
+          if (festivalPages.includes('voting') && (!allowedPages || allowedPages.includes('voting'))) {
+            return <VotingPreview />;
+          }
+          return null;
+        })()}
       </div>
-    </div>;
+
+      {/* Navigation */}
+
+    </div>
+  </div>;
 }

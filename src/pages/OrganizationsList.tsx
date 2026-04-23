@@ -365,11 +365,11 @@ export default function OrganizationsList() {
       {/* Features Section */}
       <FeatureSections />
 
-      {/* How It Works */}
-      <HowItWorks />
+      {/* How It Works
+      <HowItWorks /> */}
 
-      {/* Pricing */}
-      <Pricing />
+      {/* Pricing
+      <Pricing /> */}
 
       {/* Footer with CTA */}
       <Footer onStart={() => setIsCreateOpen(true)} />

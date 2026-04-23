@@ -66,6 +66,18 @@ export const getImages = async (festivalName?: string, festivalYear?: number): P
   return (data || []) as ImageRecord[];
 };
 
+export const updateImage = async (id: string, title: string, description?: string) => {
+  const { data, error } = await supabase
+    .from('images')
+    .update({ title, description })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
 export const deleteImage = async (id: string, imagePath: string) => {
   // Delete from storage
   await supabase.storage

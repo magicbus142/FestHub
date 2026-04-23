@@ -7,6 +7,7 @@ import { History } from 'lucide-react';
 interface AuditLog {
   id: string;
   table_name: string;
+  record_id: string;
   action: string;
   created_at: string;
   old_data: any;

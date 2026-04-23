@@ -27,6 +27,8 @@ import {
   DialogContent,
   DialogClose,
 } from "@/components/ui/dialog"; 
+import { BackButton } from '@/components/BackButton';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
 interface Participant {
   id: string;
@@ -40,7 +42,7 @@ export default function VotingGallery() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const { selectedFestival } = useFestival();
   const deviceId = localStorage.getItem('device_id');
   
@@ -246,55 +248,84 @@ export default function VotingGallery() {
   const shouldShowResults = competition?.show_results && isResultsTime;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="container px-4 py-3 pb-0">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-               <div>
-                  <h1 className="text-lg font-bold leading-tight">{competition?.name || 'Loading...'}</h1>
-                  <p className="text-xs text-muted-foreground">{participants.length} Entries</p>
-               </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              {competition?.status === 'closed' ? (
-                <Badge variant="destructive" className="animate-pulse">
-                   {t('ఓటింగ్ ముగిసింది', 'Voting Closed')}
-                </Badge>
-              ) : (
-                <Badge variant={votesRemaining > 0 || isUnlimited ? "default" : "secondary"}>
-                   {isUnlimited ? t('అపరిమిత ఓట్లు', 'Unlimited Votes') : `${t('మిగిలిన ఓట్లు', 'Votes Left')}: ${votesRemaining}`}
-                </Badge>
-              )}
-              <Button variant="ghost" size="icon" onClick={handleShare}>
-                  <Share2 className="h-5 w-5" />
-              </Button>
-            </div>
+    <div className="min-h-screen bg-slate-50/50">
+      <div className="container mx-auto px-4 py-6">
+        
+        {/* Unified Header */}
+        <div className="flex flex-col gap-4 mb-6">
+          <div className="flex items-center gap-2 bg-slate-100/50 w-fit px-3 py-1 rounded-full text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-slate-200/50">
+             <span>Home</span>
+             <span className="opacity-30">/</span>
+             <span className="text-primary truncate max-w-[100px]">{selectedFestival?.name || 'Festival'}</span>
+             <span className="opacity-30">/</span>
+             <span className="text-foreground">Voting</span>
           </div>
 
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+               <h1 className="text-4xl font-black text-foreground tracking-tight mb-1">
+                 {competition?.name || 'Loading...'}
+               </h1>
+               <p className="text-sm text-muted-foreground font-medium flex items-center gap-2">
+                  {participants.length} {t('నమోదులు', 'Entries')}
+                  <span className="opacity-30">•</span>
+                  {competition?.status === 'closed' ? (
+                    <span className="text-red-500 font-bold">{t('ఓటింగ్ ముగిసింది', 'Voting Closed')}</span>
+                  ) : (
+                    <span className="text-emerald-500 font-bold">
+                      {isUnlimited ? t('అపరిమిత ఓట్లు', 'Unlimited Votes') : `${t('మిగిలిన ఓట్లు', 'Votes Left')}: ${votesRemaining}`}
+                    </span>
+                  )}
+               </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+               <div className="flex items-center bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100">
+                  <BackButton 
+                    variant="ghost" 
+                    size="sm"
+                    className="h-9 rounded-xl bg-slate-50 border-none shadow-none text-slate-600 hover:bg-slate-100 hover:text-primary transition-all" 
+                  />
+                  <div className="w-px h-4 bg-slate-100 mx-1"></div>
+                  <Button variant="ghost" size="icon" onClick={handleShare} className="h-9 w-9 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-primary transition-all">
+                      <Share2 className="h-4 w-4" />
+                  </Button>
+                  <div className="w-px h-4 bg-slate-100 mx-1"></div>
+                  <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
+                      className="h-9 w-9 rounded-xl hover:bg-blue-50 text-blue-600 font-bold text-xs"
+                  >
+                     {language === 'telugu' ? 'EN' : 'తె'}
+                  </Button>
+                  <ThemeSwitcher />
+               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Sticky Tabs */}
+        <div className="sticky top-4 z-40 bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-slate-100 p-1 mb-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-             <TabsList className="grid w-full grid-cols-2 p-1 bg-muted/60 backdrop-blur rounded-xl h-11">
+             <TabsList className="grid w-full grid-cols-2 bg-transparent h-11">
                 <TabsTrigger 
                   value="entries"
-                  className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-300 font-semibold"
+                  className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300 font-bold text-slate-500"
                 >
-                  Entries
+                  {t('నమోదులు', 'Entries')}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="results"
-                  className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-300 font-semibold"
+                  className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300 font-bold text-slate-500"
                 >
-                  Results
+                  {t('ఫలితాలు', 'Results')}
                 </TabsTrigger>
              </TabsList>
           </Tabs>
         </div>
-      </div>
 
-      {/* Gallery Grid */}
-      <div className="container px-4 py-6">
+        {/* Gallery Grid */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
            <TabsContent value="entries" className="mt-0">
              <div className={cn(

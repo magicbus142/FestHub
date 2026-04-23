@@ -1,13 +1,14 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { deleteFestival } from '@/lib/festivals';
+import { deleteFestival, updateFestival } from '@/lib/festivals';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Share2, Lock } from 'lucide-react';
+import { Trash2, Share2, Lock, Eye, EyeOff } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { Festival } from '@/lib/festivals';
+import { Badge } from '@/components/ui/badge';
 
 interface FestivalCardProps {
   festival: Festival;
@@ -39,11 +40,35 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
     },
   });
 
+  const updateVisibilityMutation = useMutation({
+    mutationFn: (hidden: boolean) => updateFestival(festival.id!, { is_hidden: hidden }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['festivals'] });
+      toast({
+        title: 'Success',
+        description: 'Festival visibility updated',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update visibility',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (festival.id && window.confirm('Are you sure you want to delete this festival?')) {
       deleteMutation.mutate(festival.id);
     }
+  };
+
+  const handleToggleVisibility = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isAuthenticated || !festival.id) return;
+    updateVisibilityMutation.mutate(!festival.is_hidden);
   };
 
   const handleShare = (e: React.MouseEvent) => {
@@ -83,6 +108,17 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
 
       {/* Content */}
       <div className="relative z-10 h-full text-white">
+        
+        {/* Hidden Badge */}
+        {festival.is_hidden && (
+          <div className="absolute top-4 left-4">
+            <Badge variant="secondary" className="bg-black/50 text-white border-none backdrop-blur-md font-semibold px-3 py-1">
+              <EyeOff className="h-3 w-3 mr-1 inline-block" />
+              {t('దాచబడింది', 'Hidden')}
+            </Badge>
+          </div>
+        )}
+
         {/* Action buttons */}
         <div className="absolute top-4 right-4 flex gap-2">
           {/* Share button - always visible */}
@@ -96,6 +132,31 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
             <Share2 className="h-4 w-4" />
           </Button>
           
+          {isAuthenticated && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleToggleVisibility}
+                    disabled={updateVisibilityMutation.isPending}
+                    className="text-white hover:bg-white/20 hover:text-white transition-colors bg-black/20 backdrop-blur-sm"
+                  >
+                    {festival.is_hidden ? (
+                      <Eye className="h-4 w-4" />
+                    ) : (
+                      <EyeOff className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{festival.is_hidden ? t('కనిపించేలా చేయండి', 'Make Visible') : t('దాచు', 'Hide')}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+
           {/* Delete button - show lock for unauthenticated */}
           <TooltipProvider>
             <Tooltip>
@@ -129,8 +190,9 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
         
         {/* Festival info with Glassmorphic Footer */}
         <div className="absolute bottom-0 left-0 right-0 p-4 bg-black/40 backdrop-blur-md border-t border-white/10 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-          <h3 className="text-2xl font-bold mb-1 drop-shadow-sm text-white">
+          <h3 className="text-2xl font-bold mb-1 drop-shadow-sm text-white flex items-center gap-2">
             {festival.name}
+            {festival.is_hidden && <Lock className="h-4 w-4 text-white/50" />}
           </h3>
           <p className="text-sm font-medium text-white/90">
             {festival.year}

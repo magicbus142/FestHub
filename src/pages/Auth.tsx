@@ -70,23 +70,20 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
-      <Card className="w-full max-w-md border-border/50 shadow-xl">
-        <CardHeader className="space-y-4 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-            <Sparkles className="h-7 w-7 text-primary" />
-          </div>
-          <CardTitle className="text-2xl font-bold">
-            {emailSent ? 'Check your email' : 'Sign in to FestHub'}
+    <div className="min-h-screen flex items-center justify-center bg-[#0F101A] p-4">
+      <Card className="w-full max-w-md premium-card overflow-hidden">
+        <CardHeader className="space-y-4 text-left pb-2">
+          <CardTitle className="text-2xl font-bold text-white">
+            {emailSent ? 'Check your email' : 'Admin Login'}
           </CardTitle>
-          <CardDescription className="text-muted-foreground">
+          <CardDescription className="text-muted-foreground/70">
             {emailSent
               ? 'We sent you a magic link. Click the link in your email to sign in.'
-              : 'Enter your email to receive a magic link for passwordless login.'}
+              : 'Enter your credentials to access the tournament management system.'}
           </CardDescription>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="pt-4">
           {emailSent ? (
             <div className="space-y-6">
               <div className="flex justify-center">
@@ -99,7 +96,7 @@ const Auth = () => {
               </p>
               <div className="space-y-3">
                 <Button
-                  variant="outline"
+                  variant="premium-outline"
                   className="w-full"
                   onClick={() => {
                     setEmailSent(false);
@@ -110,7 +107,7 @@ const Auth = () => {
                 </Button>
                 <Button
                   variant="ghost"
-                  className="w-full"
+                  className="w-full text-white/70 hover:text-white"
                   onClick={() => navigate('/')}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
@@ -120,53 +117,56 @@ const Auth = () => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email address</Label>
+              <div className="premium-input-container">
+                <Label htmlFor="email" className="premium-label">Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder="Enter your email"
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
                       setError(null);
                     }}
-                    className="pl-10"
+                    className="premium"
                     autoFocus
                     disabled={isLoading}
                   />
                 </div>
                 {error && (
-                  <p className="text-sm text-destructive">{error}</p>
+                  <p className="text-sm text-destructive mt-1">{error}</p>
                 )}
               </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading || !email.trim()}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  'Send magic link'
-                )}
-              </Button>
+              <div className="flex gap-4 pt-2">
+                <Button
+                  type="submit"
+                  variant="premium"
+                  size="lg"
+                  className="flex-1"
+                  disabled={isLoading || !email.trim()}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    'Login'
+                  )}
+                </Button>
 
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full"
-                onClick={() => navigate('/')}
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to home
-              </Button>
+                <Button
+                  type="button"
+                  variant="premium-outline"
+                  size="lg"
+                  className="flex-1"
+                  onClick={() => navigate('/')}
+                >
+                  Cancel
+                </Button>
+              </div>
             </form>
           )}
         </CardContent>

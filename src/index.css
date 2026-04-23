@@ -57,6 +57,11 @@
     --sidebar-accent-foreground: 20 14% 10%;
     --sidebar-border: 35 20% 85%;
     --sidebar-ring: 24 90% 53%;
+
+    /* Premium Form Colors */
+    --premium-form-bg: 236 21% 15%;
+    --premium-input-bg: 236 21% 21%;
+    --premium-accent: 5 62% 52%; /* Red-Orange from image */
   }
 
   /* THEME 2: BHAKTI (Royal/Spiritual) */
@@ -299,6 +304,19 @@
   
   .card-hover {
     @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+
+  /* Premium Form Utilities */
+  .premium-card {
+    @apply bg-[hsl(var(--premium-form-bg))] border border-white/5 rounded-[24px] shadow-2xl;
+  }
+
+  .premium-input-container {
+    @apply space-y-2;
+  }
+
+  .premium-label {
+    @apply text-muted-foreground text-sm font-medium ml-1;
   }
 
   @keyframes shimmer {

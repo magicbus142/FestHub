@@ -68,7 +68,8 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
     if (open && donation) {
       setNameTelugu(donation.name || '');
       setNameEnglish(donation.name_english || '');
-      setCategory(donation.category || 'chanda');
+      const initialCategory = donation.type === 'చందా' ? 'chanda' : (donation.category || 'chanda');
+      setCategory(initialCategory);
       setMode(donation.donation_mode || 'cash');
       setDonationItems([{ 
           type: donation.type, 
@@ -143,6 +144,16 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
     const newItems = [...donationItems];
     newItems[index] = { ...newItems[index], [field]: value };
     setDonationItems(newItems);
+    
+    // Auto-categorize based on type for the first item (main categorization)
+    if (index === 0 && field === 'type') {
+        const trimmedValue = value.trim();
+        if (trimmedValue === 'చందా') {
+            setCategory('chanda');
+        } else if (sponsorshipTypes.includes(trimmedValue)) {
+            setCategory('sponsorship');
+        }
+    }
   };
 
   const applySuggestion = (s: NameSuggestion) => {
@@ -175,18 +186,24 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
 
     setLoading(true);
     try {
-        const prepareDonation = (item: DonationItem) => ({
-            name: (nameTelugu || nameEnglish).trim(),
-            name_english: nameEnglish.trim() || undefined,
-            amount: parseFloat(item.amount) || 0, // Allow 0 for Goods/Service
-            received_amount: parseFloat(item.receivedAmount || '0'), 
-            type: item.type.trim(),
-            category,
-            donation_mode: mode,
-            payment_method: item.paymentMethod || 'cash',
-            festival_name: selectedFestival?.name || donation?.festival_name,
-            festival_year: selectedFestival?.year || donation?.festival_year
-        });
+        const prepareDonation = (item: DonationItem) => {
+            const trimmedType = item.type.trim();
+            // Safeguard: Ensure 'చందా' type is ALWAYS categorized as 'chanda'
+            const finalCategory = trimmedType === 'చందా' ? 'chanda' : category;
+            
+            return {
+                name: (nameTelugu || nameEnglish).trim(),
+                name_english: nameEnglish.trim() || undefined,
+                amount: parseFloat(item.amount) || 0,
+                received_amount: parseFloat(item.receivedAmount || '0'), 
+                type: trimmedType,
+                category: finalCategory,
+                donation_mode: mode,
+                payment_method: item.paymentMethod || 'cash',
+                festival_name: selectedFestival?.name || donation?.festival_name,
+                festival_year: selectedFestival?.year || donation?.festival_year
+            };
+        };
 
         // Debug logging
         const payload = prepareDonation(donationItems[0]);
@@ -353,7 +370,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
                             </div>
                         </div>
 
-                        {mode === 'cash' && (
+                        {(mode === 'cash' || parseFloat(item.amount) > 0) && (
                             <div className="space-y-1 mt-2">
                                 <div className="flex justify-between">
                                     <Label className="text-xs text-emerald-600">{t('వసూలు (₹)', 'Received (₹)')}</Label>
@@ -363,6 +380,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
                                     value={item.receivedAmount} 
                                     onChange={e => updateDonationItem(index, 'receivedAmount', e.target.value)} 
                                     className="border-emerald-200"
+                                    placeholder="0"
                                 />
                                 {(() => {
                                     const amt = parseFloat(item.amount) || 0;
