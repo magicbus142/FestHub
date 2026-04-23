@@ -27,7 +27,8 @@ import { PageOption } from '@/components/PageSelector';
 export default function Dashboard() {
   const { t, language, setLanguage } = useLanguage();
   const {
-    selectedFestival
+    selectedFestival,
+    setSelectedFestival
   } = useFestival();
   const navigate = useNavigate();
   const { currentOrganization, allowedPages } = useOrganization();
