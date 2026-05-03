@@ -30,6 +30,16 @@ export function OrganizationLoginDialog({
   const [resetSuccess, setResetSuccess] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const passcodeRef = React.useRef<HTMLInputElement>(null);
+
+  // Auto-focus logic
+  useEffect(() => {
+    if (open) {
+      if (prefilledName && passcodeRef.current) {
+        passcodeRef.current.focus();
+      }
+    }
+  }, [open, prefilledName]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -306,9 +316,16 @@ export function OrganizationLoginDialog({
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Enter organization name"
-                      autoFocus
+                      autoFocus={!prefilledName}
+                      readOnly={!!prefilledName}
+                      className={prefilledName ? "bg-slate-50 font-semibold text-slate-500 border-slate-100 cursor-not-allowed" : ""}
                       required
                     />
+                    {prefilledName && (
+                      <p className="text-[10px] text-muted-foreground mt-1 px-1">
+                        Log in to the current organization. To switch, logout first.
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -326,6 +343,7 @@ export function OrganizationLoginDialog({
                     <Input
                       id="org-passcode"
                       type="password"
+                      ref={passcodeRef}
                       value={passcode}
                       onChange={(e) => setPasscode(e.target.value)}
                       placeholder="Enter passcode"
