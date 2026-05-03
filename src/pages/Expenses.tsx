@@ -221,11 +221,11 @@ export default function Expenses() {
                   <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setNamePreference(namePreference === 'telugu' ? 'english' : 'telugu')}
+                      onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
                       className="h-9 w-9 rounded-xl hover:bg-slate-100 text-slate-600 font-bold text-xs"
-                      title={namePreference === 'telugu' ? 'Switch to English Names' : 'Switch to Telugu Names'}
+                      title={language === 'telugu' ? 'Switch to English' : 'Switch to Telugu'}
                   >
-                     {namePreference === 'telugu' ? 'EN' : 'తె'}
+                     {language === 'telugu' ? 'EN' : 'తె'}
                   </Button>
                   <ThemeSwitcher />
                   
@@ -391,6 +391,15 @@ export default function Expenses() {
                     <option value="amount-desc">High → Low (Amount)</option>
                     <option value="amount-asc">Low → High (Amount)</option>
                  </select>
+
+                 <Button
+                    variant="outline"
+                    onClick={() => setNamePreference(prev => prev === 'telugu' ? 'english' : 'telugu')}
+                    className="h-10 w-10 p-0 rounded-xl border-slate-200 bg-white hover:bg-slate-50 flex-shrink-0"
+                    title="Change Name Preference"
+                 >
+                    <span className="text-xs font-black">{namePreference === 'telugu' ? 'తె' : 'EN'}</span>
+                 </Button>
               </div>
            </div>
         </div>
@@ -423,11 +432,24 @@ export default function Expenses() {
                           </div>
                           <div>
                              <h3 className="text-xl font-black text-slate-800 tracking-tight flex flex-wrap items-baseline gap-x-2">
-                                <span>{expense.type}</span>
-                                {expense.type_english && (
-                                  <span className="text-sm font-bold text-slate-400">
-                                    ({expense.type_english})
-                                  </span>
+                                {namePreference === 'telugu' ? (
+                                  <>
+                                    <span>{expense.type}</span>
+                                    {expense.type_english && (
+                                      <span className="text-sm font-bold text-slate-400">
+                                        ({expense.type_english})
+                                      </span>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>{expense.type_english || expense.type}</span>
+                                    {expense.type_english && (
+                                      <span className="text-sm font-bold text-slate-400">
+                                        ({expense.type})
+                                      </span>
+                                    )}
+                                  </>
                                 )}
                              </h3>
                              <p className="text-[10px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest flex items-center gap-1">
