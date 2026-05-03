@@ -224,7 +224,7 @@ export function OrganizationSettingsTab() {
                   ref={fileInputRef}
                   id="logo-upload"
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg, image/png, image/webp"
                   onChange={handleLogoChange}
                   className="hidden"
                   title="Upload Logo"

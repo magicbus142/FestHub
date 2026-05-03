@@ -4,6 +4,7 @@ export interface Expense {
   id?: string;
   user_id?: string;
   type: string;
+  type_english?: string;
   amount: number;
   description?: string;
   festival_name?: string;
@@ -17,6 +18,7 @@ export const addExpense = async (expense: Omit<Expense, 'id' | 'user_id' | 'crea
     .from('expenses')
     .insert([{
       type: expense.type,
+      type_english: expense.type_english,
       amount: expense.amount,
       description: expense.description,
       festival_name: expense.festival_name,
@@ -83,7 +85,7 @@ export const deleteExpense = async (id: string) => {
 
 export const updateExpense = async (
   id: string,
-  updates: Pick<Expense, 'type' | 'amount' | 'description'>
+  updates: Pick<Expense, 'type' | 'type_english' | 'amount' | 'description'>
 ) => {
   console.log('Updating expense:', id, updates);
   
@@ -91,6 +93,7 @@ export const updateExpense = async (
     .from('expenses')
     .update({
       type: updates.type,
+      type_english: updates.type_english,
       amount: updates.amount,
       description: updates.description,
     })

@@ -235,7 +235,7 @@ export default function OrganizationSettings() {
                     ref={fileInputRef}
                     id="org-logo-upload"
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg, image/png, image/webp"
                     onChange={handleLogoChange}
                     className="hidden"
                     title="Upload Logo"

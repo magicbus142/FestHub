@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { uploadImage, getImages, deleteImage, updateImage, type ImageRecord } from '@/lib/images';
- 
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,8 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-import { Upload, Image as ImageIcon, Calendar, Trash2, X, Download, Pin, Lock, MoreVertical, Edit2, LogOut } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Upload, Calendar, Trash2, X, Download, Pin, Lock, Edit2, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -26,7 +25,7 @@ export default function Images() {
   const { t, language, setLanguage } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { isAuthenticated, currentOrganization, logout } = useOrganization();
+  const { isAuthenticated, logout } = useOrganization();
   const { selectedFestival } = useFestival();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -206,7 +205,8 @@ export default function Images() {
                      {language === 'telugu' ? 'EN' : 'తె'}
                   </Button>
                   <ThemeSwitcher />
-                  {isAuthenticated && (
+                  
+                  {isAuthenticated ? (
                     <>
                       <div className="w-px h-4 bg-slate-100 mx-1"></div>
                       <Button
@@ -222,16 +222,31 @@ export default function Images() {
                         <LogOut className="h-4 w-4" />
                       </Button>
                     </>
+                  ) : (
+                    <>
+                      <div className="w-px h-4 bg-slate-100 mx-1"></div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsAuthOpen(true)}
+                        className="h-9 w-9 rounded-xl hover:bg-blue-50 text-blue-600 transition-colors"
+                        title={t('లాగిన్', 'Login')}
+                      >
+                        <Lock className="h-4 w-4" />
+                      </Button>
+                    </>
                   )}
                </div>
 
-               <Button
-                  onClick={() => { if (isAuthenticated) setIsDialogOpen(true); else setIsAuthOpen(true); }}
-                  className="hidden md:flex bg-purple-600 hover:bg-purple-700 text-white font-black h-11 rounded-2xl px-6 text-sm shadow-xl shadow-purple-200 transition-all active:scale-[0.95] items-center gap-2"
-              >
-                  {isAuthenticated ? <Upload className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
-                  {t('చిత్రం అప్‌లోడ్ చేయండి', 'Upload Image')}
-              </Button>
+               {isAuthenticated && (
+                 <Button
+                    onClick={() => setIsDialogOpen(true)}
+                    className="hidden md:flex bg-purple-600 hover:bg-purple-700 text-white font-black h-11 rounded-2xl px-6 text-sm shadow-xl shadow-purple-200 transition-all active:scale-[0.95] items-center gap-2"
+                >
+                    <Upload className="h-5 w-5" />
+                    {t('చిత్రం అప్‌లోడ్ చేయండి', 'Upload Image')}
+                </Button>
+               )}
             </div>
           </div>
         </div>
@@ -249,7 +264,7 @@ export default function Images() {
               <div className="space-y-2">
                 <Label htmlFor="file" className="font-bold text-slate-700">{t('చిత్రం', 'Image')} *</Label>
                 <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center hover:bg-slate-50 transition-all relative">
-                   <Input id="file" type="file" accept="image/*" onChange={handleFileChange} required className="absolute inset-0 opacity-0 cursor-pointer" />
+                   <Input id="file" type="file" accept="image/jpeg, image/png, image/webp" onChange={handleFileChange} required className="absolute inset-0 opacity-0 cursor-pointer" />
                    <div className="space-y-2">
                       <div className="h-12 w-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto">
                          <Upload className="h-6 w-6 text-purple-600" />
@@ -316,48 +331,47 @@ export default function Images() {
                   />
                   
                   {/* Glass Overlay Actions */}
-                  <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 z-20">
-                    <Button
-                        variant="secondary"
-                        size="icon"
-                        className="h-9 w-9 bg-white/90 backdrop-blur-md rounded-xl text-slate-700 hover:bg-purple-600 hover:text-white border-none shadow-lg"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!isAuthenticated) { setIsAuthOpen(true); return; }
-                          if (selectedFestival?.id && image.id) {
-                            setBackgroundMutation.mutate({ festivalId: selectedFestival.id, imageId: image.id });
-                          }
-                        }}
-                    >
-                        {isAuthenticated ? <Pin className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                    </Button>
-                    <Button
-                        variant="secondary"
-                        size="icon"
-                        className="h-9 w-9 bg-white/90 backdrop-blur-md rounded-xl text-slate-700 hover:bg-blue-600 hover:text-white border-none shadow-lg"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!isAuthenticated) { setIsAuthOpen(true); return; }
-                          setEditFormData({ title: image.title || '', description: image.description || '' });
-                          setSelectedImage(image);
-                          setIsEditDialogOpen(true);
-                        }}
-                    >
-                        {isAuthenticated ? <Edit2 className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                    </Button>
-                    <Button
-                        variant="secondary"
-                        size="icon"
-                        className="h-9 w-9 bg-white/90 backdrop-blur-md rounded-xl text-slate-700 hover:bg-red-600 hover:text-white border-none shadow-lg"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!isAuthenticated) { setIsAuthOpen(true); return; }
-                          setDeletingImageId(image.id || null);
-                        }}
-                    >
-                        {isAuthenticated ? <Trash2 className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                    </Button>
-                  </div>
+                  {isAuthenticated && (
+                    <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 z-20">
+                      <Button
+                          variant="secondary"
+                          size="icon"
+                          className="h-9 w-9 bg-white/90 backdrop-blur-md rounded-xl text-slate-700 hover:bg-purple-600 hover:text-white border-none shadow-lg"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (selectedFestival?.id && image.id) {
+                              setBackgroundMutation.mutate({ festivalId: selectedFestival.id, imageId: image.id });
+                            }
+                          }}
+                      >
+                          <Pin className="h-4 w-4" />
+                      </Button>
+                      <Button
+                          variant="secondary"
+                          size="icon"
+                          className="h-9 w-9 bg-white/90 backdrop-blur-md rounded-xl text-slate-700 hover:bg-blue-600 hover:text-white border-none shadow-lg"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditFormData({ title: image.title || '', description: image.description || '' });
+                            setSelectedImage(image);
+                            setIsEditDialogOpen(true);
+                          }}
+                      >
+                          <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                          variant="secondary"
+                          size="icon"
+                          className="h-9 w-9 bg-white/90 backdrop-blur-md rounded-xl text-slate-700 hover:bg-red-600 hover:text-white border-none shadow-lg"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeletingImageId(image.id || null);
+                          }}
+                      >
+                          <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
 
                   {/* Gradient & Meta */}
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12">
@@ -376,13 +390,15 @@ export default function Images() {
         </div>
 
         {/* Floating Action Button (FAB) */}
-        <Button
-            onClick={() => { if (isAuthenticated) setIsDialogOpen(true); else setIsAuthOpen(true); }}
-            className="fixed bottom-24 right-6 h-16 w-16 rounded-full shadow-2xl bg-gradient-to-br from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white p-0 flex items-center justify-center border-none transition-all active:scale-95 z-50 md:hidden"
-            aria-label={t('చిత్రం అప్‌లోడ్ చేయండి', 'Upload Image')}
-        >
-            <Upload className="h-10 w-10" />
-        </Button>
+        {isAuthenticated && (
+          <Button
+              onClick={() => setIsDialogOpen(true)}
+              className="fixed bottom-24 right-6 h-16 w-16 rounded-full shadow-2xl bg-gradient-to-br from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white p-0 flex items-center justify-center border-none transition-all active:scale-95 z-50 md:hidden"
+              aria-label={t('చిత్రం అప్‌లోడ్ చేయండి', 'Upload Image')}
+          >
+              <Upload className="h-10 w-10" />
+          </Button>
+        )}
 
         {/* Image Modal */}
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
@@ -397,7 +413,7 @@ export default function Images() {
              </Button>
              
              {selectedImage && (
-               <div className="grid grid-cols-1 md:grid-cols-3 h-full">
+                <div className="grid grid-cols-1 md:grid-cols-3 h-full">
                   <div className="md:col-span-2 flex items-center justify-center relative p-4 overflow-hidden">
                      <div 
                        className="absolute inset-0 bg-cover bg-center blur-2xl scale-110 opacity-60"

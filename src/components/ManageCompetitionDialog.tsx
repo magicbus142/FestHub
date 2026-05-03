@@ -165,7 +165,7 @@ export function ManageCompetitionDialog({ competition, open, onOpenChange }: Man
                         <Input 
                         id="entry-image" 
                         type="file" 
-                        accept="image/*"
+                        accept="image/jpeg, image/png, image/webp"
                         onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                         required 
                         className="bg-background"

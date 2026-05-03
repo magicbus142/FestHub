@@ -214,9 +214,9 @@ export const Navigation = () => {
           className="fixed bottom-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none"
       >
         <div className={cn(
-            "pointer-events-auto flex items-center justify-between p-1.5 rounded-full w-full max-w-[400px]",
-            "bg-background/80 backdrop-blur-2xl border border-white/20 shadow-2xl shadow-primary/10",
-            "supports-[backdrop-filter]:bg-background/60"
+            "pointer-events-auto flex items-center justify-between p-2 rounded-full w-full max-w-[420px]",
+            "bg-white border-2 border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)]",
+            "dark:bg-slate-900 dark:border-slate-800"
         )}>
           {primaryVisible.map((item) => {
             const Icon = item.icon;
@@ -233,8 +233,8 @@ export const Navigation = () => {
                 }}
                 aria-label={item.label}
                 className={cn(
-                  "relative flex flex-col items-center justify-center h-12 flex-1 rounded-full transition-all duration-300 group outline-none",
-                  isActive ? "text-primary font-bold" : "text-muted-foreground hover:text-foreground"
+                  "relative flex flex-col items-center justify-center h-14 flex-1 rounded-full transition-all duration-300 group outline-none",
+                  isActive ? "text-primary font-black" : "text-slate-500 hover:text-foreground dark:text-slate-400"
                 )}
               >
                   {isActive && (
@@ -246,8 +246,8 @@ export const Navigation = () => {
                   )}
                   
                   <span className="relative z-10 flex flex-col items-center">
-                      <Icon className={cn("h-5 w-5", isActive && "scale-110 shadow-primary/20")} />
-                      <span className="text-[9px] font-bold uppercase tracking-tight mt-0.5 opacity-90 truncate max-w-[50px]">
+                      <Icon className={cn("h-6 w-6", isActive && "scale-110")} />
+                      <span className="text-[10px] font-black uppercase tracking-tight mt-1 opacity-100 truncate max-w-[65px]">
                           {item.label}
                       </span>
                   </span>
@@ -261,8 +261,8 @@ export const Navigation = () => {
               onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
               aria-label="More menu"
               className={cn(
-                "relative flex flex-col items-center justify-center h-12 flex-1 rounded-full transition-all duration-300 group outline-none",
-                isMoreMenuOpen || isSecondaryActive ? "text-primary font-bold" : "text-muted-foreground hover:text-foreground"
+                "relative flex flex-col items-center justify-center h-14 flex-1 rounded-full transition-all duration-300 group outline-none",
+                isMoreMenuOpen || isSecondaryActive ? "text-primary font-black" : "text-slate-500 hover:text-foreground dark:text-slate-400"
               )}
             >
                 {(isMoreMenuOpen || isSecondaryActive) && (
@@ -273,8 +273,8 @@ export const Navigation = () => {
                     />
                 )}
                 <span className="relative z-10 flex flex-col items-center">
-                    <MoreHorizontal className={cn("h-5 w-5 transition-transform", isMoreMenuOpen && "rotate-90")} />
-                    <span className="text-[9px] font-bold uppercase tracking-tight mt-0.5 opacity-90">
+                    <MoreHorizontal className={cn("h-6 w-6 transition-transform", isMoreMenuOpen && "rotate-90")} />
+                    <span className="text-[10px] font-black uppercase tracking-tight mt-1 opacity-100">
                         {t('మరిన్ని', 'More')}
                     </span>
                 </span>

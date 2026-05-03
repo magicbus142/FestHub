@@ -30,9 +30,13 @@ export default function Expenses() {
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     type: '',
+    type_english: '',
     amount: '',
     description: ''
   });
+  const [namePreference, setNamePreference] = useState<'telugu' | 'english'>('telugu');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOption, setSortOption] = useState<string>('');
 
   const { data: expenses = [] } = useQuery({
     queryKey: ['user-expenses-festival', selectedFestival?.name, selectedFestival?.year],
@@ -45,6 +49,23 @@ export default function Expenses() {
     queryFn: () => selectedFestival ? getTotalExpensesByFestival(selectedFestival.name, selectedFestival.year) : 0,
     enabled: !!selectedFestival,
   });
+
+  const filteredExpenses = expenses
+    .filter((exp: Expense) => {
+      const term = searchTerm.toLowerCase().trim();
+      if (!term) return true;
+      return (
+        exp.type.toLowerCase().includes(term) ||
+        (exp.type_english || '').toLowerCase().includes(term) ||
+        (exp.description || '').toLowerCase().includes(term)
+      );
+    })
+    .sort((a: Expense, b: Expense) => {
+      if (sortOption === 'amount-desc') return b.amount - a.amount;
+      if (sortOption === 'amount-asc') return a.amount - b.amount;
+      // Default: latest first
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    });
 
   const addExpenseMutation = useMutation({
     mutationFn: (expense: { type: string; amount: number; description?: string }) => {
@@ -59,7 +80,7 @@ export default function Expenses() {
       queryClient.invalidateQueries({ queryKey: ['user-expenses-festival', selectedFestival?.name, selectedFestival?.year] });
       queryClient.invalidateQueries({ queryKey: ['total-expenses-festival', selectedFestival?.name, selectedFestival?.year] });
       setIsDialogOpen(false);
-      setFormData({ type: '', amount: '', description: '' });
+      setFormData({ type: '', type_english: '', amount: '', description: '' });
       toast({
         title: t('విజయవంతమైంది', 'Success'),
         description: t('ఖర్చు జోడించబడింది', 'Expense added successfully'),
@@ -76,14 +97,14 @@ export default function Expenses() {
   });
 
   const updateExpenseMutation = useMutation({
-    mutationFn: (payload: { id: string; type: string; amount: number; description?: string }) =>
-      updateExpense(payload.id, { type: payload.type, amount: payload.amount, description: payload.description }),
+    mutationFn: (payload: { id: string; type: string; type_english?: string; amount: number; description?: string }) =>
+      updateExpense(payload.id, { type: payload.type, type_english: payload.type_english, amount: payload.amount, description: payload.description }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['user-expenses-festival', selectedFestival?.name, selectedFestival?.year] });
       await queryClient.invalidateQueries({ queryKey: ['total-expenses-festival', selectedFestival?.name, selectedFestival?.year] });
       setIsDialogOpen(false);
       setEditingExpenseId(null);
-      setFormData({ type: '', amount: '', description: '' });
+      setFormData({ type: '', type_english: '', amount: '', description: '' });
       toast({
         title: t('విజయవంతమైంది', 'Success'),
         description: t('ఖర్చు నవీకరించబడింది', 'Expense updated successfully'),
@@ -132,6 +153,7 @@ export default function Expenses() {
     }
     const payload = {
       type: formData.type,
+      type_english: formData.type_english,
       amount: parseFloat(formData.amount),
       description: formData.description
     };
@@ -145,7 +167,7 @@ export default function Expenses() {
   const startAddExpense = () => {
     if (isAuthenticated) {
       setEditingExpenseId(null);
-      setFormData({ type: '', amount: '', description: '' });
+      setFormData({ type: '', type_english: '', amount: '', description: '' });
       setIsDialogOpen(true);
     } else {
       setIsAuthOpen(true);
@@ -157,6 +179,7 @@ export default function Expenses() {
     setEditingExpenseId(expense.id || null);
     setFormData({
       type: expense.type || '',
+      type_english: expense.type_english || '',
       amount: String(expense.amount ?? ''),
       description: expense.description || ''
     });
@@ -198,13 +221,15 @@ export default function Expenses() {
                   <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-                      className="h-9 w-9 rounded-xl hover:bg-blue-50 text-blue-600 font-bold text-xs"
+                      onClick={() => setNamePreference(namePreference === 'telugu' ? 'english' : 'telugu')}
+                      className="h-9 w-9 rounded-xl hover:bg-slate-100 text-slate-600 font-bold text-xs"
+                      title={namePreference === 'telugu' ? 'Switch to English Names' : 'Switch to Telugu Names'}
                   >
-                     {language === 'telugu' ? 'EN' : 'తె'}
+                     {namePreference === 'telugu' ? 'EN' : 'తె'}
                   </Button>
                   <ThemeSwitcher />
-                  {isAuthenticated && (
+                  
+                  {isAuthenticated ? (
                     <>
                       <div className="w-px h-4 bg-slate-100 mx-1"></div>
                       <Button
@@ -220,16 +245,31 @@ export default function Expenses() {
                         <LogOut className="h-4 w-4" />
                       </Button>
                     </>
+                  ) : (
+                    <>
+                      <div className="w-px h-4 bg-slate-100 mx-1"></div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsAuthOpen(true)}
+                        className="h-9 w-9 rounded-xl hover:bg-blue-50 text-blue-600 transition-colors"
+                        title={t('లాగిన్', 'Login')}
+                      >
+                        <Lock className="h-4 w-4" />
+                      </Button>
+                    </>
                   )}
                </div>
 
-               <Button
-                  onClick={startAddExpense}
-                  className="hidden md:flex bg-red-600 hover:bg-red-700 text-white font-black h-11 rounded-2xl px-6 text-sm shadow-xl shadow-red-200 transition-all active:scale-[0.95] items-center gap-2"
-              >
-                  <Plus className="h-5 w-5" />
-                  {t('ఖర్చు జోడించు', 'Add Expense')}
-              </Button>
+               {isAuthenticated && (
+                 <Button
+                    onClick={startAddExpense}
+                    className="hidden md:flex bg-red-600 hover:bg-red-700 text-white font-black h-11 rounded-2xl px-6 text-sm shadow-xl shadow-red-200 transition-all active:scale-[0.95] items-center gap-2"
+                >
+                    <Plus className="h-5 w-5" />
+                    {t('ఖర్చు జోడించు', 'Add Expense')}
+                </Button>
+               )}
             </div>
           </div>
         </div>
@@ -248,14 +288,23 @@ export default function Expenses() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="type" className="font-bold text-slate-700">{t('రకం', 'Type')} *</Label>
-                <Input
-                  id="type"
-                  value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  placeholder={t('ఖర్చు రకం (ఉదా: విగ్రహం, డెకరేషన్)', 'Expense type (e.g. Idol, Decoration)')}
-                  required
-                  className="rounded-xl border-slate-200 focus:ring-red-500"
-                />
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    id="type"
+                    value={formData.type}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                    placeholder="తెలుగు పేరు"
+                    required
+                    className="rounded-xl border-slate-200 focus:ring-red-500"
+                  />
+                  <Input
+                    id="type_english"
+                    value={formData.type_english}
+                    onChange={(e) => setFormData({ ...formData, type_english: e.target.value })}
+                    placeholder="English Name"
+                    className="rounded-xl border-slate-200 focus:ring-red-500"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="amount" className="font-bold text-slate-700">{t('మొత్తం', 'Amount')} *</Label>
@@ -304,30 +353,66 @@ export default function Expenses() {
                        ₹{totalExpenses.toLocaleString()}
                     </h2>
                  </div>
-                 <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3">
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                        <p className="text-[10px] font-black text-muted-foreground uppercase mb-1 tracking-wider">{t('లావాదేవీలు', 'TRANSACTIONS')}</p>
-                       <p className="text-xl font-black text-slate-800">{expenses.length}</p>
+                       <p className="text-xl font-black text-slate-800">{filteredExpenses.length}</p>
                     </div>
                  </div>
               </div>
            </CardContent>
         </Card>
 
+        {/* Management View: Search + Filter */}
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-8">
+           <div className="p-4 bg-slate-50/30 flex flex-col md:flex-row gap-4 items-center">
+              {/* Search */}
+              <div className="relative flex-1 w-full">
+                 <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                    <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                 </div>
+                 <input
+                   type="text"
+                   placeholder={t('ఖర్చు పేరు లేదా వివరణ ద్వారా శోధించండి...', 'Search by expense name or description...')}
+                   className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-2xl leading-5 bg-white placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 sm:text-sm transition-all"
+                   value={searchTerm}
+                   onChange={(e) => setSearchTerm(e.target.value)}
+                 />
+              </div>
+
+              {/* Sort Selector */}
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                 <select 
+                    className="flex-1 md:w-48 bg-white border border-slate-200 text-foreground py-2.5 px-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                    value={sortOption}
+                    onChange={(e) => setSortOption(e.target.value)}
+                 >
+                    <option value="">{t('క్రమబద్ధీకరించు', 'Sort By Date')}</option>
+                    <option value="amount-desc">High → Low (Amount)</option>
+                    <option value="amount-asc">Low → High (Amount)</option>
+                 </select>
+              </div>
+           </div>
+        </div>
+
         {/* Expenses List */}
         <div className="space-y-4 mb-20">
-          {expenses.length === 0 ? (
-            <Card className="border-dashed border-2 bg-slate-50/50">
+          {filteredExpenses.length === 0 ? (
+            <Card className="border-dashed border-2 bg-slate-50/50 rounded-3xl">
               <CardContent className="text-center py-16">
                 <Receipt className="h-16 w-16 mx-auto text-slate-300 mb-4" />
-                <h3 className="text-xl font-bold text-slate-600">{t('ఇంకా ఖర్చులు లేవు', 'No expenses yet')}</h3>
+                <h3 className="text-xl font-bold text-slate-600">
+                  {searchTerm ? t('శోధన ఫలితాలు లేవు', 'No search results found') : t('ఇంకా ఖర్చులు లేవు', 'No expenses yet')}
+                </h3>
                 <p className="text-sm text-slate-400 mt-2 max-w-xs mx-auto">
-                  {t('కొత్త ఖర్చు జోడించడానికి "+" బటన్‌ను క్లిక్ చేయండి', 'Click the "+" button to record your first festival expenditure')}
+                  {searchTerm 
+                    ? t('వేరొక పదాన్ని ప్రయత్నించండి', 'Try searching with a different term')
+                    : t('కొత్త ఖర్చు జోడించడానికి "+" బటన్‌ను క్లిక్ చేయండి', 'Click the "+" button to record your first festival expenditure')}
                 </p>
               </CardContent>
             </Card>
           ) : (
-            expenses.map((expense: Expense) => (
+            filteredExpenses.map((expense: Expense) => (
               <Card key={expense.id} className="group overflow-hidden border-none shadow-sm hover:shadow-md transition-all rounded-3xl bg-white">
                  <div className="h-1.5 w-full bg-red-100" />
                  <CardContent className="p-6">
@@ -337,13 +422,20 @@ export default function Expenses() {
                              <Receipt className="h-7 w-7 text-red-600" />
                           </div>
                           <div>
-                             <h3 className="text-xl font-black text-slate-800 tracking-tight">{expense.type}</h3>
+                             <h3 className="text-xl font-black text-slate-800 tracking-tight flex flex-wrap items-baseline gap-x-2">
+                                <span>{expense.type}</span>
+                                {expense.type_english && (
+                                  <span className="text-sm font-bold text-slate-400">
+                                    ({expense.type_english})
+                                  </span>
+                                )}
+                             </h3>
                              <p className="text-[10px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest flex items-center gap-1">
                                 <TrendingUp className="h-3 w-3" />
                                 {expense.created_at ? new Date(expense.created_at).toLocaleDateString() : ''}
                              </p>
                              {expense.description && (
-                                <p className="text-sm text-slate-500 mt-3 line-clamp-2 italic leading-relaxed border-l-2 border-slate-100 pl-3">
+                                <p className="text-sm text-slate-500 mt-3 italic leading-relaxed border-l-2 border-slate-100 pl-3">
                                    {expense.description}
                                 </p>
                              )}
@@ -355,50 +447,49 @@ export default function Expenses() {
                              ₹{expense.amount.toLocaleString()}
                           </div>
                           
-                          <div className="flex items-center bg-slate-50 p-1 rounded-2xl opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all border border-slate-100">
-                             <Button 
-                               variant="ghost" 
-                               size="icon" 
-                               className="h-9 w-9 text-slate-400 hover:text-primary hover:bg-white rounded-xl"
-                               onClick={() => startEditExpense(expense)}
-                               disabled={!isAuthenticated}
-                             >
-                               {isAuthenticated ? <Edit2 className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                             </Button>
+                          {isAuthenticated && (
+                            <div className="flex items-center bg-slate-50 p-1 rounded-2xl opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all border border-slate-100">
+                               <Button 
+                                 variant="ghost" 
+                                 size="icon" 
+                                 className="h-9 w-9 text-slate-400 hover:text-primary hover:bg-white rounded-xl"
+                                 onClick={() => startEditExpense(expense)}
+                               >
+                                 <Edit2 className="h-4 w-4" />
+                               </Button>
 
-                             <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                   <Button 
-                                     variant="ghost" 
-                                     size="icon"
-                                     className="h-9 w-9 text-slate-400 hover:text-destructive hover:bg-white rounded-xl"
-                                     disabled={!isAuthenticated}
-                                   >
-                                     {isAuthenticated ? <Trash2 className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                                   </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent className="rounded-3xl border-none p-8">
-                                   <AlertDialogHeader>
-                                      <AlertDialogTitle className="text-3xl font-black text-slate-800">{t('ఖర్చు తొలగించు', 'Delete Expense')}</AlertDialogTitle>
-                                      <AlertDialogDescription className="text-lg font-medium text-slate-500">
-                                         {t('మీరు ఈ ఖర్చును తొలగించాలని ఖచ్చితంగా అనుకుంటున్నారా? ఈ చర్య రద్దు చేయబడదు.', 'Are you sure you want to delete this expense? This action cannot be undone.')}
-                                      </AlertDialogDescription>
-                                   </AlertDialogHeader>
-                                   <AlertDialogFooter className="mt-6 gap-3">
-                                      <AlertDialogCancel className="rounded-xl border-none bg-slate-100 font-bold h-12 flex-1">{t('రద్దు', 'Cancel')}</AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() => {
-                                          if (!isAuthenticated) { setIsAuthOpen(true); return; }
-                                          if (expense.id) deleteExpenseMutation.mutate(expense.id);
-                                        }}
-                                        className="bg-red-600 text-white hover:bg-red-700 rounded-xl font-bold h-12 flex-1"
-                                      >
-                                        {t('తొలగించు', 'Delete')}
-                                      </AlertDialogAction>
-                                   </AlertDialogFooter>
-                                </AlertDialogContent>
-                             </AlertDialog>
-                          </div>
+                               <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                     <Button 
+                                       variant="ghost" 
+                                       size="icon"
+                                       className="h-9 w-9 text-slate-400 hover:text-destructive hover:bg-white rounded-xl"
+                                     >
+                                       <Trash2 className="h-4 w-4" />
+                                     </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent className="rounded-3xl border-none p-8">
+                                     <AlertDialogHeader>
+                                        <AlertDialogTitle className="text-3xl font-black text-slate-800">{t('ఖర్చు తొలగించు', 'Delete Expense')}</AlertDialogTitle>
+                                        <AlertDialogDescription className="text-lg font-medium text-slate-500">
+                                           {t('మీరు ఈ ఖర్చును తొలగించాలని ఖచ్చితంగా అనుకుంటున్నారా? ఈ చర్య రద్దు చేయబడదు.', 'Are you sure you want to delete this expense? This action cannot be undone.')}
+                                        </AlertDialogDescription>
+                                     </AlertDialogHeader>
+                                     <AlertDialogFooter className="mt-6 gap-3">
+                                        <AlertDialogCancel className="rounded-xl border-none bg-slate-100 font-bold h-12 flex-1">{t('రద్దు', 'Cancel')}</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() => {
+                                            if (expense.id) deleteExpenseMutation.mutate(expense.id);
+                                          }}
+                                          className="bg-red-600 text-white hover:bg-red-700 rounded-xl font-bold h-12 flex-1"
+                                        >
+                                          {t('తొలగించు', 'Delete')}
+                                        </AlertDialogAction>
+                                     </AlertDialogFooter>
+                                  </AlertDialogContent>
+                               </AlertDialog>
+                            </div>
+                          )}
                        </div>
                     </div>
                  </CardContent>
@@ -408,13 +499,15 @@ export default function Expenses() {
         </div>
 
         {/* Floating Action Button (FAB) */}
-        <Button
-            onClick={startAddExpense}
-            className="fixed bottom-24 right-6 h-16 w-16 rounded-full shadow-2xl bg-gradient-to-br from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white p-0 flex items-center justify-center border-none transition-all active:scale-95 z-50 md:hidden"
-            aria-label={t('ఖర్చు జోడించు', 'Add Expense')}
-        >
-            <Plus className="h-10 w-10" />
-        </Button>
+        {isAuthenticated && (
+          <Button
+              onClick={startAddExpense}
+              className="fixed bottom-24 right-6 h-16 w-16 rounded-full shadow-2xl bg-gradient-to-br from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white p-0 flex items-center justify-center border-none transition-all active:scale-95 z-50 md:hidden"
+              aria-label={t('ఖర్చు జోడించు', 'Add Expense')}
+          >
+              <Plus className="h-10 w-10" />
+          </Button>
+        )}
 
         <AuthDialog
           isOpen={isAuthOpen}

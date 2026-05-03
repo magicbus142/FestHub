@@ -151,8 +151,8 @@ export const SideNavigation = () => {
                     className={cn(
                         "w-full justify-start gap-3 h-11 relative overflow-hidden transition-all duration-300",
                         isActive 
-                            ? "bg-primary/10 text-primary hover:bg-primary/15 font-semibold shadow-sm" 
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                            ? "bg-primary/10 text-primary hover:bg-primary/15 font-black shadow-sm" 
+                            : "text-slate-600 hover:text-foreground dark:text-slate-400 hover:bg-muted/50 font-bold"
                     )}
                     onClick={() => navigate(item.path)}
                 >

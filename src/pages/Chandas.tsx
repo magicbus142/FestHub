@@ -155,7 +155,8 @@ export default function Chandas() {
     ? donations.filter(d => {
         const en = (d.name_english || '').toLowerCase();
         const te = (d.name || '').toLowerCase();
-        return en.includes(term) || te.includes(term);
+        const amt = String(d.amount || '');
+        return en.includes(term) || te.includes(term) || amt.includes(term);
       })
     : donations;
 
@@ -344,7 +345,7 @@ export default function Chandas() {
                      {language === 'telugu' ? 'EN' : 'తె'}
                   </Button>
                   <ThemeSwitcher />
-                  {isAuthenticated && (
+                  {isAuthenticated ? (
                     <>
                       <div className="w-px h-4 bg-slate-100 mx-1"></div>
                       <Button
@@ -360,16 +361,31 @@ export default function Chandas() {
                         <LogOut className="h-4 w-4" />
                       </Button>
                     </>
+                  ) : (
+                    <>
+                      <div className="w-px h-4 bg-slate-100 mx-1"></div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsAuthDialogOpen(true)}
+                        className="h-9 w-9 rounded-xl hover:bg-blue-50 text-blue-600 transition-colors"
+                        title={t('లాగిన్', 'Login')}
+                      >
+                        <Lock className="h-4 w-4" />
+                      </Button>
+                    </>
                   )}
                </div>
 
-               <Button
-                  onClick={handleAddDonation}
-                  className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground font-black h-11 rounded-2xl px-6 text-sm shadow-xl shadow-primary/20 transition-all active:scale-[0.95] items-center gap-2"
-              >
-                  <Plus className="h-5 w-5" />
-                  {t('చందా జోడించు', 'Add Chanda')}
-              </Button>
+               {isAuthenticated && (
+                 <Button
+                    onClick={handleAddDonation}
+                    className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground font-black h-11 rounded-2xl px-6 text-sm shadow-xl shadow-primary/20 transition-all active:scale-[0.95] items-center gap-2"
+                 >
+                    <Plus className="h-5 w-5" />
+                    {t('చందా జోడించు', 'Add Chanda')}
+                 </Button>
+               )}
             </div>
           </div>
         </div>
@@ -485,7 +501,7 @@ export default function Chandas() {
                  </div>
                  <input
                    type="text"
-                   placeholder={t('పేరు లేదా ఫోన్ నంబర్ ద్వారా శోధించండి...', 'Search by name, phone...')}
+                   placeholder={t('పేరు లేదా మొత్తం ద్వారా శోధించండి...', 'Search by name or amount...')}
                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl leading-5 bg-white placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary sm:text-sm transition-all"
                    value={searchTerm}
                    onChange={(e) => setSearchTerm(e.target.value)}
@@ -789,14 +805,16 @@ export default function Chandas() {
 
         {/* Bottom Navigation */}
 
-        {/* Floating Action Button (FAB) */}
-        <Button
-            onClick={handleAddDonation}
-            className="fixed bottom-24 right-6 h-14 w-14 rounded-full shadow-2xl bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white p-0 flex items-center justify-center border-none transition-all active:scale-95 z-50 md:hidden"
-            aria-label={t('చందా జోడించు', 'Add Donation')}
-        >
-            <Plus className="h-8 w-8" />
-        </Button>
+         {/* Floating Action Button (FAB) */}
+        {isAuthenticated && (
+          <Button
+              onClick={handleAddDonation}
+              className="fixed bottom-24 right-6 h-14 w-14 rounded-full shadow-2xl bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white p-0 flex items-center justify-center border-none transition-all active:scale-95 z-50 md:hidden"
+              aria-label={t('చందా జోడించు', 'Add Donation')}
+          >
+              <Plus className="h-8 w-8" />
+          </Button>
+        )}
       </div>
     </div>
   );

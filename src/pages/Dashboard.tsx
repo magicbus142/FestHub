@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { BarChart3, Receipt, Users, ArrowLeft, Image, Wallet, ArrowUpRight } from 'lucide-react';
+import { BarChart3, Receipt, Users, ArrowLeft, Image, Wallet, ArrowUpRight, LogOut, Lock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getTotalByFestival } from '@/lib/database';
 import { getTotalExpensesByFestival } from '@/lib/expenses';
@@ -15,7 +15,6 @@ import { YearBadge } from '@/components/YearBadge';
 import { PageHeader } from '@/components/PageHeader';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/AuthContext';
 import { ChandasPreview } from '@/components/ChandasPreview';
 import { ExpensesPreview } from '@/components/ExpensesPreview';
 import { ImagesPreview } from '@/components/ImagesPreview';
@@ -23,6 +22,7 @@ import { VotingPreview } from '@/components/VotingPreview';
 import { BackButton } from '@/components/BackButton';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { PageOption } from '@/components/PageSelector';
+import { AuthDialog } from '@/components/AuthDialog';
 
 export default function Dashboard() {
   const { t, language, setLanguage } = useLanguage();
@@ -31,10 +31,7 @@ export default function Dashboard() {
     setSelectedFestival
   } = useFestival();
   const navigate = useNavigate();
-  const { currentOrganization, allowedPages } = useOrganization();
-  const {
-    isAuthenticated
-  } = useAuth();
+  const { currentOrganization, allowedPages, isAuthenticated, logout } = useOrganization();
 
   const orgPath = currentOrganization ? `/org/${currentOrganization.slug}` : '/';
 
@@ -44,7 +41,8 @@ export default function Dashboard() {
       navigate(orgPath);
     }
   }, [selectedFestival, navigate, orgPath]);
-  const [isPrevDialogOpen, setIsPrevDialogOpen] = useState(false as boolean);
+   const [isPrevDialogOpen, setIsPrevDialogOpen] = useState(false as boolean);
+  const [isAuthOpen, setIsAuthOpen] = useState(false as boolean);
   const [prevInput, setPrevInput] = useState('' as string);
   const [editingCardType, setEditingCardType] = useState<'chandas' | 'expenses' | 'images' | null>(null);
 
@@ -99,21 +97,21 @@ export default function Dashboard() {
     title: t('చందాలు', 'Chandas'),
     description: t('చందా నిర్వహణ (స్పాన్సర్‌షిప్ వేరు)', 'Manage Chanda (sponsorships separate)'),
     icon: BarChart3,
-    path: '/chandas',
+    path: `${orgPath}/chandas`,
     value: `₹${totalDonations.toLocaleString()}`,
     color: 'text-blue-600'
   }, {
     title: t('ఖర్చులు', 'Expenses'),
     description: t('ఖర్చుల రికార్డ్ మరియు ట్రాకింగ్', 'Track and record expenses'),
     icon: Receipt,
-    path: '/expenses',
+    path: `${orgPath}/expenses`,
     value: `₹${totalExpenses.toLocaleString()}`,
     color: 'text-red-600'
   }, {
     title: t('చిత్రాలు', 'Images'),
     description: t('ఫోటోలు మరియు చిత్రాలను అప్‌లోడ్ చేయండి', 'Upload and manage photos'),
     icon: Image,
-    path: '/images',
+    path: `${orgPath}/images`,
     value: `${totalImages} ${t('చిత్రాలు', 'images')}`,
     color: 'text-green-600'
   }];
@@ -157,6 +155,37 @@ export default function Dashboard() {
                 {language === 'telugu' ? 'EN' : 'తె'}
               </Button>
               <ThemeSwitcher />
+              
+              {isAuthenticated ? (
+                <>
+                  <div className="w-px h-4 bg-slate-100 mx-1"></div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      logout();
+                      navigate(orgPath);
+                    }}
+                    className="h-9 w-9 rounded-xl hover:bg-red-50 text-red-500 transition-colors"
+                    title={t('లాగ్ అవుట్', 'Log Out')}
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="w-px h-4 bg-slate-100 mx-1"></div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsAuthOpen(true)}
+                    className="h-9 w-9 rounded-xl hover:bg-blue-50 text-blue-600 transition-colors"
+                    title={t('లాగిన్', 'Login')}
+                  >
+                    <Lock className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -215,7 +244,7 @@ export default function Dashboard() {
 
         {/* Module Pulse Cards */}
         <div className="grid grid-cols-1 gap-4">
-          <Card className="bg-white shadow-sm border border-slate-100 p-5 flex items-center justify-between group hover:shadow-lg hover:border-blue-200 transition-all cursor-pointer rounded-3xl" onClick={() => navigate('/chandas')}>
+          <Card className="bg-white shadow-sm border border-slate-100 p-5 flex items-center justify-between group hover:shadow-lg hover:border-blue-200 transition-all cursor-pointer rounded-3xl" onClick={() => navigate(`${orgPath}/chandas`)}>
             <div className="flex items-center gap-4">
               <div className="h-14 w-14 bg-blue-50 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner shadow-blue-100/50">
                 <BarChart3 className="h-7 w-7 text-blue-600" />
@@ -228,7 +257,7 @@ export default function Dashboard() {
             <ArrowUpRight className="h-6 w-6 text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
           </Card>
 
-          <Card className="bg-white shadow-sm border border-slate-100 p-5 flex items-center justify-between group hover:shadow-lg hover:border-purple-200 transition-all cursor-pointer rounded-3xl" onClick={() => navigate('/images')}>
+          <Card className="bg-white shadow-sm border border-slate-100 p-5 flex items-center justify-between group hover:shadow-lg hover:border-purple-200 transition-all cursor-pointer rounded-3xl" onClick={() => navigate(`${orgPath}/images`)}>
             <div className="flex items-center gap-4">
               <div className="h-14 w-14 bg-purple-50 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner shadow-purple-100/50">
                 <Image className="h-7 w-7 text-purple-600" />
@@ -289,8 +318,13 @@ export default function Dashboard() {
         })()}
       </div>
 
-      {/* Navigation */}
+      <AuthDialog
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onSuccess={() => setIsAuthOpen(false)}
+      />
 
+      {/* Navigation */}
     </div>
   </div>;
 }
