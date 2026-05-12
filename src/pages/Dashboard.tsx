@@ -75,6 +75,14 @@ export default function Dashboard() {
     queryFn: () => selectedFestival ? getTotalByFestival(selectedFestival.name, selectedFestival.year, 'chanda') : 0,
     enabled: !!selectedFestival
   });
+
+  const {
+    data: totalCollection = 0
+  } = useQuery({
+    queryKey: ['total-collection-festival', selectedFestival?.name, selectedFestival?.year],
+    queryFn: () => selectedFestival ? getTotalByFestival(selectedFestival.name, selectedFestival.year) : 0,
+    enabled: !!selectedFestival
+  });
   const {
     data: totalExpenses = 0
   } = useQuery({
@@ -208,7 +216,7 @@ export default function Dashboard() {
               <div className="space-y-1">
                 <p className="text-sm font-bold text-muted-foreground tracking-tight">{t('మిగిలిన మొత్తం', 'Total Balance')}</p>
                 <h2 className="text-5xl font-black text-emerald-600 tracking-tighter">
-                  ₹{(totalDonations + chandasPrev - totalExpenses - expensesPrev).toLocaleString()}
+                  ₹{(totalCollection + chandasPrev - totalExpenses - expensesPrev).toLocaleString()}
                 </h2>
                 <div className="flex items-center gap-3 mt-4">
                   <div className="h-2 w-32 bg-slate-200 rounded-full overflow-hidden">

@@ -250,6 +250,10 @@ export default function Chandas() {
   const totalPages = Math.ceil(sortedDonations.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const processedDonations = sortedDonations.slice(startIndex, startIndex + itemsPerPage);
+
+  const filteredTotalAmount = sortedDonations.reduce((sum, d) => sum + d.amount, 0);
+  const filteredTotalReceived = sortedDonations.reduce((sum, d) => sum + (d.received_amount ?? d.amount), 0);
+  const filteredTotalPending = Math.max(0, filteredTotalAmount - filteredTotalReceived);
   
   // Reset to first page when category changes
   const handleCategoryChange = (category: 'chanda' | 'sponsorship') => {
@@ -544,6 +548,28 @@ export default function Chandas() {
               </div>
            </div>
         </div>
+
+        {/* Filter Summary */}
+        {(searchTerm || statusFilter !== 'all' || showDuplicates) && (
+          <div className="mb-4 bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 flex flex-wrap justify-between items-center gap-3">
+             <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                {t('ఫిల్టర్ సారాంశం', 'Filter Summary')}
+             </div>
+             <div className="flex flex-wrap gap-x-6 gap-y-2 items-center text-sm">
+                <span className="font-medium text-slate-600">
+                   {t('మొత్తం చందా', 'Total Amount')}: <strong className="text-slate-800 font-sans">₹{filteredTotalAmount.toLocaleString()}</strong>
+                </span>
+                <div className="hidden sm:block w-px h-4 bg-slate-200"></div>
+                <span className="font-medium text-slate-600">
+                   {t('స్వీకరించబడింది', 'Received')}: <strong className="text-emerald-600 font-sans">₹{filteredTotalReceived.toLocaleString()}</strong>
+                </span>
+                <div className="hidden sm:block w-px h-4 bg-slate-200"></div>
+                <span className="font-medium text-slate-600">
+                   {t('పెండింగ్', 'Pending')}: <strong className="text-red-500 font-sans">₹{filteredTotalPending.toLocaleString()}</strong>
+                </span>
+             </div>
+          </div>
+        )}
 
         {/* Donations List */}
         <div className="space-y-4 mb-6">
