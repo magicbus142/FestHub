@@ -116,7 +116,7 @@ const renderStandardLayout = (donation: Donation, config: ReceiptConfig, theme: 
   currentY += 25;
   
   // Main Content
-  const donorName = donation.name_english || donation.name || 'Donor';
+  const donorName = (donation.name_english || donation.name || 'Donor').toUpperCase();
   
   doc.setFontSize(12);
   doc.text(`Received with thanks from:`, 25, currentY);
@@ -225,7 +225,7 @@ const renderTableLayout = (donation: Donation, config: ReceiptConfig, theme: any
     currentY += 20;
 
     // Received of
-    const donorName = donation.name_english || donation.name || 'Donor';
+    const donorName = (donation.name_english || donation.name || 'Donor').toUpperCase();
     doc.text('Received of:', 25, currentY);
     doc.line(55, currentY, pageWidth - 25, currentY);
     doc.setFont('helvetica', 'bold');

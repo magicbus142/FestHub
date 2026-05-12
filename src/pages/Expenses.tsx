@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFestival } from '@/contexts/FestivalContext';
 
@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { addExpense, getExpensesByFestival, getTotalExpensesByFestival, deleteExpense, updateExpense, type Expense } from '@/lib/expenses';
-import { Plus, Trash2, Receipt, Edit2, Lock, ArrowUpRight, TrendingUp, Wallet, LogOut } from 'lucide-react';
+import { Plus, Trash2, Receipt, Edit2, Lock, ArrowUpRight, TrendingUp, Wallet, LogOut, ArrowLeft } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -36,7 +36,9 @@ export default function Expenses() {
   });
   const [namePreference, setNamePreference] = useState<'telugu' | 'english'>('telugu');
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortOption, setSortOption] = useState<string>('');
+  const [sortOption, setSortOption] = useState<string>('amount-desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { data: expenses = [] } = useQuery({
     queryKey: ['user-expenses-festival', selectedFestival?.name, selectedFestival?.year],
@@ -66,6 +68,15 @@ export default function Expenses() {
       // Default: latest first
       return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
     });
+
+  // Reset page when search term or sort option changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, sortOption]);
+
+  const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedExpenses = filteredExpenses.slice(startIndex, startIndex + itemsPerPage);
 
   const addExpenseMutation = useMutation({
     mutationFn: (expense: { type: string; amount: number; description?: string }) => {
@@ -421,7 +432,7 @@ export default function Expenses() {
               </CardContent>
             </Card>
           ) : (
-            filteredExpenses.map((expense: Expense) => (
+            paginatedExpenses.map((expense: Expense) => (
               <Card key={expense.id} className="group overflow-hidden border-none shadow-sm hover:shadow-md transition-all rounded-3xl bg-white">
                  <div className="h-1.5 w-full bg-red-100" />
                  <CardContent className="p-6">
@@ -437,13 +448,13 @@ export default function Expenses() {
                                     <span>{expense.type}</span>
                                     {expense.type_english && (
                                       <span className="text-sm font-bold text-slate-400">
-                                        ({expense.type_english})
+                                        ({expense.type_english.toUpperCase()})
                                       </span>
                                     )}
                                   </>
                                 ) : (
                                   <>
-                                    <span>{expense.type_english || expense.type}</span>
+                                    <span>{(expense.type_english || expense.type || '').toUpperCase()}</span>
                                     {expense.type_english && (
                                       <span className="text-sm font-bold text-slate-400">
                                         ({expense.type})
@@ -519,6 +530,61 @@ export default function Expenses() {
             ))
           )}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-between items-center px-6 py-4 bg-white rounded-3xl p-4 shadow-sm border border-slate-100 mb-8">
+             <div className="text-sm text-muted-foreground hidden md:block font-medium font-sans">
+                {t('చూపిస్తోంది', 'Showing')} {startIndex + 1} {t('నుండి', 'to')} {Math.min(startIndex + itemsPerPage, filteredExpenses.length)} {t('యొక్క', 'of')} {filteredExpenses.length} {t('ఫలితాలు', 'results')}
+             </div>
+             <div className="flex gap-2 mx-auto md:mx-0">
+                 <Button 
+                   variant="outline" 
+                   size="sm" 
+                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                   disabled={currentPage === 1}
+                   className="h-8 w-8 p-0 rounded-xl"
+                 >
+                   <span className="sr-only">Previous</span>
+                   <ArrowLeft className="h-4 w-4" />
+                 </Button>
+                 {(() => {
+                   const maxButtons = 5;
+                   let pages = [];
+                   if (totalPages <= maxButtons) {
+                     pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+                   } else if (currentPage <= 3) {
+                     pages = [1, 2, 3, 4, 5];
+                   } else if (currentPage >= totalPages - 2) {
+                     pages = Array.from({ length: 5 }, (_, i) => totalPages - 4 + i);
+                   } else {
+                     pages = [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
+                   }
+                   return pages.map((p) => (
+                     <Button
+                       key={p}
+                       variant={currentPage === p ? "default" : "outline"}
+                       size="sm"
+                       className="h-8 w-8 p-0 rounded-xl"
+                       onClick={() => setCurrentPage(p)}
+                     >
+                       {p}
+                     </Button>
+                   ));
+                 })()}
+                 <Button 
+                   variant="outline" 
+                   size="sm" 
+                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                   disabled={currentPage === totalPages}
+                   className="h-8 w-8 p-0 rounded-xl"
+                 >
+                   <span className="sr-only">Next</span>
+                   <ArrowLeft className="h-4 w-4 rotate-180" />
+                 </Button>
+             </div>
+          </div>
+        )}
 
         {/* Floating Action Button (FAB) */}
         {isAuthenticated && (

@@ -22,8 +22,8 @@ export const DonationCard = ({ donation, onEdit, onDelete, onReceipt, onAuthRequ
   const { t } = useLanguage();
 
   const displayName = namePreference === 'english'
-    ? (donation.name_english || donation.name)
-    : (donation.name || donation.name_english);
+    ? (donation.name_english || donation.name || '').toUpperCase()
+    : (donation.name || (donation.name_english || '').toUpperCase());
 
   const handleEdit = () => {
     if (isAuthenticated) {

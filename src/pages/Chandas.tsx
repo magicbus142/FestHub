@@ -156,7 +156,9 @@ export default function Chandas() {
         const en = (d.name_english || '').toLowerCase();
         const te = (d.name || '').toLowerCase();
         const amt = String(d.amount || '');
-        return en.includes(term) || te.includes(term) || amt.includes(term);
+        const isNumeric = !isNaN(Number(term)) && term.trim() !== '';
+        const amtMatches = isNumeric ? (amt === term) : amt.includes(term);
+        return en.includes(term) || te.includes(term) || amtMatches;
       })
     : donations;
 
@@ -211,8 +213,8 @@ export default function Chandas() {
   }
   
   const sortedDonations = filteredDonations.slice().sort((a, b) => {
-    // Sponsorship tab: custom order by type, then latest within the same type
-    if (activeCategory === 'sponsorship') {
+    // Sponsorship tab: custom order by type, then latest within the same type (only when no sorting filter is active)
+    if (activeCategory === 'sponsorship' && !sortOption) {
       const ai = SPONSOR_ORDER.indexOf(a.type);
       const bi = SPONSOR_ORDER.indexOf(b.type);
       const typeCmp = (ai === -1 ? Number.MAX_SAFE_INTEGER : ai) - (bi === -1 ? Number.MAX_SAFE_INTEGER : bi);
@@ -584,7 +586,9 @@ export default function Chandas() {
                              </div>
                              <div>
                                <p className="font-medium text-foreground">
-                                 {namePreference === 'english' ? (donation.name_english || donation.name) : (donation.name || donation.name_english)}
+                                  {namePreference === 'english' 
+                                    ? (donation.name_english || donation.name || '').toUpperCase() 
+                                    : (donation.name || (donation.name_english || '').toUpperCase())}
                                </p>
                                {donation.category === 'sponsorship' && (
                                  <p className="text-xs text-muted-foreground">{donation.type}</p>
@@ -609,11 +613,6 @@ export default function Chandas() {
                           </TableCell>
                           <TableCell className="text-right font-bold text-foreground">
                             <div>₹{donation.amount.toLocaleString()}</div>
-                            {/* Pending Logic: Treat null received_amount as 0 ONLY if explicitly not matching amount? 
-                                Actually, for legacy compatibility: if received_amount is null, assume IT IS PAID (amount). 
-                                BUT for this specific requirement, the user wants to see pending. 
-                                Let's assume database handles defaults or we stick to: received_amount || 0.
-                            */}
                             {(donation.amount - (donation.received_amount ?? donation.amount)) > 0 && (
                               <div className="text-xs text-red-500 font-semibold mt-0.5">
                                 {t('బాకీ', 'Pending')}: ₹{(donation.amount - (donation.received_amount ?? 0)).toLocaleString()}
@@ -711,9 +710,7 @@ export default function Chandas() {
          </div>
 
          {/* Pagination */}
-         {/* ... kept same ... */}
          {totalPages > 1 && (
-           /* ... existing pagination code ... */
            <div className="flex justify-between items-center px-2 py-4 border-t mt-4">
               <div className="text-sm text-muted-foreground hidden md:block">
                  Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, sortedDonations.length)} of {sortedDonations.length} results
@@ -729,21 +726,30 @@ export default function Chandas() {
                    <span className="sr-only">Previous</span>
                    <ArrowLeft className="h-4 w-4" />
                  </Button>
-                 {Array.from({length: Math.min(5, totalPages)}, (_, i) => {
-                    // Simple logic for page numbers, improving this is a bonus
-                    const p = i + 1; 
-                    return (
-                       <Button
-                          key={p}
-                          variant={currentPage === p ? "default" : "outline"}
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => setCurrentPage(p)}
-                       >
-                          {p}
-                       </Button>
-                    )
-                 })}
+                    {(() => {
+                    const maxButtons = 5;
+                    let pages = [];
+                    if (totalPages <= maxButtons) {
+                      pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+                    } else if (currentPage <= 3) {
+                      pages = [1, 2, 3, 4, 5];
+                    } else if (currentPage >= totalPages - 2) {
+                      pages = Array.from({ length: 5 }, (_, i) => totalPages - 4 + i);
+                    } else {
+                      pages = [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
+                    }
+                    return pages.map((p) => (
+                      <Button
+                        key={p}
+                        variant={currentPage === p ? "default" : "outline"}
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => setCurrentPage(p)}
+                      >
+                        {p}
+                      </Button>
+                    ));
+                  })()}
                  <Button 
                    variant="outline" 
                    size="sm" 
