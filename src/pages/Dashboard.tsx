@@ -103,10 +103,10 @@ export default function Dashboard() {
   });
   const dashboardCards = [{
     title: t('చందాలు', 'Chandas'),
-    description: t('చందా నిర్వహణ (స్పాన్సర్‌షిప్ వేరు)', 'Manage Chanda (sponsorships separate)'),
+    description: t('చందా మరియు స్పాన్సర్‌షిప్ నిర్వహణ', 'Manage Chanda and Sponsorships'),
     icon: BarChart3,
     path: `${orgPath}/chandas`,
-    value: `₹${totalDonations.toLocaleString()}`,
+    value: `₹${totalCollection.toLocaleString()}`,
     color: 'text-blue-600'
   }, {
     title: t('ఖర్చులు', 'Expenses'),
@@ -259,7 +259,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('చందాలు', 'CHANDAS')}</p>
-                <p className="text-xl font-black text-slate-800">₹{totalDonations.toLocaleString()}</p>
+                <p className="text-xl font-black text-slate-800 font-sans">₹{totalCollection.toLocaleString()}</p>
               </div>
             </div>
             <ArrowUpRight className="h-6 w-6 text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />

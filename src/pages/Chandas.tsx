@@ -44,8 +44,8 @@ export default function Chandas() {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  // Sorting (no default option selected; chanda defaults to latest internally)
-  const [sortOption, setSortOption] = useState<string>('');
+  // Sorting (defaults to amount-desc, i.e., High to Low)
+  const [sortOption, setSortOption] = useState<string>('amount-desc');
   const [namePreference, setNamePreference] = useState<'telugu' | 'english'>('telugu');
   const [isDonationFormOpen, setIsDonationFormOpen] = useState(false);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
@@ -531,7 +531,7 @@ export default function Chandas() {
                     value={sortOption}
                     onChange={(e) => setSortOption(e.target.value)}
                  >
-                    <option value="">{t('ఫిల్టర్', 'Filter')}</option>
+                    <option value="">{t('ఇటీవలివి', 'Latest First')}</option>
                     <option value="amount-desc">High → Low</option>
                     <option value="amount-asc">Low → High</option>
                     <option value="name-asc">Name: A - Z</option>

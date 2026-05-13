@@ -9,14 +9,14 @@ import { useNavigate } from 'react-router-dom';
 import { useOrganization } from '@/contexts/OrganizationContext';
 
 export function ChandasPreview() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { selectedFestival } = useFestival();
   const navigate = useNavigate();
   const { currentOrganization } = useOrganization();
 
   const { data: donations = [] } = useQuery({
-    queryKey: ['donations-preview', selectedFestival?.name, selectedFestival?.year, 'chanda'],
-    queryFn: () => selectedFestival ? getDonationsByFestival(selectedFestival.name, selectedFestival.year, 'chanda') : [],
+    queryKey: ['donations-preview', selectedFestival?.name, selectedFestival?.year],
+    queryFn: () => selectedFestival ? getDonationsByFestival(selectedFestival.name, selectedFestival.year) : [],
     enabled: !!selectedFestival,
   });
 
@@ -33,7 +33,7 @@ export function ChandasPreview() {
             {t('చందాలు', 'Chandas')}
           </CardTitle>
           <CardDescription>
-            {t('చందా నిర్వహణ', 'Manage Chanda donations')}
+            {t('చందాలు మరియు స్పాన్సర్‌షిప్ నిర్వహణ', 'Manage Chanda and Sponsorship donations')}
           </CardDescription>
         </div>
         <Button 
@@ -73,17 +73,25 @@ export function ChandasPreview() {
             </h4>
             {recentDonations.length > 0 ? (
               <div className="space-y-2">
-                {recentDonations.map((donation) => (
-                  <div key={donation.id} className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-sm">{donation.name}</p>
-                      <p className="text-xs text-muted-foreground">{donation.type}</p>
+                {recentDonations.map((donation) => {
+                  const displayName = language === 'telugu'
+                    ? (donation.name || (donation.name_english || '').toUpperCase())
+                    : (donation.name_english || donation.name || '').toUpperCase();
+                  return (
+                    <div key={donation.id} className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-sm">{displayName}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {donation.category === 'sponsorship' ? `${t('స్పాన్సర్‌షిప్', 'Sponsorship')} - ` : ''}
+                          {donation.type}
+                        </p>
+                      </div>
+                      <p className="font-semibold text-blue-600">
+                        ₹{donation.amount.toLocaleString()}
+                      </p>
                     </div>
-                    <p className="font-semibold text-blue-600">
-                      ₹{donation.amount.toLocaleString()}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
