@@ -311,13 +311,13 @@ export default function VotingGallery() {
              <TabsList className="grid w-full grid-cols-2 bg-transparent h-11">
                 <TabsTrigger 
                   value="entries"
-                  className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300 font-bold text-slate-500"
+                  className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-300 font-bold text-slate-500"
                 >
                   {t('నమోదులు', 'Entries')}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="results"
-                  className="rounded-xl data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300 font-bold text-slate-500"
+                  className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-300 font-bold text-slate-500"
                 >
                   {t('ఫలితాలు', 'Results')}
                 </TabsTrigger>

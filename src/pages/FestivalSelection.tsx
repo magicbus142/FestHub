@@ -132,7 +132,7 @@ export default function FestivalSelection() {
                </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
                <div className="flex items-center bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100">
                   <Button variant="ghost" size="icon" onClick={handleShareOrganization} className="h-9 w-9 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-primary transition-all">
                       <Share2 className="h-4 w-4" />
@@ -161,7 +161,7 @@ export default function FestivalSelection() {
                            setIsPasscodeOpen(true);
                          }
                        }}
-                       className="hidden sm:flex bg-purple-600 hover:bg-purple-700 text-white font-black h-11 rounded-2xl px-6 text-sm shadow-xl shadow-purple-200 transition-all active:scale-[0.95] items-center gap-2"
+                       className="flex bg-primary hover:bg-primary/90 text-primary-foreground font-black h-11 rounded-2xl px-4 sm:px-6 text-sm shadow-xl shadow-primary/20 transition-all active:scale-[0.95] items-center gap-2"
                      >
                        {isAuthenticated ? <Plus className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
                        {t('ఉత్సవం జోడించు', 'Add Festival')}

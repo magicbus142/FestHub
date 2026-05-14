@@ -20,6 +20,7 @@ import { ComingSoon } from '@/components/ComingSoon';
 import { setFestivalBackgroundImage } from '@/lib/festivals';
 import { BackButton } from '@/components/BackButton';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 export default function Images() {
   const { t, language, setLanguage } = useLanguage();
@@ -38,6 +39,8 @@ export default function Images() {
   const [selectedImage, setSelectedImage] = useState<ImageRecord | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({ title: '', description: '' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { data: images = [] } = useQuery({
     queryKey: ['user-images', selectedFestival?.name, selectedFestival?.year],
@@ -241,7 +244,7 @@ export default function Images() {
                {isAuthenticated && (
                  <Button
                     onClick={() => setIsDialogOpen(true)}
-                    className="hidden md:flex bg-purple-600 hover:bg-purple-700 text-white font-black h-11 rounded-2xl px-6 text-sm shadow-xl shadow-purple-200 transition-all active:scale-[0.95] items-center gap-2"
+                    className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground font-black h-11 rounded-2xl px-6 text-sm shadow-xl shadow-primary/20 transition-all active:scale-[0.95] items-center gap-2"
                 >
                     <Upload className="h-5 w-5" />
                     {t('చిత్రం అప్‌లోడ్ చేయండి', 'Upload Image')}
@@ -296,7 +299,7 @@ export default function Images() {
                 />
               </div>
               <div className="flex gap-2 pt-4">
-                <Button type="submit" disabled={uploadImageMutation.isPending} className="flex-1 bg-purple-600 hover:bg-purple-700 rounded-xl font-bold h-11">
+                <Button type="submit" disabled={uploadImageMutation.isPending} className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-bold h-11">
                   {uploadImageMutation.isPending ? t('అప్‌లోడ్ చేస్తోంది...', 'Uploading...') : t('అప్‌లోడ్', 'Upload')}
                 </Button>
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="rounded-xl border-slate-200 h-11">
@@ -316,76 +319,116 @@ export default function Images() {
               message={t('ఈ ఉత్సవానికి ఇంకా చిత్రాలు లేవు. అప్‌లోడ్ చేయండి!', 'No images available for this festival yet. Upload some!')}
             />
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {images.map((image) => (
-                <div
-                  key={image.id}
-                  className="group relative bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 cursor-pointer aspect-[3/4]"
-                  onClick={() => setSelectedImage(image)}
-                >
-                  <img
-                    src={image.image_url}
-                    alt={image.title || 'Image'}
-                    loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  
-                  {/* Glass Overlay Actions */}
-                  {isAuthenticated && (
-                    <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 z-20">
-                      <Button
-                          variant="secondary"
-                          size="icon"
-                          className="h-9 w-9 bg-white/90 backdrop-blur-md rounded-xl text-slate-700 hover:bg-purple-600 hover:text-white border-none shadow-lg"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (selectedFestival?.id && image.id) {
-                              setBackgroundMutation.mutate({ festivalId: selectedFestival.id, imageId: image.id });
-                            }
-                          }}
-                      >
-                          <Pin className="h-4 w-4" />
-                      </Button>
-                      <Button
-                          variant="secondary"
-                          size="icon"
-                          className="h-9 w-9 bg-white/90 backdrop-blur-md rounded-xl text-slate-700 hover:bg-blue-600 hover:text-white border-none shadow-lg"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditFormData({ title: image.title || '', description: image.description || '' });
-                            setSelectedImage(image);
-                            setIsEditDialogOpen(true);
-                          }}
-                      >
-                          <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                          variant="secondary"
-                          size="icon"
-                          className="h-9 w-9 bg-white/90 backdrop-blur-md rounded-xl text-slate-700 hover:bg-red-600 hover:text-white border-none shadow-lg"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeletingImageId(image.id || null);
-                          }}
-                      >
-                          <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {images
+                  .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                  .map((image) => (
+                  <div
+                    key={image.id}
+                    className="group relative bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 cursor-pointer aspect-[3/4]"
+                    onClick={() => setSelectedImage(image)}
+                  >
+                    <img
+                      src={image.image_url}
+                      alt={image.title || 'Image'}
+                      loading="lazy"
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    
+                    {/* Glass Overlay Actions */}
+                    {isAuthenticated && (
+                      <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 z-20">
+                        <Button
+                            variant="secondary"
+                            size="icon"
+                            className="h-9 w-9 bg-white/90 backdrop-blur-md rounded-xl text-slate-700 hover:bg-purple-600 hover:text-white border-none shadow-lg"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (selectedFestival?.id && image.id) {
+                                setBackgroundMutation.mutate({ festivalId: selectedFestival.id, imageId: image.id });
+                              }
+                            }}
+                        >
+                            <Pin className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="secondary"
+                            size="icon"
+                            className="h-9 w-9 bg-white/90 backdrop-blur-md rounded-xl text-slate-700 hover:bg-blue-600 hover:text-white border-none shadow-lg"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditFormData({ title: image.title || '', description: image.description || '' });
+                              setSelectedImage(image);
+                              setIsEditDialogOpen(true);
+                            }}
+                        >
+                            <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="secondary"
+                            size="icon"
+                            className="h-9 w-9 bg-white/90 backdrop-blur-md rounded-xl text-slate-700 hover:bg-red-600 hover:text-white border-none shadow-lg"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeletingImageId(image.id || null);
+                            }}
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
 
-                  {/* Gradient & Meta */}
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12">
-                    <p className="text-white text-sm font-black line-clamp-1 drop-shadow-md uppercase tracking-tight">
-                        {image.title || t('చిత్రం', 'Photo')}
-                    </p>
-                    <p className="text-white/60 text-[10px] font-bold mt-0.5 flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {image.created_at ? format(new Date(image.created_at), 'MMM dd, yyyy') : ''}
-                    </p>
+                    {/* Gradient & Meta */}
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12">
+                      <p className="text-white text-sm font-black line-clamp-1 drop-shadow-md uppercase tracking-tight">
+                          {image.title || t('చిత్రం', 'Photo')}
+                      </p>
+                      <p className="text-white/60 text-[10px] font-bold mt-0.5 flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {image.created_at ? format(new Date(image.created_at), 'MMM dd, yyyy') : ''}
+                      </p>
+                    </div>
                   </div>
+                ))}
+              </div>
+
+              {images.length > itemsPerPage && (
+                <div className="mt-8">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          href="#" 
+                          onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.max(1, p - 1)); }}
+                          className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: Math.ceil(images.length / itemsPerPage) }).map((_, i) => (
+                         <PaginationItem key={i}>
+                           <PaginationLink 
+                              href="#" 
+                              isActive={currentPage === i + 1}
+                              onClick={(e) => { e.preventDefault(); setCurrentPage(i + 1); }}
+                           >
+                              {i + 1}
+                           </PaginationLink>
+                         </PaginationItem>
+                      ))}
+
+                      <PaginationItem>
+                        <PaginationNext 
+                          href="#"
+                          onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.min(Math.ceil(images.length / itemsPerPage), p + 1)); }}
+                           className={currentPage === Math.ceil(images.length / itemsPerPage) ? 'pointer-events-none opacity-50' : ''}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </div>
 
@@ -393,7 +436,7 @@ export default function Images() {
         {isAuthenticated && (
           <Button
               onClick={() => setIsDialogOpen(true)}
-              className="fixed bottom-24 right-6 h-16 w-16 rounded-full shadow-2xl bg-gradient-to-br from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white p-0 flex items-center justify-center border-none transition-all active:scale-95 z-50 md:hidden"
+              className="fixed bottom-24 right-6 h-16 w-16 rounded-full shadow-2xl bg-primary hover:bg-primary/90 text-primary-foreground p-0 flex items-center justify-center border-none transition-all active:scale-95 z-50 md:hidden"
               aria-label={t('చిత్రం అప్‌లోడ్ చేయండి', 'Upload Image')}
           >
               <Upload className="h-10 w-10" />
@@ -429,7 +472,7 @@ export default function Images() {
                   <div className="bg-white p-8 flex flex-col justify-center">
                      <div className="space-y-3">
                         <Button 
-                          className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-black shadow-lg shadow-purple-100 transition-all active:scale-95 flex items-center justify-center gap-2"
+                          className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2"
                           onClick={async () => {
                             try {
                               const response = await fetch(selectedImage.image_url);
@@ -552,7 +595,7 @@ export default function Images() {
                 />
               </div>
               <div className="flex gap-2 pt-4">
-                <Button type="submit" disabled={updateImageMutation.isPending} className="flex-1 bg-purple-600 hover:bg-purple-700 rounded-xl font-bold h-11">
+                <Button type="submit" disabled={updateImageMutation.isPending} className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-bold h-11">
                   {updateImageMutation.isPending ? t('సేవ్ అవుతోంది...', 'Saving...') : t('సేవ్', 'Save')}
                 </Button>
                 <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)} className="rounded-xl border-slate-200 h-11">

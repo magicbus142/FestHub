@@ -275,7 +275,7 @@ export default function Expenses() {
                {isAuthenticated && (
                  <Button
                     onClick={startAddExpense}
-                    className="hidden md:flex bg-red-600 hover:bg-red-700 text-white font-black h-11 rounded-2xl px-6 text-sm shadow-xl shadow-red-200 transition-all active:scale-[0.95] items-center gap-2"
+                    className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground font-black h-11 rounded-2xl px-6 text-sm shadow-xl shadow-primary/20 transition-all active:scale-[0.95] items-center gap-2"
                 >
                     <Plus className="h-5 w-5" />
                     {t('ఖర్చు జోడించు', 'Add Expense')}
@@ -341,7 +341,7 @@ export default function Expenses() {
                 />
               </div>
               <div className="flex gap-2 pt-4">
-                <Button type="submit" disabled={addExpenseMutation.isPending || updateExpenseMutation.isPending} className="flex-1 bg-red-600 hover:bg-red-700 rounded-xl font-bold">
+                <Button type="submit" disabled={addExpenseMutation.isPending || updateExpenseMutation.isPending} className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-bold">
                   {editingExpenseId
                     ? (updateExpenseMutation.isPending ? t('నవీకరిస్తోంది...', 'Updating...') : t('నవీకరించు', 'Update'))
                     : (addExpenseMutation.isPending ? t('జోడిస్తోంది...', 'Adding...') : t('జోడించు', 'Add'))}
@@ -590,7 +590,7 @@ export default function Expenses() {
         {isAuthenticated && (
           <Button
               onClick={startAddExpense}
-              className="fixed bottom-24 right-6 h-16 w-16 rounded-full shadow-2xl bg-gradient-to-br from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white p-0 flex items-center justify-center border-none transition-all active:scale-95 z-50 md:hidden"
+              className="fixed bottom-24 right-6 h-16 w-16 rounded-full shadow-2xl bg-primary hover:bg-primary/90 text-primary-foreground p-0 flex items-center justify-center border-none transition-all active:scale-95 z-50 md:hidden"
               aria-label={t('ఖర్చు జోడించు', 'Add Expense')}
           >
               <Plus className="h-10 w-10" />
