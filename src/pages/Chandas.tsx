@@ -593,6 +593,9 @@ export default function Chandas() {
                    <TableHeader className="bg-slate-50">
                      <TableRow>
                        <TableHead className="font-semibold">{t('దాత', 'Contributor')}</TableHead>
+                       {(currentOrganization?.name?.trim().toLowerCase() === 'nrsa' || currentOrganization?.slug?.trim().toLowerCase() === 'nrsa' || processedDonations.some(d => d.flat_no)) && (
+                         <TableHead className="font-semibold">{t('ఫ్లాట్ నంబరు', 'Flat No')}</TableHead>
+                       )}
                        <TableHead className="font-semibold">{t('తేదీ', 'Date')}</TableHead>
                        <TableHead className="font-semibold">{t('విధానం', 'Mode')}</TableHead>
                        <TableHead className="text-right font-semibold">{t('మొత్తం', 'Amount')}</TableHead>

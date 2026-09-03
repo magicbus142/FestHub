@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS public.donations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     name_english TEXT,
+    flat_no TEXT,
     amount NUMERIC NOT NULL,
     received_amount NUMERIC,
     type TEXT NOT NULL,

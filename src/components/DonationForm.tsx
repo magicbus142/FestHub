@@ -58,6 +58,9 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
   const { t } = useLanguage();
   const { currentOrganization } = useOrganization();
 
+  const isNRSA = currentOrganization?.name?.trim().toLowerCase() === 'nrsa' || currentOrganization?.slug?.trim().toLowerCase() === 'nrsa';
+  const [flatNo, setFlatNo] = useState(donation?.flat_no || '');
+
   // Suggestions state
   const [suggestions, setSuggestions] = useState<NameSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -68,6 +71,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
     if (open && donation) {
       setNameTelugu(donation.name || '');
       setNameEnglish(donation.name_english || '');
+      setFlatNo(donation.flat_no || '');
       const initialCategory = donation.type === 'చందా' ? 'chanda' : (donation.category || 'chanda');
       setCategory(initialCategory);
       setMode(donation.donation_mode || 'cash');
@@ -84,6 +88,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
       // Reset for new entry
       setNameTelugu('');
       setNameEnglish('');
+      setFlatNo('');
       setCategory('chanda');
       setMode('cash');
       setDonationItems([{ type: 'చందా', amount: '', receivedAmount: '', mode: 'cash' }]);
@@ -194,6 +199,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
             return {
                 name: (nameTelugu || nameEnglish).trim(),
                 name_english: nameEnglish.trim() || undefined,
+                flat_no: flatNo.trim() || undefined,
                 amount: parseFloat(item.amount) || 0,
                 received_amount: parseFloat(item.receivedAmount || '0'), 
                 type: trimmedType,
@@ -265,7 +271,7 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
                </Tabs>
            </div>
 
-           {/* Name Inputs (Unchanged) */}
+           {/* Name & Flat No Inputs */}
            <div className="space-y-2">
              <Label>{t('పేరు', 'Name')}</Label>
              <div className="grid grid-cols-2 gap-2 relative">
@@ -291,6 +297,17 @@ export const DonationForm = ({ open, onOpenChange, donation, onDonationSaved, se
                      </div>
                  )}
              </div>
+             {(isNRSA || donation?.flat_no) && (
+               <div className="pt-1">
+                 <Label className="text-xs font-semibold text-slate-700">{t('ఫ్లాట్ నంబరు', 'Flat No')}</Label>
+                 <Input 
+                   value={flatNo} 
+                   onChange={e => setFlatNo(e.target.value)} 
+                   placeholder="e.g. A-101 / Flat 202"
+                   className="mt-1"
+                 />
+               </div>
+             )}
            </div>
 
            {/* Items List */}

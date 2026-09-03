@@ -5,6 +5,7 @@ export interface Donation {
   id?: string;
   name: string; // Telugu name in DB
   name_english?: string;
+  flat_no?: string;
   amount: number;
   received_amount?: number;
   type: string;
@@ -31,6 +32,7 @@ export const addDonation = async (donation: Omit<Donation, 'id' | 'created_at' |
     .insert([{
       name: donation.name,
       name_english: donation.name_english,
+      flat_no: donation.flat_no,
       amount: donation.amount,
       received_amount: donation.received_amount,
       type: donation.type,
@@ -54,11 +56,13 @@ export const updateDonation = async (id: string, donation: Omit<Donation, 'id' |
     .update({
       name: donation.name,
       name_english: donation.name_english,
+      flat_no: donation.flat_no,
       amount: donation.amount,
       received_amount: donation.received_amount,
       type: donation.type,
       category: donation.category,
       donation_mode: donation.donation_mode,
+      payment_method: donation.payment_method,
       festival_name: donation.festival_name,
       festival_year: donation.festival_year
     })

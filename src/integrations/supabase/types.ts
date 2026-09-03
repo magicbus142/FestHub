@@ -79,12 +79,16 @@ export type Database = {
           amount: number
           category: string
           created_at: string
+          donation_mode: string | null
           festival_name: string | null
           festival_year: number | null
+          flat_no: string | null
           id: string
           name: string
           name_english: string | null
           organization_id: string | null
+          payment_method: string | null
+          received_amount: number | null
           type: string
           updated_at: string
         }
@@ -92,12 +96,16 @@ export type Database = {
           amount: number
           category: string
           created_at?: string
+          donation_mode?: string | null
           festival_name?: string | null
           festival_year?: number | null
+          flat_no?: string | null
           id?: string
           name: string
           name_english?: string | null
           organization_id?: string | null
+          payment_method?: string | null
+          received_amount?: number | null
           type: string
           updated_at?: string
         }
@@ -105,12 +113,16 @@ export type Database = {
           amount?: number
           category?: string
           created_at?: string
+          donation_mode?: string | null
           festival_name?: string | null
           festival_year?: number | null
+          flat_no?: string | null
           id?: string
           name?: string
           name_english?: string | null
           organization_id?: string | null
+          payment_method?: string | null
+          received_amount?: number | null
           type?: string
           updated_at?: string
         }

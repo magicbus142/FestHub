@@ -54,13 +54,20 @@ export const DonationCard = ({ donation, onEdit, onDelete, onReceipt, onAuthRequ
 
       <CardContent className="p-4 sm:p-5">
         <div className="flex flex-col mb-4">
-           <div className="flex items-center gap-2 mb-1">
-              <span className={cn(
-                "text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md",
-                donation.category === 'sponsorship' ? "bg-purple-50 text-purple-600" : "bg-blue-50 text-blue-600"
-              )}>
-                {donation.category === 'chanda' ? t('చందా', 'Chanda') : t('స్పాన్సర్‌షిప్', 'Sponsorship')}
-              </span>
+           <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className={cn(
+                  "text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md",
+                  donation.category === 'sponsorship' ? "bg-purple-50 text-purple-600" : "bg-blue-50 text-blue-600"
+                )}>
+                  {donation.category === 'chanda' ? t('చందా', 'Chanda') : t('స్పాన్సర్‌షిప్', 'Sponsorship')}
+                </span>
+                {donation.flat_no && (
+                  <span className="text-[11px] font-black px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-300 shadow-xs">
+                    Flat: {donation.flat_no}
+                  </span>
+                )}
+              </div>
               <span className="text-[10px] font-bold text-muted-foreground">
                  {donation.created_at ? new Date(donation.created_at).toLocaleDateString() : ''}
               </span>
@@ -77,7 +84,7 @@ export const DonationCard = ({ donation, onEdit, onDelete, onReceipt, onAuthRequ
         </div>
 
         <div className="flex justify-between items-end pt-3 border-t border-slate-50 flex-wrap gap-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
              <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">
                   {donation.amount === 0 ? t('రకం', 'Mode') : 'Type'}
@@ -86,6 +93,16 @@ export const DonationCard = ({ donation, onEdit, onDelete, onReceipt, onAuthRequ
                    {donation.amount === 0 ? (donation.donation_mode === 'goods' ? t('వస్తువులు', 'Goods') : t('సేవ', 'Service')) : donation.type}
                 </span>
              </div>
+             {donation.flat_no && (
+               <div className="flex flex-col border-l border-slate-100 pl-3">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">
+                    Flat No
+                  </span>
+                  <span className="text-sm font-bold text-amber-900">
+                     {donation.flat_no}
+                  </span>
+               </div>
+             )}
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4 ml-auto">
