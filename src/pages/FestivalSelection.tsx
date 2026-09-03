@@ -5,12 +5,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFestival } from '@/contexts/FestivalContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { FestivalCard } from '@/components/FestivalCard';
 import { Button } from '@/components/ui/button';
 import { AddFestivalDialog } from '@/components/AddFestivalDialog';
 import { PasscodeDialog } from '@/components/PasscodeDialog';
 import { ShareDialog } from '@/components/ShareDialog'; // Import ShareDialog
-import { Plus, ArrowLeft, Share2, Lock } from 'lucide-react';
+import { Plus, ArrowLeft, Share2, Lock, Home, LogOut } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import type { Festival } from '@/lib/festivals';
@@ -19,16 +20,37 @@ import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 export default function FestivalSelection() {
   const { t, language, setLanguage } = useLanguage();
   const { setSelectedFestival } = useFestival();
-  const { currentOrganization, isAuthenticated, authenticate } = useOrganization();
+  const { currentOrganization, isAuthenticated, logout } = useOrganization();
+  const { signOut } = useSupabaseAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isAddFestivalOpen, setIsAddFestivalOpen] = useState(false);
   const [isPasscodeOpen, setIsPasscodeOpen] = useState(false);
-  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false); // State for ShareDialog
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const handleShareOrganization = () => {
     setIsShareDialogOpen(true);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      logout();
+      await signOut();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      localStorage.removeItem('currentOrganization');
+      localStorage.removeItem('selectedFestival');
+      localStorage.removeItem('orgAuthenticated');
+      localStorage.removeItem('orgAuthId');
+      sessionStorage.clear();
+      toast({
+        title: t('లాగ్అవుట్ అయ్యారు', 'Signed Out'),
+        description: t('సంస్థ నుండి విజయవంతంగా లాగ్‌అవుట్ అయ్యారు', 'Successfully signed out of organization'),
+      });
+      navigate('/');
+    }
   };
 
   const { data: festivals = [] } = useQuery({
@@ -136,10 +158,29 @@ export default function FestivalSelection() {
         
         {/* Unified Header */}
         <div className="flex flex-col gap-4 mb-8">
-          <div className="flex items-center gap-2 bg-slate-100/50 w-fit px-3 py-1 rounded-full text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-slate-200/50">
-             <span>Home</span>
-             <span className="opacity-30">/</span>
-             <span className="text-primary truncate max-w-[100px]">Organizations</span>
+          <div className="flex items-center gap-2 bg-slate-100/70 hover:bg-slate-200/70 transition-colors w-fit px-3 py-1.5 rounded-full text-xs font-bold text-slate-600 border border-slate-200/80 shadow-2xs">
+             <button 
+               onClick={() => navigate('/')} 
+               className="hover:text-primary transition-colors flex items-center gap-1.5 cursor-pointer"
+               title="Go to Home / Organizations"
+             >
+               <Home className="h-3.5 w-3.5 text-primary" />
+               <span>Home</span>
+             </button>
+             <span className="opacity-40">/</span>
+             <button 
+               onClick={() => navigate('/')} 
+               className="hover:text-primary transition-colors cursor-pointer"
+               title="All Organizations"
+             >
+               Organizations
+             </button>
+             {currentOrganization?.name && (
+               <>
+                 <span className="opacity-40">/</span>
+                 <span className="text-primary font-extrabold truncate max-w-[120px]">{currentOrganization.name}</span>
+               </>
+             )}
           </div>
 
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -153,6 +194,17 @@ export default function FestivalSelection() {
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
+               {/* Home Button */}
+               <Button
+                   variant="outline"
+                   onClick={() => navigate('/')}
+                   className="h-11 rounded-2xl px-3 sm:px-4 text-xs font-bold gap-2 border-slate-200 text-slate-700 hover:bg-slate-100 transition-all shadow-xs cursor-pointer"
+                   title="Return to Organizations Home"
+               >
+                   <Home className="h-4 w-4 text-slate-600" />
+                   <span className="hidden sm:inline">{t('హోమ్', 'Home')}</span>
+               </Button>
+
                <div className="flex items-center bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100">
                   <Button variant="ghost" size="icon" onClick={handleShareOrganization} className="h-9 w-9 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-primary transition-all">
                       <Share2 className="h-4 w-4" />
@@ -169,6 +221,17 @@ export default function FestivalSelection() {
                   <ThemeSwitcher />
                </div>
                
+               {/* Sign Out Button */}
+               <Button
+                   variant="outline"
+                   onClick={handleSignOut}
+                   className="h-11 rounded-2xl px-3 sm:px-4 text-xs font-bold gap-2 border-red-200/80 bg-red-50/50 text-red-600 hover:bg-red-100 hover:text-red-700 transition-all shadow-xs cursor-pointer"
+                   title="Sign Out of Organization"
+               >
+                   <LogOut className="h-4 w-4 text-red-500" />
+                   <span>{t('లాగ్అవుట్', 'Sign Out')}</span>
+               </Button>
+
                {/* Add Festival Button */}
                <TooltipProvider>
                  <Tooltip>
