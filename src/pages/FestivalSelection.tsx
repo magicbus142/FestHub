@@ -193,45 +193,61 @@ export default function FestivalSelection() {
                </p>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
-               {/* Home Button */}
-               <Button
-                   variant="outline"
-                   onClick={() => navigate('/')}
-                   className="h-11 rounded-2xl px-3 sm:px-4 text-xs font-bold gap-2 border-slate-200 text-slate-700 hover:bg-slate-100 transition-all shadow-xs cursor-pointer"
-                   title="Return to Organizations Home"
-               >
-                   <Home className="h-4 w-4 text-slate-600" />
-                   <span className="hidden sm:inline">{t('హోమ్', 'Home')}</span>
-               </Button>
+            <div className="flex items-center gap-3 flex-wrap">
+               {/* Single Combined Action Pill (Image 1 design) */}
+               <div className="flex items-center bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200/80 gap-1">
+                  {/* Back Button */}
+                  <Button 
+                      variant="ghost" 
+                      onClick={() => navigate('/')} 
+                      className="h-9 px-3 rounded-xl text-slate-700 bg-slate-100/80 hover:bg-slate-200/80 font-semibold text-xs gap-1.5 transition-all cursor-pointer"
+                      title={t('వెనుకకు', 'Back')}
+                  >
+                      <ArrowLeft className="h-4 w-4 text-slate-600" />
+                      <span>{t('వెనుకకు', 'Back')}</span>
+                  </Button>
 
-               <div className="flex items-center bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100">
-                  <Button variant="ghost" size="icon" onClick={handleShareOrganization} className="h-9 w-9 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-primary transition-all">
+                  <div className="w-px h-4 bg-slate-200/60 mx-0.5"></div>
+
+                  {/* Share Button */}
+                  <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={handleShareOrganization} 
+                      className="h-9 w-9 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-primary transition-all"
+                      title={t('భాగస్వామ్యం చేయండి', 'Share')}
+                  >
                       <Share2 className="h-4 w-4" />
                   </Button>
-                  <div className="w-px h-4 bg-slate-100 mx-1"></div>
+
+                  {/* Language Switcher */}
                   <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
                       className="h-9 w-9 rounded-xl hover:bg-blue-50 text-blue-600 font-bold text-xs"
+                      title={t('భాష మార్చండి', 'Switch Language')}
                   >
                      {language === 'telugu' ? 'EN' : 'తె'}
                   </Button>
+
+                  {/* Theme Switcher */}
                   <ThemeSwitcher />
+
+                  <div className="w-px h-4 bg-slate-200/60 mx-0.5"></div>
+
+                  {/* Sign Out Button */}
+                  <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleSignOut}
+                      className="h-9 w-9 rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 transition-all cursor-pointer"
+                      title={t('లాగ్అవుట్', 'Sign Out')}
+                  >
+                      <LogOut className="h-4 w-4 text-red-500" />
+                  </Button>
                </div>
                
-               {/* Sign Out Button */}
-               <Button
-                   variant="outline"
-                   onClick={handleSignOut}
-                   className="h-11 rounded-2xl px-3 sm:px-4 text-xs font-bold gap-2 border-red-200/80 bg-red-50/50 text-red-600 hover:bg-red-100 hover:text-red-700 transition-all shadow-xs cursor-pointer"
-                   title="Sign Out of Organization"
-               >
-                   <LogOut className="h-4 w-4 text-red-500" />
-                   <span>{t('లాగ్అవుట్', 'Sign Out')}</span>
-               </Button>
-
                {/* Add Festival Button */}
                <TooltipProvider>
                  <Tooltip>
