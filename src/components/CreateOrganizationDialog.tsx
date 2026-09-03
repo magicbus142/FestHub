@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, getSupabaseClientForOrg } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -53,11 +53,13 @@ export function CreateOrganizationDialog({ open, onOpenChange }: CreateOrganizat
         throw new Error("Passcode must be at least 6 characters long.");
       }
 
+      const client = getSupabaseClientForOrg(name);
+
       // Create slug from name
       const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
-      // 2. Create Supabase Auth User (This sends confirmation email depending on project settings)
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // 2. Create Supabase Auth User
+      const { data: authData, error: authError } = await client.auth.signUp({
         email,
         password: passcode,
         options: {
@@ -70,9 +72,7 @@ export function CreateOrganizationDialog({ open, onOpenChange }: CreateOrganizat
       if (authError) throw authError;
 
       // 3. Create Organization Record
-      // Note: We're keeping the 'passcode' column in DB for now as a fallback/legacy support
-      // but the primary auth is now managed by Supabase Auth.
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('organizations')
         .insert([{
           name,
@@ -86,12 +86,38 @@ export function CreateOrganizationDialog({ open, onOpenChange }: CreateOrganizat
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // If organization was pre-seeded (e.g. via secondary_setup.sql), link to existing record
+        if (error.code === '23505' || error.message?.includes('organizations_slug_key')) {
+          const { data: existingOrg } = await client
+            .from('organizations')
+            .select('*')
+            .eq('slug', slug)
+            .single();
+
+          if (existingOrg) {
+            const { data: updatedOrg } = await client
+              .from('organizations')
+              .update({
+                email: email || existingOrg.email,
+                passcode: passcode || existingOrg.passcode,
+                description: description || existingOrg.description
+              })
+              .eq('id', existingOrg.id)
+              .select()
+              .single();
+
+            return updatedOrg || existingOrg;
+          }
+          throw new Error(`An organization named "${name}" already exists. Please use "Select Organization" to log in.`);
+        }
+        throw error;
+      }
       return data;
     },
     onSuccess: (data) => {
       toast({
-        title: 'Organization created',
+        title: 'Organization ready',
         description: 'Your organization account has been set up successfully.'
       });
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
@@ -99,9 +125,13 @@ export function CreateOrganizationDialog({ open, onOpenChange }: CreateOrganizat
       navigate(`/org/${data.slug}`);
     },
     onError: (error: any) => {
+      let msg = error.message || 'Failed to create organization';
+      if (msg.includes('organizations_slug_key')) {
+        msg = `An organization named "${name}" already exists. Please use "Select Organization" to log in.`;
+      }
       toast({
-        title: 'Creation Failed',
-        description: error.message || 'Failed to create organization',
+        title: 'Organization Setup Failed',
+        description: msg,
         variant: 'destructive'
       });
     }

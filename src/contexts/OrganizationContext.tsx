@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback, useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, getSupabaseClientForOrg } from '@/integrations/supabase/client';
 
 export interface Organization {
   id: string;
@@ -104,7 +104,8 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
     if (!currentOrganization) return false;
     
     try {
-      const { data: isValid, error } = await supabase
+      const client = getSupabaseClientForOrg(currentOrganization.name);
+      const { data: isValid, error } = await client
         .rpc('verify_organization_passcode', {
           _organization_id: currentOrganization.id,
           _passcode: passcode

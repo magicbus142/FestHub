@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useParams, useNavigate, Routes, Route, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, getSupabaseClientForOrg, supabasePrimary, supabaseSecondary } from '@/integrations/supabase/client';
 import { useOrganization, Organization } from '@/contexts/OrganizationContext';
 
 import { YearProvider } from '@/contexts/YearContext';
@@ -22,9 +22,8 @@ import { MainLayout } from '@/components/layout/MainLayout';
 export default function OrganizationHome() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams(); // Add this
+  const [searchParams] = useSearchParams();
   const { setCurrentOrganization, setAllowedPages } = useOrganization();
-  const [isLoading, setIsLoading] = useState(true);
 
   // Handle shared link query params
   useEffect(() => {
@@ -35,15 +34,39 @@ export default function OrganizationHome() {
     }
   }, [searchParams, setAllowedPages]);
 
-  const { data: organization } = useQuery({
+  const { data: organization, isPending, isError } = useQuery({
     queryKey: ['organization', slug],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let client = getSupabaseClientForOrg(slug);
+      let { data, error } = await client
         .from('organizations')
         .select('id, name, slug, description, email, logo_url, theme, enabled_pages, created_at, updated_at')
         .eq('slug', slug)
         .single();
       
+      // Fallback lookup across databases if not found on initial client
+      if ((error || !data) && supabaseSecondary && client !== supabaseSecondary) {
+        const res = await supabaseSecondary
+          .from('organizations')
+          .select('id, name, slug, description, email, logo_url, theme, enabled_pages, created_at, updated_at')
+          .eq('slug', slug)
+          .single();
+        if (res.data) {
+          data = res.data;
+          error = null;
+        }
+      } else if ((error || !data) && client !== supabasePrimary) {
+        const res = await supabasePrimary
+          .from('organizations')
+          .select('id, name, slug, description, email, logo_url, theme, enabled_pages, created_at, updated_at')
+          .eq('slug', slug)
+          .single();
+        if (res.data) {
+          data = res.data;
+          error = null;
+        }
+      }
+
       if (error) throw error;
       return data as Organization;
     },
@@ -53,14 +76,12 @@ export default function OrganizationHome() {
   useEffect(() => {
     if (organization) {
       setCurrentOrganization(organization);
-      setIsLoading(false);
-    } else if (!organization && !isLoading) {
-      // If query is done but no data, redirect
+    } else if (isError) {
       navigate('/');
     }
-  }, [organization, setCurrentOrganization, navigate, isLoading]);
+  }, [organization, setCurrentOrganization, navigate, isError]);
 
-  if (isLoading || !organization) {
+  if (isPending || !organization) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">

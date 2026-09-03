@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { LogIn } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, getSupabaseClientForOrg, supabasePrimary, supabaseSecondary } from '@/integrations/supabase/client';
 
 interface OrganizationLoginDialogProps {
   open: boolean;
@@ -46,14 +46,40 @@ export function OrganizationLoginDialog({
     setIsLoading(true);
 
     try {
+      const trimmedName = name.trim();
+      let client = getSupabaseClientForOrg(trimmedName);
+
       // 1. Find organization by name
-      const { data: org, error } = await supabase
+      let { data: org, error } = await client
         .from('organizations')
         .select('*')
-        .ilike('name', name.trim())
+        .ilike('name', trimmedName)
         .single();
 
-      if (error || !org) {
+      // Fallback search across both clients if not found on primary client lookup
+      if ((error || !org) && supabaseSecondary && client !== supabaseSecondary) {
+        const { data: secondaryOrg } = await supabaseSecondary
+          .from('organizations')
+          .select('*')
+          .ilike('name', trimmedName)
+          .single();
+        if (secondaryOrg) {
+          org = secondaryOrg;
+          client = supabaseSecondary;
+        }
+      } else if ((error || !org) && client !== supabasePrimary) {
+        const { data: primaryOrg } = await supabasePrimary
+          .from('organizations')
+          .select('*')
+          .ilike('name', trimmedName)
+          .single();
+        if (primaryOrg) {
+          org = primaryOrg;
+          client = supabasePrimary;
+        }
+      }
+
+      if (!org) {
         toast({
           title: 'Organization not found',
           description: 'Please check the organization name and try again',
@@ -74,54 +100,33 @@ export function OrganizationLoginDialog({
       }
 
       // 2. Try Supabase Auth Login (Primary Method)
-      // We use the organization's email + the entered passcode
       if (org.email) {
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        const { data: authData } = await client.auth.signInWithPassword({
           email: org.email,
           password: passcode
         });
 
-        if (authData.session) {
-          // SUCCESS: Native Auth worked
+        if (authData?.session) {
           handleLoginSuccess(org);
           return;
         }
       }
 
-      // 3. Fallback: Check Legacy Passcode & Migrate (JIT)
-      // If native auth failed, it might be an old account that hasn't been migrated.
-      // We verify the legacy passcode column.
-
-      const { data: isValidLegacy } = await supabase.rpc('verify_organization_passcode', {
+      // 3. Fallback: Check Legacy Passcode
+      const { data: isValidLegacy } = await client.rpc('verify_organization_passcode', {
         _organization_id: org.id,
         _passcode: passcode
       });
 
       if (isValidLegacy) {
-        // LEGACY VALID! -> MIGRATE NOW
-        // This user has the correct passcode but no Auth User. 
-        // We will create the Auth User for them now ("Just In Time").
-
         if (org.email && passcode.length >= 6) {
-          const { error: signUpError } = await supabase.auth.signUp({
+          await client.auth.signUp({
             email: org.email,
             password: passcode,
             options: {
               data: { organization_name: org.name }
             }
           });
-
-          if (!signUpError) {
-            // Migration success! Next time they can use standard auth.
-            // Note: signUp automatically signs them in if email confirmation is off,
-            // or sends an email if it's on.
-            // For this seamless flow, we'll assume we can proceed to dashboard 
-            // but warn them if they need to check email.
-            toast({
-              title: "Account Upgraded",
-              description: "We've updated your security system for better protection.",
-            });
-          }
         }
 
         handleLoginSuccess(org);

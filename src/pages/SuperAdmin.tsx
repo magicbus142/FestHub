@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, supabasePrimary, supabaseSecondary } from '@/integrations/supabase/client';
 import { 
   Users, 
   PartyPopper, 
@@ -245,13 +245,24 @@ export default function SuperAdmin() {
   const { data: stats = [], isLoading } = useQuery({
     queryKey: ['super-admin-stats'],
     queryFn: async () => {
-      // 1. Fetch all organizations
-      const { data: orgs, error: orgsError } = await supabase
+      // 1. Fetch all organizations across both Supabase accounts
+      const { data: primaryOrgs, error: orgsError } = await supabasePrimary
         .from('organizations')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (orgsError) throw orgsError;
+
+      let secondaryOrgs: any[] = [];
+      if (supabaseSecondary) {
+        const { data: secOrgs } = await supabaseSecondary
+          .from('organizations')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (secOrgs) secondaryOrgs = secOrgs;
+      }
+
+      const orgs = [...(primaryOrgs || []), ...secondaryOrgs];
 
       // 2. Fetch all images with their paths and org IDs
       const { data: allImages, error: imagesError } = await supabase
