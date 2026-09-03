@@ -36,36 +36,56 @@ export default function FestivalSelection() {
     queryFn: async () => {
       if (!currentOrganization) return [];
       
-      const { data: festivals, error } = await supabase
-        .from('festivals')
-        .select(`
-          *,
-          background_image_rel:images!festivals_background_image_id_fkey(image_url)
-        `)
-        .eq('organization_id', currentOrganization.id)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
+      let fetchedFestivals: any[] = [];
+
+      try {
+        const { data, error } = await supabase
+          .from('festivals')
+          .select(`
+            *,
+            background_image_rel:images!festivals_background_image_id_fkey(image_url)
+          `)
+          .or(`organization_id.eq.${currentOrganization.id},organization_id.is.null`)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        fetchedFestivals = data || [];
+      } catch {
+        // Fallback: If FK relationship fails (400 Bad Request), run standard select
+        const { data, error } = await supabase
+          .from('festivals')
+          .select('*')
+          .or(`organization_id.eq.${currentOrganization.id},organization_id.is.null`)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        fetchedFestivals = data || [];
+      }
       
       // Get images for each festival to use as background when no specific background is set
       const festivalsWithImages = await Promise.all(
-        (festivals || []).map(async (festival: any) => {
+        fetchedFestivals.map(async (festival: any) => {
           // First check if festival has a specific background image
           const rel = festival.background_image_rel;
           let backgroundImage = (Array.isArray(rel) ? rel?.[0]?.image_url : rel?.image_url) || festival.background_image;
           
           // If no specific background, get the latest image from this festival
           if (!backgroundImage) {
-            const { data: festivalImages } = await supabase
-              .from('images')
-              .select('image_url')
-              .eq('festival_name', festival.name)
-              .eq('festival_year', festival.year)
-              .order('created_at', { ascending: false })
-              .limit(1);
-            
-            backgroundImage = festivalImages?.[0]?.image_url || null;
+            try {
+              const { data: festivalImages } = await supabase
+                .from('images')
+                .select('image_url')
+                .eq('festival_name', festival.name)
+                .eq('festival_year', festival.year)
+                .order('created_at', { ascending: false })
+                .limit(1);
+              
+              backgroundImage = festivalImages?.[0]?.image_url || null;
+            } catch {
+              // ignore
+            }
           }
           
           return {

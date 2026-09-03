@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS public.festivals (
     is_hidden BOOLEAN DEFAULT false,
     background_color TEXT,
     background_image TEXT,
-    background_image_id UUID,
+    background_image_id UUID REFERENCES public.images(id) ON DELETE SET NULL,
     enabled_pages JSONB,
     organization_id UUID REFERENCES public.organizations(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT now(),
