@@ -20,7 +20,7 @@ import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 export default function FestivalSelection() {
   const { t, language, setLanguage } = useLanguage();
   const { setSelectedFestival } = useFestival();
-  const { currentOrganization, isAuthenticated, logout } = useOrganization();
+  const { currentOrganization, isAuthenticated, authenticate, logout } = useOrganization();
   const { signOut } = useSupabaseAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
