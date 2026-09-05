@@ -124,160 +124,97 @@ export default function Dashboard() {
     color: 'text-green-600'
   }];
   return <div className="min-h-screen bg-background">
-    <div className="container mx-auto px-4 py-6">
-      {/* Unified Header */}
-      <div className="flex flex-col gap-4 mb-8">
-        {/* Breadcrumbs Pill */}
-        <div className="flex items-center gap-2 bg-slate-100/50 w-fit px-3 py-1 rounded-full text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-slate-200/50">
-          <span>Home</span>
-          <span className="opacity-30">/</span>
-          <span className="text-primary truncate max-w-[100px]">{selectedFestival?.name || 'Festival'}</span>
-          <span className="opacity-30">/</span>
-          <span className="text-foreground">Dashboard</span>
-        </div>
-
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <h1 className="text-4xl font-black text-foreground tracking-tight mb-1">
-              {selectedFestival?.name} {selectedFestival?.year}
-            </h1>
-            <p className="text-sm text-muted-foreground font-medium">
-              {t('పండుగ అవలోకనం మరియు గణాంకాలు', 'Festival overview and statistics')}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="flex items-center bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100">
-              <BackButton
-                variant="ghost"
-                size="sm"
-                className="h-9 rounded-xl bg-slate-50 border-none shadow-none text-slate-600 hover:bg-slate-100 hover:text-primary transition-all"
-              />
-              <div className="w-px h-4 bg-slate-100 mx-1"></div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-                className="h-9 w-9 rounded-xl hover:bg-blue-50 text-blue-600 font-bold text-xs"
-              >
-                {language === 'telugu' ? 'EN' : 'తె'}
-              </Button>
-              <ThemeSwitcher />
-              
-              {isAuthenticated ? (
-                <>
-                  <div className="w-px h-4 bg-slate-100 mx-1"></div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      logout();
-                      navigate(orgPath);
-                    }}
-                    className="h-9 w-9 rounded-xl hover:bg-red-50 text-red-500 transition-colors"
-                    title={t('లాగ్ అవుట్', 'Log Out')}
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <div className="w-px h-4 bg-slate-100 mx-1"></div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsAuthOpen(true)}
-                    className="h-9 w-9 rounded-xl hover:bg-blue-50 text-blue-600 transition-colors"
-                    title={t('లాగిన్', 'Login')}
-                  >
-                    <Lock className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-6">
+      <PageHeader
+        title={`${selectedFestival?.name || ''} ${selectedFestival?.year || ''}`}
+        description={t('పండుగ అవలోకనం మరియు గణాంకాలు', 'Festival overview and statistics')}
+        onAuthOpen={() => setIsAuthOpen(true)}
+      />
 
       {/* Festival Pulse Dashboard */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Financial Health Summary */}
-        <Card className="lg:col-span-2 bg-gradient-to-br from-white to-slate-50 shadow-md border-none overflow-hidden relative group">
-          <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity pointer-events-none">
-            <BarChart3 className="h-40 w-40 rotate-12" />
+      {/* Financial Health Summary - Full Width */}
+      <Card className="w-full bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 shadow-md border-none overflow-hidden relative group mb-6">
+        <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity pointer-events-none">
+          <BarChart3 className="h-40 w-40 rotate-12" />
+        </div>
+        <CardContent className="p-5 sm:p-7">
+          <div className="flex items-center gap-2 mb-5">
+            <div className="bg-blue-100 dark:bg-blue-950 p-2 rounded-xl"><Wallet className="h-5 w-5 text-blue-600 dark:text-blue-400" /></div>
+            <span className="text-xs font-black uppercase tracking-widest text-slate-400">{t('ఆర్థిక సారాంశం', 'FINANCIAL SUMMARY')}</span>
           </div>
-          <CardContent className="p-6 sm:p-8">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="bg-blue-100 p-2 rounded-xl"><Wallet className="h-5 w-5 text-blue-600" /></div>
-              <span className="text-xs font-black uppercase tracking-widest text-slate-400">{t('ఆర్థిక సారాంశం', 'FINANCIAL SUMMARY')}</span>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-1">
-                <p className="text-sm font-bold text-muted-foreground tracking-tight">{t('మిగిలిన మొత్తం', 'Total Balance')}</p>
-                <h2 className="text-5xl font-black text-emerald-600 tracking-tighter">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 items-stretch">
+            {/* Total Balance */}
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
+              <div>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{t('మిగిలిన మొత్తం', 'Total Balance')}</p>
+                <h2 className="text-3xl sm:text-4xl font-black text-emerald-600 tracking-tight truncate">
                   ₹{(totalCollection + chandasPrev - totalExpenses - expensesPrev).toLocaleString()}
                 </h2>
-                <div className="flex items-center gap-3 mt-4">
-                  <div className="h-2 w-32 bg-slate-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]" style={{ width: '75%' }}></div>
-                  </div>
-                  {/* <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider">{t('ఆరోగ్యకరమైనది', 'HEALTHY')}</span> */}
-                </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white/70 backdrop-blur-md p-5 rounded-3xl border border-white shadow-sm flex flex-col justify-between group/card hover:border-blue-100 transition-all">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase mb-1 tracking-wider">{t('మునుపటి మొత్తం', 'Previous Amount')}</p>
-                  <div>
-                    <p className="text-xl font-black text-blue-600">₹{(chandasPrev || 0).toLocaleString()}</p>
-                    {isAuthenticated && (
-                      <button
-                        onClick={() => { setPrevInput(String(chandasPrev || 0)); setEditingCardType('chandas'); setIsPrevDialogOpen(true); }}
-                        className="text-[10px] font-bold text-blue-400 hover:text-blue-600 mt-1 underline decoration-dotted"
-                      >
-                        {t('మునుపటిది', 'Edit Prev')}
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div className="bg-white/70 backdrop-blur-md p-5 rounded-3xl border border-white shadow-sm flex flex-col justify-between group/card hover:border-red-100 transition-all">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase mb-1 tracking-wider">{t('ఖర్చులు', 'Expenses')}</p>
-                  <p className="text-xl font-black text-red-600">₹{(totalExpenses + expensesPrev).toLocaleString()}</p>
+              <div className="flex items-center gap-3 mt-3">
+                <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]" style={{ width: '75%' }}></div>
                 </div>
               </div>
             </div>
-          </CardContent>
+
+            {/* Previous Amount */}
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-2xs flex flex-col justify-between group/card hover:border-blue-200 transition-all">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{t('మునుపటి మొత్తం', 'Previous Amount')}</p>
+              <div>
+                <p className="text-2xl font-black text-blue-600 dark:text-blue-400 tracking-tight truncate">
+                  ₹{(chandasPrev || 0).toLocaleString()}
+                </p>
+                {isAuthenticated && (
+                  <button
+                    onClick={() => { setPrevInput(String(chandasPrev || 0)); setEditingCardType('chandas'); setIsPrevDialogOpen(true); }}
+                    className="text-[11px] font-bold text-blue-500 hover:text-blue-700 mt-1 underline decoration-dotted cursor-pointer"
+                  >
+                    {t('మునుపటిది', 'Edit Prev')}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Expenses */}
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-2xs flex flex-col justify-between group/card hover:border-red-200 transition-all sm:col-span-2 md:col-span-1">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{t('ఖర్చులు', 'Expenses')}</p>
+              <p className="text-2xl font-black text-red-600 dark:text-red-400 tracking-tight truncate">
+                ₹{(totalExpenses + expensesPrev).toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Module Pulse Cards - Full Width Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <Card className="bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800 p-5 flex items-center justify-between group hover:shadow-lg hover:border-blue-200 transition-all cursor-pointer rounded-3xl" onClick={() => navigate(`${orgPath}/chandas`)}>
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="h-14 w-14 bg-blue-50 dark:bg-blue-950 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner shrink-0">
+              <BarChart3 className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('చందాలు', 'CHANDAS')}</p>
+              <p className="text-xl font-black text-slate-800 dark:text-slate-100 font-sans truncate">₹{totalCollection.toLocaleString()}</p>
+            </div>
+          </div>
+          <ArrowUpRight className="h-6 w-6 text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all shrink-0" />
         </Card>
 
-        {/* Module Pulse Cards */}
-        <div className="grid grid-cols-1 gap-4">
-          <Card className="bg-white shadow-sm border border-slate-100 p-5 flex items-center justify-between group hover:shadow-lg hover:border-blue-200 transition-all cursor-pointer rounded-3xl" onClick={() => navigate(`${orgPath}/chandas`)}>
-            <div className="flex items-center gap-4">
-              <div className="h-14 w-14 bg-blue-50 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner shadow-blue-100/50">
-                <BarChart3 className="h-7 w-7 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('చందాలు', 'CHANDAS')}</p>
-                <p className="text-xl font-black text-slate-800 font-sans">₹{totalCollection.toLocaleString()}</p>
-              </div>
+        <Card className="bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800 p-5 flex items-center justify-between group hover:shadow-lg hover:border-purple-200 transition-all cursor-pointer rounded-3xl" onClick={() => navigate(`${orgPath}/images`)}>
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="h-14 w-14 bg-purple-50 dark:bg-purple-950 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner shrink-0">
+              <Image className="h-7 w-7 text-purple-600 dark:text-purple-400" />
             </div>
-            <ArrowUpRight className="h-6 w-6 text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
-          </Card>
-
-          <Card className="bg-white shadow-sm border border-slate-100 p-5 flex items-center justify-between group hover:shadow-lg hover:border-purple-200 transition-all cursor-pointer rounded-3xl" onClick={() => navigate(`${orgPath}/images`)}>
-            <div className="flex items-center gap-4">
-              <div className="h-14 w-14 bg-purple-50 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner shadow-purple-100/50">
-                <Image className="h-7 w-7 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('చిత్రాలు', 'GALLERY')}</p>
-                <p className="text-xl font-black text-slate-800">{totalImages} {t('చిత్రాలు', 'Photos')}</p>
-              </div>
+            <div className="min-w-0">
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('చిత్రాలు', 'GALLERY')}</p>
+              <p className="text-xl font-black text-slate-800 dark:text-slate-100 truncate">{totalImages} {t('చిత్రాలు', 'Photos')}</p>
             </div>
-            <ArrowUpRight className="h-6 w-6 text-slate-300 group-hover:text-purple-500 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
-          </Card>
-        </div>
+          </div>
+          <ArrowUpRight className="h-6 w-6 text-slate-300 group-hover:text-purple-500 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all shrink-0" />
+        </Card>
       </div>
 
       {/* Previous Amount Dialog */}

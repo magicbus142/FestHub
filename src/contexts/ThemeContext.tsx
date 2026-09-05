@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'utsav' | 'bhakti' | 'prakriti';
+type Theme = 'bhakti' | 'utsav' | 'prakriti';
 
 interface ThemeContextType {
   theme: Theme;
@@ -10,26 +10,17 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    // Check local storage or default to 'utsav'
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('festival-theme');
-      return (savedTheme as Theme) || 'utsav';
-    }
-    return 'utsav';
-  });
+  const [theme, setTheme] = useState<Theme>('bhakti');
 
   useEffect(() => {
-    // Apply theme to document root
+    // Force clean professional Blue Theme ('bhakti')
     const root = window.document.documentElement;
-    root.setAttribute('data-theme', theme);
-    
-    // Save to local storage
-    localStorage.setItem('festival-theme', theme);
+    root.setAttribute('data-theme', 'bhakti');
+    localStorage.setItem('festival-theme', 'bhakti');
   }, [theme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <ThemeContext.Provider value={{ theme: 'bhakti', setTheme }}>
       {children}
     </ThemeContext.Provider>
   );

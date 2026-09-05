@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { uploadImage, getImages, deleteImage, updateImage, type ImageRecord } from '@/lib/images';
 
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -10,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-import { Upload, Calendar, Trash2, X, Download, Pin, Lock, Edit2, LogOut } from 'lucide-react';
+import { Upload, Calendar, Trash2, X, Download, Pin, Lock, Edit2, LogOut, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -20,6 +21,7 @@ import { ComingSoon } from '@/components/ComingSoon';
 import { setFestivalBackgroundImage } from '@/lib/festivals';
 import { BackButton } from '@/components/BackButton';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
+import { PageHeader } from '@/components/PageHeader';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 export default function Images() {
@@ -40,12 +42,28 @@ export default function Images() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({ title: '', description: '' });
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOption, setSortOption] = useState<string>('newest');
+  const itemsPerPage = 12;
 
   const { data: images = [] } = useQuery({
     queryKey: ['user-images', selectedFestival?.name, selectedFestival?.year],
     queryFn: () => getImages(selectedFestival?.name, selectedFestival?.year),
     enabled: !!selectedFestival,
+  });
+
+  const filteredImages = images.filter((img) => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      img.title?.toLowerCase().includes(term) ||
+      img.description?.toLowerCase().includes(term)
+    );
+  }).sort((a, b) => {
+    if (sortOption === 'oldest') {
+      return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+    }
+    return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
   });
 
   const uploadImageMutation = useMutation({
@@ -169,90 +187,23 @@ export default function Images() {
 
   return (
     <div className="min-h-screen bg-slate-50/50">
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-6">
         
-        {/* Unified Header */}
-        <div className="flex flex-col gap-4 mb-8">
-          <div className="flex items-center gap-2 bg-slate-100/50 w-fit px-3 py-1 rounded-full text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-slate-200/50">
-             <span>Home</span>
-             <span className="opacity-30">/</span>
-             <span className="text-primary truncate max-w-[100px]">{selectedFestival?.name || 'Festival'}</span>
-             <span className="opacity-30">/</span>
-             <span className="text-foreground">Gallery</span>
-          </div>
-
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-               <h1 className="text-4xl font-black text-foreground tracking-tight mb-1">
-                 {t('పండుగ చిత్రాలు', 'Festival Gallery')}
-               </h1>
-               <p className="text-sm text-muted-foreground font-medium">
-                  {t('జ్ఞాపకాలను సేవ్ చేయండి', 'Capture and preserve festival memories')}
-               </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-               <div className="flex items-center bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100">
-                  <BackButton 
-                    variant="ghost" 
-                    size="sm"
-                    className="h-9 rounded-xl bg-slate-50 border-none shadow-none text-slate-600 hover:bg-slate-100 hover:text-primary transition-all" 
-                  />
-                  <div className="w-px h-4 bg-slate-100 mx-1"></div>
-                  <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-                      className="h-9 w-9 rounded-xl hover:bg-blue-50 text-blue-600 font-bold text-xs"
-                  >
-                     {language === 'telugu' ? 'EN' : 'తె'}
-                  </Button>
-                  <ThemeSwitcher />
-                  
-                  {isAuthenticated ? (
-                    <>
-                      <div className="w-px h-4 bg-slate-100 mx-1"></div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          logout();
-                          toast({ title: t('లాగ్ అవుట్', 'Logged out'), description: t('విజయవంతంగా లాగ్ అవుట్ అయ్యారు', 'Successfully logged out') });
-                        }}
-                        className="h-9 w-9 rounded-xl hover:bg-red-50 text-red-500 transition-colors"
-                        title={t('లాగ్ అవుట్', 'Log Out')}
-                      >
-                        <LogOut className="h-4 w-4" />
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-px h-4 bg-slate-100 mx-1"></div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setIsAuthOpen(true)}
-                        className="h-9 w-9 rounded-xl hover:bg-blue-50 text-blue-600 transition-colors"
-                        title={t('లాగిన్', 'Login')}
-                      >
-                        <Lock className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-               </div>
-
-               {isAuthenticated && (
-                 <Button
-                    onClick={() => setIsDialogOpen(true)}
-                    className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground font-black h-11 rounded-2xl px-6 text-sm shadow-xl shadow-primary/20 transition-all active:scale-[0.95] items-center gap-2"
-                >
-                    <Upload className="h-5 w-5" />
-                    {t('చిత్రం అప్‌లోడ్ చేయండి', 'Upload Image')}
-                </Button>
-               )}
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          title={t('పండుగ చిత్రాలు', 'Festival Gallery')}
+          description={t('జ్ఞాపకాలను సేవ్ చేయండి', 'Capture and preserve festival memories')}
+          onAuthOpen={() => setIsAuthOpen(true)}
+        >
+          {isAuthenticated && (
+            <Button
+              onClick={() => setIsDialogOpen(true)}
+              className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground font-black h-9 rounded-xl px-4 text-xs shadow-md transition-all active:scale-[0.95] items-center gap-1.5"
+            >
+              <Upload className="h-4 w-4" />
+              {t('చిత్రం అప్‌లోడ్ చేయండి', 'Upload Image')}
+            </Button>
+          )}
+        </PageHeader>
 
         {/* Upload Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -309,6 +260,98 @@ export default function Images() {
             </form>
           </DialogContent>
         </Dialog>
+        {/* Gallery Overview Dashboard Card (Matching Chandas / Expenses style) */}
+        <Card className="bg-white shadow-sm border border-slate-100 rounded-3xl overflow-hidden relative group mb-6">
+           <CardContent className="p-5 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                 <div>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-0.5">
+                       {t('మొత్తం ఫోటోలు', 'TOTAL FESTIVAL PHOTOS')}
+                    </p>
+                    <div className="flex items-baseline gap-3">
+                       <h2 className="text-4xl sm:text-5xl font-black text-blue-600 tracking-tight">
+                          {images.length}
+                       </h2>
+                       <span className="text-sm font-bold text-slate-500">
+                          {t('జ్ఞాపకాలు భద్రపరచబడ్డాయి', 'Memories Captured')}
+                       </span>
+                    </div>
+                 </div>
+
+                 {images.length > 0 && (
+                    <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3.5 py-2 rounded-2xl text-xs font-bold border border-blue-100/80">
+                       <Calendar className="h-4 w-4 text-blue-600" />
+                       <span>{t('తాజాది', 'Latest')}: {format(new Date(images[0].created_at || Date.now()), 'MMM dd, yyyy')}</span>
+                    </div>
+                 )}
+              </div>
+           </CardContent>
+        </Card>
+
+        {/* Management View: Search + Filter + Photo Count */}
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-6 p-4 sm:p-5">
+           {/* Section Tab Badge */}
+           <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                 <span className="text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 pb-1.5 -mb-3 tracking-tight">
+                   {t('చిత్రాలు', 'Photos')}
+                 </span>
+                 <span className="inline-flex items-center justify-center h-5.5 min-w-[22px] px-2 rounded-full text-xs font-black bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
+                    {filteredImages.length}
+                 </span>
+              </div>
+
+              {isAuthenticated && (
+                <Button
+                  onClick={() => setIsDialogOpen(true)}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-black h-8 rounded-xl px-3 text-xs shadow-sm transition-all active:scale-[0.95] flex items-center gap-1.5"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  {t('అప్‌లోడ్', 'Upload')}
+                </Button>
+              )}
+           </div>
+
+           <div className="flex flex-col md:flex-row gap-3 items-center pt-1">
+              {/* Search */}
+              <div className="relative flex-1 w-full">
+                 <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                 </div>
+                 <input
+                   type="text"
+                   placeholder={t('చిత్రం టైటిల్ లేదా వివరణ ద్వారా శోధించండి...', 'Search photos by title or description...')}
+                   className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-2xl leading-5 bg-white placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm transition-all"
+                   value={searchTerm}
+                   onChange={(e) => {
+                     setSearchTerm(e.target.value);
+                     setCurrentPage(1);
+                   }}
+                 />
+              </div>
+
+              {/* Sort Selector & Language Switcher */}
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                 <select 
+                    className="flex-1 md:w-48 bg-white border border-slate-200 text-foreground py-2.5 px-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    value={sortOption}
+                    onChange={(e) => setSortOption(e.target.value)}
+                 >
+                    <option value="newest">{t('కొత్తవి మొదట', 'Newest First')}</option>
+                    <option value="oldest">{t('పాతవి మొదట', 'Oldest First')}</option>
+                 </select>
+
+                 <Button
+                    variant="outline"
+                    onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
+                    className="h-10 w-10 p-0 rounded-2xl border-slate-200 bg-white hover:bg-slate-50 text-blue-600 font-bold text-xs flex-shrink-0 shadow-2xs cursor-pointer"
+                    title={t('భాష మార్చండి', 'Switch Language')}
+                 >
+                    <span className="text-xs font-extrabold">{language === 'telugu' ? 'తె' : 'EN'}</span>
+                 </Button>
+              </div>
+           </div>
+        </div>
 
         {/* Images Grid */}
         <div className="max-w-7xl mx-auto mb-24">
@@ -318,15 +361,26 @@ export default function Images() {
               year={selectedFestival.year}
               message={t('ఈ ఉత్సవానికి ఇంకా చిత్రాలు లేవు. అప్‌లోడ్ చేయండి!', 'No images available for this festival yet. Upload some!')}
             />
+          ) : filteredImages.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-3xl border border-slate-100 shadow-sm">
+              <p className="text-lg font-bold text-slate-600">{t('చిత్రాలు కనుగొనబడలేదు', 'No photos found matching your search')}</p>
+              <Button 
+                variant="link" 
+                onClick={() => setSearchTerm('')}
+                className="text-blue-600 font-bold mt-2"
+              >
+                {t('అన్ని చిత్రాలను చూపించు', 'Show all photos')}
+              </Button>
+            </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {images
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6 md:gap-7">
+                {filteredImages
                   .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                   .map((image) => (
                   <div
                     key={image.id}
-                    className="group relative bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 cursor-pointer aspect-[3/4]"
+                    className="group relative bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 cursor-pointer aspect-[3/4] sm:aspect-[3/4.2] md:aspect-[3/4.6] xl:aspect-[3/4]"
                     onClick={() => setSelectedImage(image)}
                   >
                     <img
@@ -393,39 +447,48 @@ export default function Images() {
                 ))}
               </div>
 
-              {images.length > itemsPerPage && (
-                <div className="mt-8">
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious 
-                          href="#" 
-                          onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.max(1, p - 1)); }}
-                          className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
-                        />
-                      </PaginationItem>
-                      
-                      {Array.from({ length: Math.ceil(images.length / itemsPerPage) }).map((_, i) => (
-                         <PaginationItem key={i}>
-                           <PaginationLink 
-                              href="#" 
-                              isActive={currentPage === i + 1}
-                              onClick={(e) => { e.preventDefault(); setCurrentPage(i + 1); }}
-                           >
-                              {i + 1}
-                           </PaginationLink>
-                         </PaginationItem>
-                      ))}
+              {filteredImages.length > 0 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-4 border-t border-slate-200/60">
+                  <p className="text-xs font-bold text-slate-500">
+                    {t(
+                      `చూపిస్తోంది ${(currentPage - 1) * itemsPerPage + 1} నుండి ${Math.min(currentPage * itemsPerPage, filteredImages.length)} లో ${filteredImages.length} ఫలితాలు`,
+                      `Showing ${(currentPage - 1) * itemsPerPage + 1} to ${Math.min(currentPage * itemsPerPage, filteredImages.length)} of ${filteredImages.length} results`
+                    )}
+                  </p>
 
-                      <PaginationItem>
-                        <PaginationNext 
-                          href="#"
-                          onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.min(Math.ceil(images.length / itemsPerPage), p + 1)); }}
-                           className={currentPage === Math.ceil(images.length / itemsPerPage) ? 'pointer-events-none opacity-50' : ''}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
+                  {filteredImages.length > itemsPerPage && (
+                    <Pagination className="mx-0 w-auto">
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            href="#" 
+                            onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.max(1, p - 1)); }}
+                            className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                          />
+                        </PaginationItem>
+                        
+                        {Array.from({ length: Math.ceil(filteredImages.length / itemsPerPage) }).map((_, i) => (
+                           <PaginationItem key={i}>
+                             <PaginationLink 
+                                href="#" 
+                                isActive={currentPage === i + 1}
+                                onClick={(e) => { e.preventDefault(); setCurrentPage(i + 1); }}
+                             >
+                                {i + 1}
+                             </PaginationLink>
+                           </PaginationItem>
+                        ))}
+
+                        <PaginationItem>
+                          <PaginationNext 
+                            href="#"
+                            onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.min(Math.ceil(filteredImages.length / itemsPerPage), p + 1)); }}
+                            className={currentPage === Math.ceil(filteredImages.length / itemsPerPage) ? 'pointer-events-none opacity-50' : ''}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  )}
                 </div>
               )}
             </>

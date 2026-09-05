@@ -8,9 +8,10 @@ interface BackButtonProps {
   to?: string;
   className?: string;
   variant?: 'default' | 'outline' | 'ghost';
-  size?: 'default' | 'sm' | 'lg';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
   emphasis?: boolean;
   label?: string;
+  iconOnly?: boolean;
 }
 
 export const BackButton = ({
@@ -20,6 +21,7 @@ export const BackButton = ({
   size = 'default',
   emphasis = false,
   label,
+  iconOnly = false,
 }: BackButtonProps) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -28,25 +30,32 @@ export const BackButton = ({
   // Default to organization page if no destination specified
   const destination = to || (currentOrganization ? `/org/${currentOrganization.slug}` : '/');
 
+  const isIconOnly = iconOnly || size === 'icon';
+
   const themeClasses = emphasis
     ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/15'
-    : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-secondary-foreground/20 hover:border-secondary-foreground/40';
+    : '';
 
   return (
     <Button
       variant={variant}
       size={size}
       onClick={() => navigate(destination)}
-      className={`flex items-center gap-2 font-medium transition-all duration-200 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg ${themeClasses} ${className}`}
-      aria-label={t('ఉత్సవాలకు తిరిగి వెళ్లండి', 'Go back to festivals')}
+      className={`flex items-center justify-center font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${themeClasses} ${className}`}
+      aria-label={t('ఉత్సవాలకు తిరిగి వెళ్లండి', 'Go back')}
+      title={t('వెనుకకు', 'Go Back')}
     >
-      <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-      <span className="hidden sm:inline">
-        {label || t('ఉత్సవాలు', 'Festivals')}
-      </span>
-      <span className="sm:hidden">
-        {t('తిరిగి', 'Back')}
-      </span>
+      <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
+      {!isIconOnly && (
+        <>
+          <span className="hidden sm:inline">
+            {label || t('ఉత్సవాలు', 'Festivals')}
+          </span>
+          <span className="sm:hidden">
+            {t('తిరిగి', 'Back')}
+          </span>
+        </>
+      )}
     </Button>
   );
 };

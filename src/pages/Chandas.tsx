@@ -311,90 +311,22 @@ export default function Chandas() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6">
-        {/* Header */}
-        {/* Custom Header Layout matching Standard Design */}
-        <div className="flex flex-col gap-4 mb-8">
-          {/* Breadcrumbs Pill */}
-          <div className="flex items-center gap-2 bg-slate-100/50 w-fit px-3 py-1 rounded-full text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-slate-200/50">
-             <span>Home</span>
-             <span className="opacity-30">/</span>
-             <span className="text-primary truncate max-w-[100px]">{selectedFestival?.name || 'Festival'}</span>
-             <span className="opacity-30">/</span>
-             <span className="text-foreground">Finances</span>
-          </div>
-
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-               <h1 className="text-4xl font-black text-foreground tracking-tight mb-1">
-                 {t('పండుగ ఆర్థికం', 'Festival Finances')}
-               </h1>
-               <p className="text-sm text-muted-foreground font-medium">
-                  {t('నిధులు మరియు స్పాన్సర్‌షిప్‌ల నిర్వహణ', 'Manage collections and sponsorships')}
-               </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-               <div className="flex items-center bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100">
-                  <BackButton 
-                    variant="ghost" 
-                    size="sm"
-                    className="h-9 rounded-xl bg-slate-50 border-none shadow-none text-slate-600 hover:bg-slate-100 hover:text-primary transition-all" 
-                  />
-                  <div className="w-px h-4 bg-slate-100 mx-1"></div>
-                  <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-                      className="h-9 w-9 rounded-xl hover:bg-blue-50 text-blue-600 font-bold text-xs"
-                  >
-                     {language === 'telugu' ? 'EN' : 'తె'}
-                  </Button>
-                  <ThemeSwitcher />
-                  {isAuthenticated ? (
-                    <>
-                      <div className="w-px h-4 bg-slate-100 mx-1"></div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          logout();
-                          toast({ title: t('లాగ్ అవుట్', 'Logged out'), description: t('విజయవంతంగా లాగ్ అవుట్ అయ్యారు', 'Successfully logged out') });
-                        }}
-                        className="h-9 w-9 rounded-xl hover:bg-red-50 text-red-500 transition-colors"
-                        title={t('లాగ్ అవుట్', 'Log Out')}
-                      >
-                        <LogOut className="h-4 w-4" />
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-px h-4 bg-slate-100 mx-1"></div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setIsAuthDialogOpen(true)}
-                        className="h-9 w-9 rounded-xl hover:bg-blue-50 text-blue-600 transition-colors"
-                        title={t('లాగిన్', 'Login')}
-                      >
-                        <Lock className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-               </div>
-
-               {isAuthenticated && (
-                 <Button
-                    onClick={handleAddDonation}
-                    className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground font-black h-11 rounded-2xl px-6 text-sm shadow-xl shadow-primary/20 transition-all active:scale-[0.95] items-center gap-2"
-                 >
-                    <Plus className="h-5 w-5" />
-                    {t('చందా జోడించు', 'Add Chanda')}
-                 </Button>
-               )}
-            </div>
-          </div>
-        </div>
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-6">
+        <PageHeader
+          title={t('పండుగ ఆర్థికం', 'Festival Finances')}
+          description={t('నిధులు మరియు స్పాన్సర్‌షిప్‌ల నిర్వహణ', 'Manage collections and sponsorships')}
+          onAuthOpen={() => setIsAuthDialogOpen(true)}
+        >
+          {isAuthenticated && (
+            <Button
+              onClick={handleAddDonation}
+              className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground font-black h-9 rounded-xl px-4 text-xs shadow-md transition-all active:scale-[0.95] items-center gap-1.5"
+            >
+              <Plus className="h-4 w-4" />
+              {t('చందా జోడించు', 'Add Chanda')}
+            </Button>
+          )}
+        </PageHeader>
 
         {/* Navigation moved to bottom for consistency */}
 

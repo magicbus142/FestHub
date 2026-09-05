@@ -83,7 +83,7 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
 
   return (
     <Card 
-      className="relative overflow-hidden cursor-pointer hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] aspect-[4/3] group border-0 ring-1 ring-white/20"
+      className="relative overflow-hidden cursor-pointer hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] aspect-[16/10] group border-0 ring-1 ring-white/20 rounded-3xl shadow-md"
       onClick={onClick}
     >
       {/* Background Image */}
@@ -103,7 +103,7 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
           />
         )}
         {/* Overlay for better text readability */}
-        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-300" />
+        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300" />
       </div>
 
       {/* Content */}
@@ -112,8 +112,8 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
         {/* Hidden Badge */}
         {festival.is_hidden && (
           <div className="absolute top-4 left-4">
-            <Badge variant="secondary" className="bg-black/50 text-white border-none backdrop-blur-md font-semibold px-3 py-1">
-              <EyeOff className="h-3 w-3 mr-1 inline-block" />
+            <Badge variant="secondary" className="bg-black/60 text-amber-300 border border-amber-300/30 backdrop-blur-md font-bold px-3 py-1 rounded-xl text-xs">
+              <EyeOff className="h-3.5 w-3.5 mr-1 inline-block" />
               {t('దాచబడింది', 'Hidden')}
             </Badge>
           </div>
@@ -126,7 +126,7 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
             variant="ghost"
             size="sm"
             onClick={handleShare}
-            className="text-white hover:bg-white/20 hover:text-white transition-colors bg-black/20 backdrop-blur-sm"
+            className="h-9 w-9 p-0 rounded-xl text-white hover:bg-white hover:text-slate-900 transition-all bg-black/40 backdrop-blur-md shadow-sm border border-white/10"
             title="Copy shareable link"
           >
             <Share2 className="h-4 w-4" />
@@ -141,7 +141,7 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
                     size="sm"
                     onClick={handleToggleVisibility}
                     disabled={updateVisibilityMutation.isPending}
-                    className="text-white hover:bg-white/20 hover:text-white transition-colors bg-black/20 backdrop-blur-sm"
+                    className="h-9 w-9 p-0 rounded-xl text-white hover:bg-white hover:text-slate-900 transition-all bg-black/40 backdrop-blur-md shadow-sm border border-white/10"
                   >
                     {festival.is_hidden ? (
                       <Eye className="h-4 w-4" />
@@ -170,7 +170,7 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
                     handleDelete(e);
                   }}
                   disabled={deleteMutation.isPending}
-                  className="text-white hover:bg-red-500/80 hover:text-white transition-colors bg-black/20 backdrop-blur-sm"
+                  className="h-9 w-9 p-0 rounded-xl text-white hover:bg-red-600 hover:text-white transition-all bg-black/40 backdrop-blur-md shadow-sm border border-white/10"
                 >
                   {isAuthenticated ? (
                     <Trash2 className="h-4 w-4" />
@@ -189,14 +189,18 @@ export function FestivalCard({ festival, onClick }: FestivalCardProps) {
         </div>
         
         {/* Festival info with Glassmorphic Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-black/40 backdrop-blur-md border-t border-white/10 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-          <h3 className="text-2xl font-bold mb-1 drop-shadow-sm text-white flex items-center gap-2">
-            {festival.name}
-            {festival.is_hidden && <Lock className="h-4 w-4 text-white/50" />}
-          </h3>
-          <p className="text-sm font-medium text-white/90">
-            {festival.year}
-          </p>
+        <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/85 via-black/50 to-transparent backdrop-blur-md border-t border-white/10 transition-transform duration-300">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <h3 className="text-2xl sm:text-3xl font-black drop-shadow-md text-white flex items-center gap-2 tracking-tight">
+                {festival.name}
+                {festival.is_hidden && <Lock className="h-5 w-5 text-amber-300" />}
+              </h3>
+            </div>
+            <Badge variant="secondary" className="bg-white/20 text-white border border-white/20 backdrop-blur-md font-black px-3 py-1 rounded-xl text-xs shadow-sm flex-shrink-0">
+              {festival.year}
+            </Badge>
+          </div>
         </div>
       </div>
     </Card>

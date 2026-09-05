@@ -18,6 +18,7 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import { AuthDialog } from '@/components/AuthDialog';
 import { BackButton } from '@/components/BackButton';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
+import { PageHeader } from '@/components/PageHeader';
 
 export default function Expenses() {
   const { t, language, setLanguage } = useLanguage();
@@ -199,91 +200,23 @@ export default function Expenses() {
 
   return (
     <div className="min-h-screen bg-slate-50/50">
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-6">
         
-        {/* Unified Header */}
-        <div className="flex flex-col gap-4 mb-8">
-          <div className="flex items-center gap-2 bg-slate-100/50 w-fit px-3 py-1 rounded-full text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-slate-200/50">
-             <span>Home</span>
-             <span className="opacity-30">/</span>
-             <span className="text-primary truncate max-w-[100px]">{selectedFestival?.name || 'Festival'}</span>
-             <span className="opacity-30">/</span>
-             <span className="text-foreground">Expenses</span>
-          </div>
-
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-               <h1 className="text-4xl font-black text-foreground tracking-tight mb-1">
-                 {t('పండుగ ఖర్చులు', 'Festival Expenses')}
-               </h1>
-               <p className="text-sm text-muted-foreground font-medium">
-                  {t('వ్యయాలు మరియు ఖర్చుల ట్రాకింగ్', 'Track and manage festival expenditures')}
-               </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-               <div className="flex items-center bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100">
-                  <BackButton 
-                    variant="ghost" 
-                    size="sm"
-                    className="h-9 rounded-xl bg-slate-50 border-none shadow-none text-slate-600 hover:bg-slate-100 hover:text-primary transition-all" 
-                  />
-                  <div className="w-px h-4 bg-slate-100 mx-1"></div>
-                  <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-                      className="h-9 w-9 rounded-xl hover:bg-slate-100 text-slate-600 font-bold text-xs"
-                      title={language === 'telugu' ? 'Switch to English' : 'Switch to Telugu'}
-                  >
-                     {language === 'telugu' ? 'EN' : 'తె'}
-                  </Button>
-                  <ThemeSwitcher />
-                  
-                  {isAuthenticated ? (
-                    <>
-                      <div className="w-px h-4 bg-slate-100 mx-1"></div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          logout();
-                          toast({ title: t('లాగ్ అవుట్', 'Logged out'), description: t('విజయవంతంగా లాగ్ అవుట్ అయ్యారు', 'Successfully logged out') });
-                        }}
-                        className="h-9 w-9 rounded-xl hover:bg-red-50 text-red-500 transition-colors"
-                        title={t('లాగ్ అవుట్', 'Log Out')}
-                      >
-                        <LogOut className="h-4 w-4" />
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-px h-4 bg-slate-100 mx-1"></div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setIsAuthOpen(true)}
-                        className="h-9 w-9 rounded-xl hover:bg-blue-50 text-blue-600 transition-colors"
-                        title={t('లాగిన్', 'Login')}
-                      >
-                        <Lock className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-               </div>
-
-               {isAuthenticated && (
-                 <Button
-                    onClick={startAddExpense}
-                    className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground font-black h-11 rounded-2xl px-6 text-sm shadow-xl shadow-primary/20 transition-all active:scale-[0.95] items-center gap-2"
-                >
-                    <Plus className="h-5 w-5" />
-                    {t('ఖర్చు జోడించు', 'Add Expense')}
-                </Button>
-               )}
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          title={t('పండుగ ఖర్చులు', 'Festival Expenses')}
+          description={t('వ్యయాలు మరియు ఖర్చుల ట్రాకింగ్', 'Track and manage festival expenditures')}
+          onAuthOpen={() => setIsAuthOpen(true)}
+        >
+          {isAuthenticated && (
+            <Button
+              onClick={startAddExpense}
+              className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground font-black h-9 rounded-xl px-4 text-xs shadow-md transition-all active:scale-[0.95] items-center gap-1.5"
+            >
+              <Plus className="h-4 w-4" />
+              {t('ఖర్చు జోడించు', 'Add Expense')}
+            </Button>
+          )}
+        </PageHeader>
 
         {/* Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -355,28 +288,30 @@ export default function Expenses() {
         </Dialog>
 
         {/* Expense Summary Dashboard */}
-        <Card className="bg-white shadow-sm border border-slate-100 rounded-3xl overflow-hidden relative group mb-8">
-           <CardContent className="p-8">
-              <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                 <div>
-                    <p className="text-sm font-bold text-muted-foreground tracking-tight">{t('మొత్తం ఖర్చు', 'TOTAL EXPENDITURE')}</p>
-                    <h2 className="text-5xl font-black text-red-600 tracking-tighter">
-                       ₹{totalExpenses.toLocaleString()}
-                    </h2>
-                 </div>
-                  <div className="flex items-center gap-3">
-                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                       <p className="text-[10px] font-black text-muted-foreground uppercase mb-1 tracking-wider">{t('లావాదేవీలు', 'TRANSACTIONS')}</p>
-                       <p className="text-xl font-black text-slate-800">{filteredExpenses.length}</p>
-                    </div>
-                 </div>
+        <Card className="bg-white shadow-sm border border-slate-100 rounded-3xl overflow-hidden relative group mb-6">
+           <CardContent className="p-5 sm:p-6">
+              <div>
+                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-0.5">{t('మొత్తం ఖర్చు', 'TOTAL EXPENDITURE')}</p>
+                 <h2 className="text-4xl sm:text-5xl font-black text-red-600 tracking-tight">
+                    ₹{totalExpenses.toLocaleString()}
+                 </h2>
               </div>
            </CardContent>
         </Card>
 
         {/* Management View: Search + Filter */}
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-8">
-           <div className="p-4 bg-slate-50/30 flex flex-col md:flex-row gap-4 items-center">
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-6 p-4 sm:p-5">
+           {/* Section Tab Badge above Search */}
+           <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-slate-100">
+              <span className="text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 pb-1.5 -mb-3 tracking-tight">
+                {t('ఖర్చులు', 'Expenses')}
+              </span>
+              <span className="inline-flex items-center justify-center h-5.5 min-w-[22px] px-2 rounded-full text-xs font-black bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
+                 {filteredExpenses.length}
+              </span>
+           </div>
+
+           <div className="flex flex-col md:flex-row gap-3 items-center pt-1">
               {/* Search */}
               <div className="relative flex-1 w-full">
                  <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
@@ -391,7 +326,7 @@ export default function Expenses() {
                  />
               </div>
 
-              {/* Sort Selector */}
+              {/* Sort Selector & Language Switcher */}
               <div className="flex items-center gap-2 w-full md:w-auto">
                  <select 
                     className="flex-1 md:w-48 bg-white border border-slate-200 text-foreground py-2.5 px-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20"
@@ -406,10 +341,10 @@ export default function Expenses() {
                  <Button
                     variant="outline"
                     onClick={() => setNamePreference(prev => prev === 'telugu' ? 'english' : 'telugu')}
-                    className="h-10 w-10 p-0 rounded-xl border-slate-200 bg-white hover:bg-slate-50 flex-shrink-0"
-                    title="Change Name Preference"
+                    className="h-10 w-10 p-0 rounded-2xl border-slate-200 bg-white hover:bg-slate-50 text-blue-600 font-bold text-xs flex-shrink-0 shadow-2xs cursor-pointer"
+                    title={t('భాష మార్చండి', 'Switch Language')}
                  >
-                    <span className="text-xs font-black">{namePreference === 'telugu' ? 'తె' : 'EN'}</span>
+                    <span className="text-xs font-extrabold">{namePreference === 'telugu' ? 'తె' : 'EN'}</span>
                  </Button>
               </div>
            </div>

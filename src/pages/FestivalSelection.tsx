@@ -16,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useToast } from '@/hooks/use-toast';
 import type { Festival } from '@/lib/festivals';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
+import { PageHeader } from '@/components/PageHeader';
 
 export default function FestivalSelection() {
   const { t, language, setLanguage } = useLanguage();
@@ -156,130 +157,62 @@ export default function FestivalSelection() {
 
       <div className="container mx-auto px-4 py-6 relative z-10">
         
-        {/* Unified Header */}
-        <div className="flex flex-col gap-4 mb-8">
-          <div className="flex items-center gap-2 bg-slate-100/70 hover:bg-slate-200/70 transition-colors w-fit px-3 py-1.5 rounded-full text-xs font-bold text-slate-600 border border-slate-200/80 shadow-2xs">
-             <button 
-               onClick={() => navigate('/')} 
-               className="hover:text-primary transition-colors flex items-center gap-1.5 cursor-pointer"
-               title="Go to Home / Organizations"
-             >
-               <Home className="h-3.5 w-3.5 text-primary" />
-               <span>Home</span>
-             </button>
-             <span className="opacity-40">/</span>
-             <button 
-               onClick={() => navigate('/')} 
-               className="hover:text-primary transition-colors cursor-pointer"
-               title="All Organizations"
-             >
-               Organizations
-             </button>
-             {currentOrganization?.name && (
-               <>
-                 <span className="opacity-40">/</span>
-                 <span className="text-primary font-extrabold truncate max-w-[120px]">{currentOrganization.name}</span>
-               </>
-             )}
-          </div>
+        {/* Header */}
+        <PageHeader
+          title={currentOrganization?.name}
+          description={t('ఉత్సవాన్ని ఎంచుకోండి', 'Select Festival')}
+        >
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={handleShareOrganization} 
+            className="h-9 w-9 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 transition-colors shadow-2xs"
+            title={t('భాగస్వామ్యం చేయండి', 'Share')}
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
 
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-               <h1 className="text-4xl font-black text-foreground tracking-tight mb-1">
-                 {currentOrganization?.name}
-               </h1>
-               <p className="text-sm text-muted-foreground font-medium">
-                  {t('ఉత్సవాన్ని ఎంచుకోండి', 'Select Festival')}
-               </p>
-            </div>
+          <Button
+            onClick={() => {
+              if (isAuthenticated) {
+                setIsAddFestivalOpen(true);
+              } else {
+                setIsPasscodeOpen(true);
+              }
+            }}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold h-9 px-4 rounded-xl text-xs shadow-md transition-all active:scale-[0.95] flex items-center gap-1.5"
+          >
+            <Plus className="h-4 w-4" />
+            <span>{t('ఉత్సవాన్ని జోడించండి', 'Add Festival')}</span>
+          </Button>
+        </PageHeader>
 
-            <div className="flex items-center gap-3 flex-wrap">
-               {/* Single Combined Action Pill (Image 1 design) */}
-               <div className="flex items-center bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200/80 gap-1">
-                  {/* Back Button */}
-                  <Button 
-                      variant="ghost" 
-                      onClick={() => navigate('/')} 
-                      className="h-9 px-3 rounded-xl text-slate-700 bg-slate-100/80 hover:bg-slate-200/80 font-semibold text-xs gap-1.5 transition-all cursor-pointer"
-                      title={t('వెనుకకు', 'Back')}
-                  >
-                      <ArrowLeft className="h-4 w-4 text-slate-600" />
-                      <span>{t('వెనుకకు', 'Back')}</span>
-                  </Button>
+        {/* Control Bar: Festival Count + Language Switcher */}
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-6 p-4 sm:p-5">
+           <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                 <span className="text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 pb-1.5 -mb-2 tracking-tight">
+                   {t('ఉత్సవాలు', 'Festivals')}
+                 </span>
+                 <span className="inline-flex items-center justify-center h-5.5 min-w-[22px] px-2 rounded-full text-xs font-black bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
+                    {displayedFestivals.length}
+                 </span>
+              </div>
 
-                  <div className="w-px h-4 bg-slate-200/60 mx-0.5"></div>
-
-                  {/* Share Button */}
-                  <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={handleShareOrganization} 
-                      className="h-9 w-9 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-primary transition-all"
-                      title={t('భాగస్వామ్యం చేయండి', 'Share')}
-                  >
-                      <Share2 className="h-4 w-4" />
-                  </Button>
-
-                  {/* Language Switcher */}
-                  <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-                      className="h-9 w-9 rounded-xl hover:bg-blue-50 text-blue-600 font-bold text-xs"
-                      title={t('భాష మార్చండి', 'Switch Language')}
-                  >
-                     {language === 'telugu' ? 'EN' : 'తె'}
-                  </Button>
-
-                  {/* Theme Switcher */}
-                  <ThemeSwitcher />
-
-                  <div className="w-px h-4 bg-slate-200/60 mx-0.5"></div>
-
-                  {/* Sign Out Button */}
-                  <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleSignOut}
-                      className="h-9 w-9 rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 transition-all cursor-pointer"
-                      title={t('లాగ్అవుట్', 'Sign Out')}
-                  >
-                      <LogOut className="h-4 w-4 text-red-500" />
-                  </Button>
-               </div>
-               
-               {/* Add Festival Button */}
-               <TooltipProvider>
-                 <Tooltip>
-                   <TooltipTrigger asChild>
-                     <Button
-                       onClick={() => {
-                         if (isAuthenticated) {
-                           setIsAddFestivalOpen(true);
-                         } else {
-                           setIsPasscodeOpen(true);
-                         }
-                       }}
-                       className="flex bg-primary hover:bg-primary/90 text-primary-foreground font-black h-11 rounded-2xl px-4 sm:px-6 text-sm shadow-xl shadow-primary/20 transition-all active:scale-[0.95] items-center gap-2"
-                     >
-                       {isAuthenticated ? <Plus className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
-                       {t('ఉత్సవం జోడించు', 'Add Festival')}
-                     </Button>
-                   </TooltipTrigger>
-                   {!isAuthenticated && (
-                     <TooltipContent>
-                       <p>{t('జోడించడానికి లాగిన్ అవసరం', 'Login required to add')}</p>
-                     </TooltipContent>
-                   )}
-                 </Tooltip>
-               </TooltipProvider>
-            </div>
-          </div>
+              <Button
+                 variant="outline"
+                 onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
+                 className="h-10 w-10 p-0 rounded-2xl border-slate-200 bg-white hover:bg-slate-50 text-blue-600 font-bold text-xs flex-shrink-0 shadow-2xs cursor-pointer"
+                 title={t('భాష మార్చండి', 'Switch Language')}
+              >
+                 <span className="text-xs font-extrabold">{language === 'telugu' ? 'తె' : 'EN'}</span>
+              </Button>
+           </div>
         </div>
 
-        {/* Festival Cards - Use displayedFestivals instead of festivals */}
+        {/* Festival Cards Grid */}
         {displayedFestivals.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8 max-w-7xl mx-auto mb-16">
             {displayedFestivals.map((festival) => (
               <FestivalCard 
                 key={festival.id} 
