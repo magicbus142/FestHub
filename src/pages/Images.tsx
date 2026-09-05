@@ -217,14 +217,21 @@ export default function Images() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="file" className="font-bold text-slate-700">{t('చిత్రం', 'Image')} *</Label>
-                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center hover:bg-slate-50 transition-all relative">
-                   <Input id="file" type="file" accept="image/jpeg, image/png, image/webp" onChange={handleFileChange} required className="absolute inset-0 opacity-0 cursor-pointer" />
-                   <div className="space-y-2">
-                      <div className="h-12 w-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto">
+                <div className="border-2 border-dashed border-purple-200 hover:border-purple-400 bg-purple-50/30 hover:bg-purple-50/60 rounded-2xl p-8 text-center transition-all relative cursor-pointer group">
+                   <Input 
+                     id="file" 
+                     type="file" 
+                     accept="image/jpeg, image/png, image/webp" 
+                     onChange={handleFileChange} 
+                     required 
+                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" 
+                   />
+                   <div className="space-y-2 pointer-events-none relative z-10">
+                      <div className="h-12 w-12 bg-purple-100 group-hover:bg-purple-200 rounded-2xl flex items-center justify-center mx-auto transition-colors">
                          <Upload className="h-6 w-6 text-purple-600" />
                       </div>
-                      <p className="text-sm font-bold text-slate-600">{selectedFile ? selectedFile.name : t('చిత్రం ఎంచుకోండి', 'Choose an image')}</p>
-                      <p className="text-xs text-slate-400">{t('గరిష్ట పరిమాణం 5MB', 'Max size 5MB')}</p>
+                      <p className="text-sm font-bold text-slate-700">{selectedFile ? selectedFile.name : t('చిత్రం ఎంచుకోండి', 'Choose an image')}</p>
+                      <p className="text-xs font-semibold text-slate-400">{t('గరిష్ట పరిమాణం 5MB', 'Max size 5MB')}</p>
                    </div>
                 </div>
               </div>
@@ -304,7 +311,7 @@ export default function Images() {
               {isAuthenticated && (
                 <Button
                   onClick={() => setIsDialogOpen(true)}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-black h-8 rounded-xl px-3 text-xs shadow-sm transition-all active:scale-[0.95] flex items-center gap-1.5"
+                  className="hidden sm:flex bg-primary hover:bg-primary/90 text-primary-foreground font-black h-8 rounded-xl px-3 text-xs shadow-sm transition-all active:scale-[0.95] items-center gap-1.5"
                 >
                   <Upload className="h-3.5 w-3.5" />
                   {t('అప్‌లోడ్', 'Upload')}
