@@ -11,10 +11,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageSelector, PageOption } from '@/components/PageSelector';
-import { Save, Loader2, Sparkles } from 'lucide-react';
+import { Save, Loader2, Sparkles, MessageSquare, FileText } from 'lucide-react';
 import { PasscodeDialog } from '@/components/PasscodeDialog';
 import { ReceiptSettings } from '@/components/settings/ReceiptSettings';
+import { WhatsAppMessageSettings } from '@/components/settings/WhatsAppMessageSettings';
 
 export function FestivalSettingsTab() {
   const { currentOrganization, isAuthenticated, authenticate } = useOrganization();
@@ -53,7 +55,6 @@ export function FestivalSettingsTab() {
       setName(selectedFestival.name);
       setDescription(selectedFestival.description || '');
       setYear(selectedFestival.year);
-      // Type assertion for the generic JSON type from Supabase
       const pages = (selectedFestival.enabled_pages as unknown as PageOption[]) || ['dashboard', 'chandas', 'expenses', 'images'];
       setEnabledPages(pages);
     }
@@ -77,7 +78,6 @@ export function FestivalSettingsTab() {
       return data;
     },
     onSuccess: (data) => {
-      // Update context
       if (selectedFestival) {
         setSelectedFestival({
           ...selectedFestival,
@@ -123,7 +123,6 @@ export function FestivalSettingsTab() {
   const handleAuthenticate = (enteredPasscode: string) => {
     const result = authenticate(enteredPasscode);
     if (result && selectedFestival) {
-       // Re-trigger submit if authentication successful
        updateMutation.mutate({
         name,
         description,
@@ -144,6 +143,7 @@ export function FestivalSettingsTab() {
 
   return (
     <div className="space-y-6">
+      {/* Switch Festival Bar */}
       <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -180,92 +180,122 @@ export function FestivalSettingsTab() {
         </CardHeader>
       </Card>
 
-      {!selectedFestival ? (
-        <div className="p-12 text-center text-muted-foreground bg-card/30 backdrop-blur-sm rounded-xl border-2 border-dashed">
-           <p className="text-lg">{t('దయచేసి ఉత్సవాన్ని ఎంచుకోండి', 'Please select a festival first')}</p>
-        </div>
-      ) : (
-    <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-      <CardHeader>
-        <CardTitle>
-          {t('ఉత్సవ వివరాలు', 'Festival Details')}
-        </CardTitle>
-        <CardDescription>
-          {t('పండుగ ప్రాథమిక సమాచారాన్ని సవరించండి', 'Edit basic festival information')}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          
-          <div className="space-y-2">
-            <Label htmlFor="festival-name">{t('ఉత్సవ పేరు', 'Festival Name')}</Label>
-            <Input
-              id="festival-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="festival-year">{t('సంవత్సరం', 'Year')}</Label>
-            <Input
-              id="festival-year"
-              type="number"
-              value={year}
-              onChange={(e) => setYear(parseInt(e.target.value))}
-              required
-              min="2000"
-              max="2100"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="festival-description">{t('వివరణ', 'Description')}</Label>
-            <Textarea
-              id="festival-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-            />
-          </div>
-
-          <div className="pt-4 border-t">
-              <PageSelector 
-                value={enabledPages} 
-                onChange={setEnabledPages} 
-                label={t('ప్రదర్శించాల్సిన పేజీలు', 'Visible Pages')} 
-              />
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full sm:w-auto"
-            disabled={updateMutation.isPending}
+      {/* Sub-Tabs Navigation for Festival Settings */}
+      <Tabs defaultValue="details" className="w-full space-y-6">
+        <TabsList className="w-full grid grid-cols-3 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl h-12">
+          <TabsTrigger 
+            value="details" 
+            className="rounded-xl font-extrabold text-xs sm:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-primary shadow-xs transition-all gap-1.5 sm:gap-2"
           >
-            {updateMutation.isPending ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                {t('సేవ్ అవుతోంది...', 'Saving...')}
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                {t('సేవ్ చేయండి', 'Save Changes')}
-              </>
-            )}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+            <Sparkles className="h-4 w-4" />
+            <span className="truncate">{t('ఉత్సవ వివరాలు', 'Festival Details')}</span>
+          </TabsTrigger>
 
-    )}
-    
-    {selectedFestival && (
-        <ReceiptSettings festival={selectedFestival} />
-    )}
+          <TabsTrigger 
+            value="whatsapp" 
+            className="rounded-xl font-extrabold text-xs sm:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-emerald-600 shadow-xs transition-all gap-1.5 sm:gap-2"
+          >
+            <MessageSquare className="h-4 w-4 text-emerald-500" />
+            <span className="truncate">{t('వాట్సాప్ మెసేజ్', 'WhatsApp Message')}</span>
+          </TabsTrigger>
 
-    <PasscodeDialog
+          <TabsTrigger 
+            value="receipt" 
+            className="rounded-xl font-extrabold text-xs sm:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-blue-600 shadow-xs transition-all gap-1.5 sm:gap-2"
+          >
+            <FileText className="h-4 w-4 text-blue-500" />
+            <span className="truncate">{t('PDF రసీదు', 'PDF Receipt')}</span>
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Tab 1: Festival Details */}
+        <TabsContent value="details" className="space-y-4 focus-visible:outline-none">
+          <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle>
+                {t('ఉత్సవ వివరాలు', 'Festival Details')}
+              </CardTitle>
+              <CardDescription>
+                {t('పండుగ ప్రాథమిక సమాచారాన్ని సవరించండి', 'Edit basic festival information')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="festival-name">{t('ఉత్సవ పేరు', 'Festival Name')}</Label>
+                  <Input
+                    id="festival-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="festival-year">{t('సంవత్సరం', 'Year')}</Label>
+                  <Input
+                    id="festival-year"
+                    type="number"
+                    value={year}
+                    onChange={(e) => setYear(parseInt(e.target.value))}
+                    required
+                    min="2000"
+                    max="2100"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="festival-description">{t('వివరణ', 'Description')}</Label>
+                  <Textarea
+                    id="festival-description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+
+                <div className="pt-4 border-t">
+                  <PageSelector 
+                    value={enabledPages} 
+                    onChange={setEnabledPages} 
+                    label={t('ప్రదర్శించాల్సిన పేజీలు', 'Visible Pages')} 
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full sm:w-auto"
+                  disabled={updateMutation.isPending}
+                >
+                  {updateMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      {t('సేవ్ అవుతోంది...', 'Saving...')}
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      {t('సేవ్ చేయండి', 'Save Changes')}
+                    </>
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab 2: WhatsApp Message Settings */}
+        <TabsContent value="whatsapp" className="space-y-4 focus-visible:outline-none">
+          <WhatsAppMessageSettings festival={selectedFestival} organizationName={currentOrganization?.name} />
+        </TabsContent>
+
+        {/* Tab 3: PDF Receipt Settings */}
+        <TabsContent value="receipt" className="space-y-4 focus-visible:outline-none">
+          <ReceiptSettings festival={selectedFestival} />
+        </TabsContent>
+      </Tabs>
+
+      <PasscodeDialog
         open={isPasscodeDialogOpen}
         onOpenChange={setIsPasscodeDialogOpen}
         onAuthenticate={handleAuthenticate}
@@ -274,3 +304,4 @@ export function FestivalSettingsTab() {
     </div>
   );
 }
+
