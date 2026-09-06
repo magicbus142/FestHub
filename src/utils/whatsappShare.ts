@@ -16,19 +16,67 @@ export interface WhatsAppShareData {
   config?: WhatsAppMessageConfig;
 }
 
+export const DEFAULT_WA_CONFIG: WhatsAppMessageConfig = {
+  style: 'decorative', // Rich & Decorative as DEFAULT
+  language: 'english',
+  include_emojis: true,
+  thankyou_note: 'Thank you for supporting our festival celebrations! Warm regards from our committee.', // Preset 3 as DEFAULT
+  show_flat: true
+};
+
+export function getSavedWhatsAppConfig(festivalIdentifier?: string): WhatsAppMessageConfig {
+  if (typeof window === 'undefined') return DEFAULT_WA_CONFIG;
+  
+  if (festivalIdentifier) {
+    const keys = [
+      `wa_settings_${festivalIdentifier}`,
+      `wa_settings_default`
+    ];
+    for (const key of keys) {
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        try {
+          return { ...DEFAULT_WA_CONFIG, ...JSON.parse(saved) };
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+  }
+
+  const defaultSaved = localStorage.getItem('wa_settings_default');
+  if (defaultSaved) {
+    try {
+      return { ...DEFAULT_WA_CONFIG, ...JSON.parse(defaultSaved) };
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  return DEFAULT_WA_CONFIG;
+}
+
 export function generateWhatsAppMessage({
   donation,
   organizationName = 'Festival Manager',
   festivalName = 'Festival',
   festivalYear = '',
-  config = {}
+  config
 }: WhatsAppShareData): string {
   const fullFestival = festivalYear ? `${festivalName} ${festivalYear}` : festivalName;
   
-  const style = config.style || 'clean';
-  const language = config.language || 'english';
-  const includeEmojis = config.include_emojis ?? (style === 'decorative');
-  const customThankYou = config.thankyou_note?.trim() || '';
+  // Merge saved localStorage config + explicit config + DEFAULT_WA_CONFIG
+  const savedConfig = getSavedWhatsAppConfig(festivalName);
+  const activeConfig: WhatsAppMessageConfig = {
+    ...DEFAULT_WA_CONFIG,
+    ...savedConfig,
+    ...(config || {})
+  };
+
+  const style = activeConfig.style || 'decorative';
+  const language = activeConfig.language || 'english';
+  const includeEmojis = activeConfig.include_emojis ?? (style === 'decorative');
+  const customThankYou = activeConfig.thankyou_note?.trim() || DEFAULT_WA_CONFIG.thankyou_note!;
 
   // Donor Name
   const teluguName = donation.name?.trim() || '';
@@ -92,17 +140,7 @@ export function generateWhatsAppMessage({
     }
   }
 
-  // Thank You Message
-  let thankYouMsg = customThankYou;
-  if (!thankYouMsg) {
-    if (language === 'english') {
-      thankYouMsg = 'Thank you very much for your generous contribution! May God bless you and your family.';
-    } else if (language === 'telugu') {
-      thankYouMsg = 'మీ సాయానికి మరియు విరాళానికి మనస్ఫూర్తిగా ధన్యవాదాలు! భగవంతుని ఆశీస్సులు మీకు ఎల్లప్పుడూ ఉండాలని ఆశిస్తున్నాము.';
-    } else {
-      thankYouMsg = 'మీ సాయానికి మనస్ఫూర్తిగా ధన్యవాదాలు! Thank you very much for your generous contribution!';
-    }
-  }
+  const thankYouMsg = customThankYou;
 
   // BUILD MESSAGE TEXT BASED ON STYLE
   let msg = '';
@@ -132,7 +170,7 @@ export function generateWhatsAppMessage({
     msg += `${flowerIcon}*DONATION RECEIPT* ${flowerIcon}\n`;
     msg += `━━━━━━━━━━━━━━━━━━━━\n`;
     msg += `${userIcon}*Donor Name:* ${nameDisplay}\n`;
-    if (donation.flat_no && config.show_flat !== false) {
+    if (donation.flat_no && activeConfig.show_flat !== false) {
       msg += `${flatIcon}*Flat No:* ${donation.flat_no}\n`;
     }
     msg += `${tagIcon}*Category:* ${categoryLabel}${typeDetail}\n`;
@@ -146,14 +184,14 @@ export function generateWhatsAppMessage({
     return msg;
   }
 
-  // Default / Clean Style
+  // Clean Style
   const prayIcon = includeEmojis ? ' 🙏' : '';
   msg = `*${organizationName.trim().toUpperCase()}*\n`;
   msg += `*${fullFestival.trim()}*\n\n`;
   msg += `*DONATION RECEIPT*\n`;
   msg += `----------------------------------------\n`;
   msg += `*Donor Name:* ${nameDisplay}\n`;
-  if (donation.flat_no && config.show_flat !== false) {
+  if (donation.flat_no && activeConfig.show_flat !== false) {
     msg += `*Flat No:* ${donation.flat_no}\n`;
   }
   msg += `*Category:* ${categoryLabel}${typeDetail}\n`;

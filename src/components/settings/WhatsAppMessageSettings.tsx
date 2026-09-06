@@ -18,10 +18,10 @@ interface WhatsAppMessageSettingsProps {
 }
 
 const DEFAULT_WA_CONFIG: WhatsAppMessageConfig = {
-  style: 'clean',
+  style: 'decorative', // Rich & Decorative as DEFAULT
   language: 'english',
-  include_emojis: false,
-  thankyou_note: 'Thank you very much for your generous contribution! May God bless you and your family.',
+  include_emojis: true,
+  thankyou_note: 'Thank you for supporting our festival celebrations! Warm regards from our committee.', // Preset 3 as DEFAULT
   show_flat: true
 };
 
@@ -34,23 +34,31 @@ export function WhatsAppMessageSettings({ festival, organizationName = 'Festival
   const [waConfig, setWaConfig] = useState<WhatsAppMessageConfig>(DEFAULT_WA_CONFIG);
 
   useEffect(() => {
-    const storageKey = `wa_settings_${festival.id || festival.name || 'default'}`;
-    const savedLocal = localStorage.getItem(storageKey);
-    if (savedLocal) {
-      try {
-        setWaConfig(JSON.parse(savedLocal));
-        return;
-      } catch (e) {
-        // Ignore JSON parse error
+    const keysToTry = [
+      `wa_settings_${festival.id}`,
+      `wa_settings_${festival.name}`,
+      `wa_settings_default`
+    ];
+
+    for (const key of keysToTry) {
+      if (!key) continue;
+      const savedLocal = localStorage.getItem(key);
+      if (savedLocal) {
+        try {
+          setWaConfig({ ...DEFAULT_WA_CONFIG, ...JSON.parse(savedLocal) });
+          return;
+        } catch (e) {
+          // ignore
+        }
       }
     }
 
     if (festival.receipt_settings) {
       const existing = festival.receipt_settings as any;
       setWaConfig({
-        style: existing.whatsapp_style || 'clean',
+        style: existing.whatsapp_style || 'decorative',
         language: existing.whatsapp_language || 'english',
-        include_emojis: existing.whatsapp_include_emojis ?? false,
+        include_emojis: existing.whatsapp_include_emojis ?? true,
         thankyou_note: existing.whatsapp_thankyou_note || DEFAULT_WA_CONFIG.thankyou_note,
         show_flat: existing.whatsapp_show_flat ?? true,
       });
@@ -60,9 +68,11 @@ export function WhatsAppMessageSettings({ festival, organizationName = 'Festival
   const handleSave = async () => {
     setLoading(true);
     try {
-      // 1. Save locally first to ensure instant persistence
-      const storageKey = `wa_settings_${festival.id || festival.name || 'default'}`;
-      localStorage.setItem(storageKey, JSON.stringify(waConfig));
+      // 1. Save locally across all key aliases to ensure instant persistence everywhere
+      const jsonVal = JSON.stringify(waConfig);
+      localStorage.setItem('wa_settings_default', jsonVal);
+      if (festival.id) localStorage.setItem(`wa_settings_${festival.id}`, jsonVal);
+      if (festival.name) localStorage.setItem(`wa_settings_${festival.name}`, jsonVal);
 
       // 2. Update local festival reference
       if (festival) {
