@@ -27,10 +27,26 @@ export const BackButton = ({
   const navigate = useNavigate();
   const { currentOrganization } = useOrganization();
 
-  // Default to organization page if no destination specified
-  const destination = to || (currentOrganization ? `/org/${currentOrganization.slug}` : '/');
-
   const isIconOnly = iconOnly || size === 'icon';
+
+  const handleClick = () => {
+    if (to) {
+      navigate(to);
+      return;
+    }
+
+    const currentPath = window.location.pathname;
+    const orgPath = currentOrganization ? `/org/${currentOrganization.slug}` : '/';
+
+    // If currently on organization root/festival selection page (/org/:slug or /org/:slug/)
+    if (currentPath === orgPath || currentPath === `${orgPath}/`) {
+      navigate('/');
+      return;
+    }
+
+    // Default: navigate back to festival selection page
+    navigate(orgPath);
+  };
 
   const themeClasses = emphasis
     ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/15'
@@ -40,7 +56,7 @@ export const BackButton = ({
     <Button
       variant={variant}
       size={size}
-      onClick={() => navigate(destination)}
+      onClick={handleClick}
       className={`flex items-center justify-center font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${themeClasses} ${className}`}
       aria-label={t('ఉత్సవాలకు తిరిగి వెళ్లండి', 'Go back')}
       title={t('వెనుకకు', 'Go Back')}

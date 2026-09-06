@@ -10,6 +10,7 @@ interface PageHeaderProps {
   description?: string;
   descriptionTelugu?: string;
   showBack?: boolean;
+  backTo?: string;
   showActions?: boolean;
   onAuthOpen?: () => void;
   children?: React.ReactNode;
@@ -21,6 +22,7 @@ export function PageHeader({
   description, 
   descriptionTelugu,
   showBack = true,
+  backTo,
   showActions = true,
   onAuthOpen,
   children 
@@ -39,6 +41,7 @@ export function PageHeader({
       <div className="flex items-center gap-2.5 min-w-0 flex-1">
         {showBack && (
           <BackButton
+            to={backTo}
             variant="ghost"
             size="icon"
             className="h-9 w-9 rounded-full bg-blue-50 dark:bg-blue-950/50 border border-blue-100 dark:border-blue-900/60 text-blue-600 dark:text-blue-400 hover:bg-blue-100 transition-all shrink-0 shadow-2xs"

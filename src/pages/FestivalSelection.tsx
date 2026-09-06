@@ -161,6 +161,7 @@ export default function FestivalSelection() {
         <PageHeader
           title={currentOrganization?.name}
           description={t('ఉత్సవాన్ని ఎంచుకోండి', 'Select Festival')}
+          backTo="/"
         >
           <Button 
             variant="ghost" 
