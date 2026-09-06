@@ -143,9 +143,9 @@ export default function Dashboard() {
             <span className="text-xs font-black uppercase tracking-widest text-slate-400">{t('ఆర్థిక సారాంశం', 'FINANCIAL SUMMARY')}</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-stretch">
             {/* Total Balance */}
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-2xs flex flex-col justify-between md:col-span-1">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{t('మిగిలిన మొత్తం', 'Total Balance')}</p>
                 <h2 className="text-3xl sm:text-4xl font-black text-emerald-600 tracking-tight truncate">
@@ -159,30 +159,35 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Previous Amount */}
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-2xs flex flex-col justify-between group/card hover:border-blue-200 transition-all">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{t('మునుపటి మొత్తం', 'Previous Amount')}</p>
-              <div>
-                <p className="text-2xl font-black text-blue-600 dark:text-blue-400 tracking-tight truncate">
-                  ₹{(chandasPrev || 0).toLocaleString()}
-                </p>
-                {isAuthenticated && (
-                  <button
-                    onClick={() => { setPrevInput(String(chandasPrev || 0)); setEditingCardType('chandas'); setIsPrevDialogOpen(true); }}
-                    className="text-[11px] font-bold text-blue-500 hover:text-blue-700 mt-1 underline decoration-dotted cursor-pointer"
-                  >
-                    {t('మునుపటిది', 'Edit Prev')}
-                  </button>
-                )}
+            {/* Side-by-side container for Previous Amount & Expenses on Mobile */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:col-span-2">
+              {/* Previous Amount */}
+              <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-4 sm:p-5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-2xs flex flex-col justify-between group/card hover:border-blue-200 transition-all">
+                <p className="text-[11px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1 truncate">{t('మునుపటి మొత్తం', 'Previous Amount')}</p>
+                <div>
+                  <p className="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400 tracking-tight truncate">
+                    ₹{(chandasPrev || 0).toLocaleString()}
+                  </p>
+                  {isAuthenticated && (
+                    <button
+                      onClick={() => { setPrevInput(String(chandasPrev || 0)); setEditingCardType('chandas'); setIsPrevDialogOpen(true); }}
+                      className="text-[11px] font-bold text-blue-500 hover:text-blue-700 mt-1 underline decoration-dotted cursor-pointer"
+                    >
+                      {t('మునుపటిది', 'Edit Prev')}
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Expenses */}
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-2xs flex flex-col justify-between group/card hover:border-red-200 transition-all sm:col-span-2 md:col-span-1">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{t('ఖర్చులు', 'Expenses')}</p>
-              <p className="text-2xl font-black text-red-600 dark:text-red-400 tracking-tight truncate">
-                ₹{(totalExpenses + expensesPrev).toLocaleString()}
-              </p>
+              {/* Expenses */}
+              <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-4 sm:p-5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-2xs flex flex-col justify-between group/card hover:border-red-200 transition-all">
+                <p className="text-[11px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1 truncate">{t('ఖర్చులు', 'Expenses')}</p>
+                <div>
+                  <p className="text-xl sm:text-2xl font-black text-red-600 dark:text-red-400 tracking-tight truncate">
+                    ₹{(totalExpenses + expensesPrev).toLocaleString()}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -248,8 +253,8 @@ export default function Dashboard() {
 
       {/* Edit allowed only when logged in; no auth dialog shown */}
 
-      {/* Module Previews */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+      {/* Module Previews - 1 Card per row for Full Width on iPad / Laptops */}
+      <div className="grid grid-cols-1 gap-6 mb-8">
         {(!allowedPages || allowedPages.includes('chandas')) && <ChandasPreview />}
         {(!allowedPages || allowedPages.includes('expenses')) && <ExpensesPreview />}
         {(!allowedPages || allowedPages.includes('images')) && <ImagesPreview />}

@@ -72,7 +72,7 @@ export function PageHeader({
                 logout();
                 navigate(orgPath);
               }}
-              className="h-9 w-9 rounded-full bg-slate-100 dark:bg-slate-800/80 hover:bg-red-50 text-red-500 transition-colors shadow-2xs"
+              className="h-9 w-9 rounded-full bg-slate-100 dark:bg-slate-800/80 hover:bg-red-50 text-red-500 transition-colors shadow-2xs lg:hidden"
               title="Log Out"
             >
               <LogOut className="h-4 w-4" />
@@ -82,7 +82,7 @@ export function PageHeader({
               variant="ghost"
               size="icon"
               onClick={onAuthOpen}
-              className="h-9 w-9 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100 transition-colors shadow-2xs"
+              className="h-9 w-9 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100 transition-colors shadow-2xs lg:hidden"
               title="Login"
             >
               <Lock className="h-4 w-4" />

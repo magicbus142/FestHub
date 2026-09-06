@@ -337,7 +337,7 @@ export default function Images() {
                  />
               </div>
 
-              {/* Sort Selector & Language Switcher */}
+              {/* Sort Selector */}
               <div className="flex items-center gap-2 w-full md:w-auto">
                  <select 
                     className="flex-1 md:w-48 bg-white border border-slate-200 text-foreground py-2.5 px-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -347,15 +347,6 @@ export default function Images() {
                     <option value="newest">{t('కొత్తవి మొదట', 'Newest First')}</option>
                     <option value="oldest">{t('పాతవి మొదట', 'Oldest First')}</option>
                  </select>
-
-                 <Button
-                    variant="outline"
-                    onClick={() => setLanguage(language === 'telugu' ? 'english' : 'telugu')}
-                    className="h-10 w-10 p-0 rounded-2xl border-slate-200 bg-white hover:bg-slate-50 text-blue-600 font-bold text-xs flex-shrink-0 shadow-2xs cursor-pointer"
-                    title={t('భాష మార్చండి', 'Switch Language')}
-                 >
-                    <span className="text-xs font-extrabold">{language === 'telugu' ? 'తె' : 'EN'}</span>
-                 </Button>
               </div>
            </div>
         </div>

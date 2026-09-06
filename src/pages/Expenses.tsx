@@ -19,6 +19,7 @@ import { AuthDialog } from '@/components/AuthDialog';
 import { BackButton } from '@/components/BackButton';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { PageHeader } from '@/components/PageHeader';
+import { ExpenseCard } from '@/components/ExpenseCard';
 
 export default function Expenses() {
   const { t, language, setLanguage } = useLanguage();
@@ -368,100 +369,14 @@ export default function Expenses() {
             </Card>
           ) : (
             paginatedExpenses.map((expense: Expense) => (
-              <Card key={expense.id} className="group overflow-hidden border-none shadow-sm hover:shadow-md transition-all rounded-3xl bg-white">
-                 <div className="h-1.5 w-full bg-red-100" />
-                 <CardContent className="p-6">
-                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                       <div className="flex gap-4">
-                          <div className="h-14 w-14 bg-red-50 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-inner shadow-red-100/50">
-                             <Receipt className="h-7 w-7 text-red-600" />
-                          </div>
-                          <div>
-                             <h3 className="text-xl font-black text-slate-800 tracking-tight flex flex-wrap items-baseline gap-x-2">
-                                {namePreference === 'telugu' ? (
-                                  <>
-                                    <span>{expense.type}</span>
-                                    {expense.type_english && (
-                                      <span className="text-sm font-bold text-slate-400">
-                                        ({expense.type_english.toUpperCase()})
-                                      </span>
-                                    )}
-                                  </>
-                                ) : (
-                                  <>
-                                    <span>{(expense.type_english || expense.type || '').toUpperCase()}</span>
-                                    {expense.type_english && (
-                                      <span className="text-sm font-bold text-slate-400">
-                                        ({expense.type})
-                                      </span>
-                                    )}
-                                  </>
-                                )}
-                             </h3>
-                             <p className="text-[10px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest flex items-center gap-1">
-                                <TrendingUp className="h-3 w-3" />
-                                {expense.created_at ? new Date(expense.created_at).toLocaleDateString() : ''}
-                             </p>
-                             {expense.description && (
-                                <p className="text-sm text-slate-500 mt-3 italic leading-relaxed border-l-2 border-slate-100 pl-3">
-                                   {expense.description}
-                                </p>
-                             )}
-                          </div>
-                       </div>
-
-                       <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start w-full sm:w-auto gap-4">
-                          <div className="text-3xl font-black text-red-600 tracking-tighter">
-                             ₹{expense.amount.toLocaleString()}
-                          </div>
-                          
-                          {isAuthenticated && (
-                            <div className="flex items-center bg-slate-50 p-1 rounded-2xl opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all border border-slate-100">
-                               <Button 
-                                 variant="ghost" 
-                                 size="icon" 
-                                 className="h-9 w-9 text-slate-400 hover:text-primary hover:bg-white rounded-xl"
-                                 onClick={() => startEditExpense(expense)}
-                               >
-                                 <Edit2 className="h-4 w-4" />
-                               </Button>
-
-                               <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                     <Button 
-                                       variant="ghost" 
-                                       size="icon"
-                                       className="h-9 w-9 text-slate-400 hover:text-destructive hover:bg-white rounded-xl"
-                                     >
-                                       <Trash2 className="h-4 w-4" />
-                                     </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent className="rounded-3xl border-none p-8">
-                                     <AlertDialogHeader>
-                                        <AlertDialogTitle className="text-3xl font-black text-slate-800">{t('ఖర్చు తొలగించు', 'Delete Expense')}</AlertDialogTitle>
-                                        <AlertDialogDescription className="text-lg font-medium text-slate-500">
-                                           {t('మీరు ఈ ఖర్చును తొలగించాలని ఖచ్చితంగా అనుకుంటున్నారా? ఈ చర్య రద్దు చేయబడదు.', 'Are you sure you want to delete this expense? This action cannot be undone.')}
-                                        </AlertDialogDescription>
-                                     </AlertDialogHeader>
-                                     <AlertDialogFooter className="mt-6 gap-3">
-                                        <AlertDialogCancel className="rounded-xl border-none bg-slate-100 font-bold h-12 flex-1">{t('రద్దు', 'Cancel')}</AlertDialogCancel>
-                                        <AlertDialogAction
-                                          onClick={() => {
-                                            if (expense.id) deleteExpenseMutation.mutate(expense.id);
-                                          }}
-                                          className="bg-red-600 text-white hover:bg-red-700 rounded-xl font-bold h-12 flex-1"
-                                        >
-                                          {t('తొలగించు', 'Delete')}
-                                        </AlertDialogAction>
-                                     </AlertDialogFooter>
-                                  </AlertDialogContent>
-                               </AlertDialog>
-                            </div>
-                          )}
-                       </div>
-                    </div>
-                 </CardContent>
-              </Card>
+              <ExpenseCard
+                key={expense.id}
+                expense={expense}
+                onEdit={startEditExpense}
+                onDelete={(id) => deleteExpenseMutation.mutate(id)}
+                namePreference={namePreference}
+                className="rounded-2xl border border-slate-100 shadow-sm"
+              />
             ))
           )}
         </div>

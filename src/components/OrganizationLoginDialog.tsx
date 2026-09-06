@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { LogIn } from 'lucide-react';
 import { supabase, getSupabaseClientForOrg, supabasePrimary, supabaseSecondary } from '@/integrations/supabase/client';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 interface OrganizationLoginDialogProps {
   open: boolean;
@@ -22,6 +23,7 @@ export function OrganizationLoginDialog({
   onSuccess,
   prefilledName
 }: OrganizationLoginDialogProps) {
+  const { setCurrentOrganization, setAuthenticated } = useOrganization();
   const [name, setName] = useState(prefilledName || '');
   const [passcode, setPasscode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -160,9 +162,10 @@ export function OrganizationLoginDialog({
   }, [open, prefilledName]);
 
   const handleLoginSuccess = (org: any) => {
-    // Store authenticated org in localStorage (for UI purposes only)
-    localStorage.setItem('orgAuthenticated', 'true');
-    localStorage.setItem('orgAuthId', org.id);
+    // Store authenticated org and update React state via context
+    const { passcode, ...cleanOrg } = org;
+    setCurrentOrganization(cleanOrg);
+    setAuthenticated(true, org.id);
 
     toast({
       title: 'Access granted',

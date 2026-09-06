@@ -12,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFestival } from '@/contexts/FestivalContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { BarChart3, DollarSign, Plus, ArrowLeft, Lock, TrendingUp, Wallet, CreditCard, Download, Package, HandHelping, ArrowUpRight, Users, Target, LogOut } from 'lucide-react';
+import { BarChart3, DollarSign, Plus, ArrowLeft, Lock, TrendingUp, Wallet, CreditCard, Download, Package, HandHelping, ArrowUpRight, Users, Target, LogOut, Edit, Trash2, FileDown } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -31,7 +31,6 @@ import { useNavigate } from 'react-router-dom';
 import { BackButton } from '@/components/BackButton';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { generateReceipt } from '@/utils/receiptGenerator';
-import { FileDown } from 'lucide-react';
 
 export default function Chandas() {
   const { t, language, setLanguage } = useLanguage();
@@ -459,25 +458,25 @@ export default function Chandas() {
                  </select>
                  
                  <select 
-                    className="flex-1 md:w-40 bg-white border border-slate-200 text-foreground py-2 px-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    value={sortOption}
-                    onChange={(e) => setSortOption(e.target.value)}
-                 >
-                    <option value="">{t('ఇటీవలివి', 'Latest First')}</option>
-                    <option value="amount-desc">High → Low</option>
-                    <option value="amount-asc">Low → High</option>
-                    <option value="name-asc">Name: A - Z</option>
-                 </select>
+                     className="flex-1 md:w-40 bg-white border border-slate-200 text-foreground py-2 px-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                     value={sortOption}
+                     onChange={(e) => setSortOption(e.target.value)}
+                  >
+                     <option value="">{t('ఇటీవలివి', 'Latest First')}</option>
+                     <option value="amount-desc">High → Low</option>
+                     <option value="amount-asc">Low → High</option>
+                     <option value="name-asc">Name: A - Z</option>
+                  </select>
 
-                 <Button
-                    variant="outline"
-                    onClick={() => setNamePreference(prev => prev === 'telugu' ? 'english' : 'telugu')}
-                    className="h-10 w-10 p-0 rounded-xl border-slate-200 bg-white hover:bg-slate-50 flex-shrink-0"
-                    title="Change Language"
-                 >
-                    <span className="text-xs font-black">{namePreference === 'telugu' ? 'తె' : 'EN'}</span>
-                 </Button>
-              </div>
+                  <Button
+                     variant="outline"
+                     onClick={() => setNamePreference(prev => prev === 'telugu' ? 'english' : 'telugu')}
+                     className="h-10 w-10 p-0 rounded-xl border-slate-200 bg-white hover:bg-slate-50 flex-shrink-0"
+                     title="Change Name Language"
+                  >
+                     <span className="text-xs font-black">{namePreference === 'telugu' ? 'తె' : 'EN'}</span>
+                  </Button>
+               </div>
            </div>
         </div>
 
@@ -521,42 +520,70 @@ export default function Chandas() {
              <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
                {/* Desktop Table View */}
                <div className="hidden md:block">
-                 <Table>
-                   <TableHeader className="bg-slate-50">
-                     <TableRow>
-                       <TableHead className="font-semibold">{t('దాత', 'Contributor')}</TableHead>
-                       {(currentOrganization?.name?.trim().toLowerCase() === 'nrsa' || currentOrganization?.slug?.trim().toLowerCase() === 'nrsa' || processedDonations.some(d => d.flat_no)) && (
-                         <TableHead className="font-semibold">{t('ఫ్లాట్ నంబరు', 'Flat No')}</TableHead>
-                       )}
-                       <TableHead className="font-semibold">{t('తేదీ', 'Date')}</TableHead>
-                       <TableHead className="font-semibold">{t('విధానం', 'Mode')}</TableHead>
-                       <TableHead className="text-right font-semibold">{t('మొత్తం', 'Amount')}</TableHead>
-                       <TableHead className="font-semibold text-center">{t('స్థితి', 'Status')}</TableHead>
-                       <TableHead className="w-[100px]"></TableHead>
-                     </TableRow>
-                   </TableHeader>
-                   <TableBody>
-                     {processedDonations.map((donation) => (
-                       <TableRow key={donation.id} className="group hover:bg-slate-50 transition-colors">
-                         <TableCell>
-                           <div className="flex items-center gap-3">
-                             <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${
-                               donation.category === 'sponsorship' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
-                             }`}>
-                               {(donation.name_english?.[0] || donation.name?.[0] || '?').toUpperCase()}
-                             </div>
-                             <div>
-                               <p className="font-medium text-foreground">
-                                  {namePreference === 'english' 
-                                    ? (donation.name_english || donation.name || '').toUpperCase() 
-                                    : (donation.name || (donation.name_english || '').toUpperCase())}
-                               </p>
-                               {donation.category === 'sponsorship' && (
-                                 <p className="text-xs text-muted-foreground">{donation.type}</p>
-                               )}
-                             </div>
-                           </div>
-                         </TableCell>
+                  <Table>
+                    <TableHeader className="bg-slate-50">
+                      <TableRow>
+                        <TableHead className="font-semibold">{t('దాత', 'Contributor')}</TableHead>
+                        {(currentOrganization?.name?.trim().toLowerCase() === 'nrsa' || currentOrganization?.slug?.trim().toLowerCase() === 'nrsa' || processedDonations.some(d => d.flat_no)) && (
+                          <TableHead className="font-semibold">{t('ఫ్లాట్ నంబరు', 'Flat No')}</TableHead>
+                        )}
+                        <TableHead className="font-semibold">{t('తేదీ', 'Date')}</TableHead>
+                        <TableHead className="font-semibold">{t('విధానం', 'Mode')}</TableHead>
+                        <TableHead className="text-right font-semibold">{t('మొత్తం', 'Amount')}</TableHead>
+                        {isAuthenticated && (
+                          <TableHead className="font-semibold text-center">{t('స్థితి', 'Status')}</TableHead>
+                        )}
+                        {isAuthenticated && (
+                          <TableHead className="text-right font-semibold pr-4">{t('చర్యలు', 'Actions')}</TableHead>
+                        )}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {processedDonations.map((donation) => {
+                        const showFlatNo = currentOrganization?.name?.trim().toLowerCase() === 'nrsa' || currentOrganization?.slug?.trim().toLowerCase() === 'nrsa' || processedDonations.some(d => d.flat_no);
+                        return (
+                        <TableRow key={donation.id} className="group hover:bg-slate-50 transition-colors">
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${
+                                donation.category === 'sponsorship' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                              }`}>
+                                {(donation.name_english?.[0] || donation.name?.[0] || '?').toUpperCase()}
+                              </div>
+                              <div>
+                                {(() => {
+                                  const isEng = namePreference === 'english';
+                                  const teName = donation.name?.trim() || '';
+                                  const enName = donation.name_english?.trim() || '';
+                                  const primary = isEng ? (enName || teName) : (teName || enName);
+                                  const secondary = isEng 
+                                    ? (enName && teName && enName.toLowerCase() !== teName.toLowerCase() ? teName : '') 
+                                    : (teName && enName && teName.toLowerCase() !== enName.toLowerCase() ? enName.toUpperCase() : '');
+
+                                  return (
+                                    <>
+                                      <p className="font-bold text-foreground text-sm leading-tight">
+                                        {primary}
+                                      </p>
+                                      {secondary && (
+                                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mt-0.5">
+                                          {secondary}
+                                        </p>
+                                      )}
+                                    </>
+                                  );
+                                })()}
+                                {donation.category === 'sponsorship' && (
+                                  <p className="text-xs text-purple-600 font-semibold">{donation.type}</p>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          {showFlatNo && (
+                            <TableCell className="text-muted-foreground text-sm font-semibold">
+                              {donation.flat_no ? `Flat ${donation.flat_no}` : '-'}
+                            </TableCell>
+                          )}
                           <TableCell className="text-muted-foreground text-sm">
                             {donation.created_at ? new Date(donation.created_at).toLocaleDateString() : '-'}
                           </TableCell>
@@ -564,8 +591,8 @@ export default function Chandas() {
                             <div className="flex items-center gap-2 text-sm text-foreground/80">
                                 {donation.donation_mode === 'goods' ? <Package className="h-3.5 w-3.5 text-orange-500" /> :
                                  donation.donation_mode === 'service' ? <HandHelping className="h-3.5 w-3.5 text-purple-500" /> :
-                                 donation.payment_method === 'upi' ? <CreditCard className="h-3.5 w-3.5 text-blue-500" /> : // UPI
-                                 <Wallet className="h-3.5 w-3.5 text-emerald-500" /> // Cash
+                                 donation.payment_method === 'upi' ? <CreditCard className="h-3.5 w-3.5 text-blue-500" /> :
+                                 <Wallet className="h-3.5 w-3.5 text-emerald-500" />
                                 }
                               <span className="capitalize">
                                   {donation.donation_mode === 'cash' ? (donation.payment_method === 'upi' ? 'UPI' : 'Cash') : (donation.donation_mode || 'Cash')}
@@ -574,73 +601,63 @@ export default function Chandas() {
                           </TableCell>
                           <TableCell className="text-right font-bold text-foreground">
                             <div>₹{donation.amount.toLocaleString()}</div>
-                            {(donation.amount - (donation.received_amount ?? donation.amount)) > 0 && (
+                            {isAuthenticated && (donation.amount - (donation.received_amount ?? donation.amount)) > 0 && (
                               <div className="text-xs text-red-500 font-semibold mt-0.5">
                                 {t('బాకీ', 'Pending')}: ₹{(donation.amount - (donation.received_amount ?? 0)).toLocaleString()}
                               </div>
                             )}
                           </TableCell>
-                           <TableCell className="text-center">
-                            {(donation.received_amount ?? donation.amount) >= donation.amount ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                {t('స్వీకరించబడింది', 'Received')}
-                              </span>
-                            ) : (donation.received_amount || 0) > 0 ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                                {t('పాక్షికం', 'Partial')}
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                {t('బాకీ', 'Pending')}
-                             </span>
-                           )}
-                          </TableCell>
-                         <TableCell>
-                            <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => handleEditDonation(donation)}>
-                                   <span className="sr-only">Edit</span>
-                                   <svg
-                                     width="15"
-                                     height="15"
-                                     viewBox="0 0 15 15"
-                                     fill="none"
-                                     xmlns="http://www.w3.org/2000/svg"
-                                     className="h-4 w-4"
-                                   >
-                                     <path
-                                       d="M11.8536 1.14645C11.6583 0.951184 11.3417 0.951184 11.1464 1.14645L3.71455 8.57829C3.64594 8.6469 3.59374 8.73177 3.56236 8.825L2.83151 11.0176C2.79374 11.1309 2.82522 11.2566 2.91264 11.3364C3.00006 11.4162 3.1287 11.4348 3.22097 11.3813L5.32043 10.1691C5.40552 10.12 5.47467 10.0503 5.52352 9.96503L12.8536 2.85355C13.0488 2.65829 13.0488 2.34171 12.8536 2.14645L11.8536 1.14645ZM11.5 2.20711L12.1464 2.85355L5.05609 9.94391L4.05372 10.5226L4.54224 9.05705L11.5 2.20711ZM5.5 13H1.5C1.22386 13 1 13.2239 1 13.5C1 13.7761 1.22386 14 1.5 14H5.5C5.77614 14 6 13.7761 6 13.5C6 13.2239 5.77614 13 5.5 13Z"
-                                       fill="currentColor"
-                                       fillRule="evenodd"
-                                       clipRule="evenodd"
-                                     ></path>
-                                   </svg>
-                                </Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setDeletingDonationId(donation.id)}>
-                                   <span className="sr-only">Delete</span>
-                                   <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
-                                </Button>
-                                <Button 
-                                   variant="ghost" 
-                                   size="icon" 
-                                   className="h-8 w-8 text-muted-foreground hover:text-blue-600" 
-                                   onClick={() => {
-                                      const settings = selectedFestival?.receipt_settings as any; // Cast from Json
-                                      generateReceipt(donation, { 
-                                          ...settings,
-                                          organization_name: currentOrganization?.name,
-                                          // sub_title default to festival name if not configured
-                                          sub_title: settings?.sub_title || selectedFestival?.name 
-                                      });
-                                   }}
-                                   title="Download Receipt"
-                                >
-                                   <FileDown className="h-4 w-4" />
-                                </Button>
-                            </div>
-                         </TableCell>
-                       </TableRow>
-                     ))}
-                   </TableBody>
+                          {isAuthenticated && (
+                            <TableCell className="text-center">
+                              {(donation.received_amount ?? donation.amount) >= donation.amount ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  {t('స్వీకరించబడింది', 'Received')}
+                                </span>
+                              ) : (donation.received_amount || 0) > 0 ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                  {t('పాక్షికం', 'Partial')}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                  {t('బాకీ', 'Pending')}
+                                </span>
+                              )}
+                            </TableCell>
+                          )}
+                          {isAuthenticated && (
+                            <TableCell className="text-right">
+                               <div className="flex items-center justify-end gap-1">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-primary hover:bg-slate-100 rounded-full" onClick={() => handleEditDonation(donation)} title={t('సవరించు', 'Edit')}>
+                                     <span className="sr-only">Edit</span>
+                                     <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-destructive hover:bg-red-50 rounded-full" onClick={() => setDeletingDonationId(donation.id)} title={t('తొలగించు', 'Delete')}>
+                                     <span className="sr-only">Delete</span>
+                                     <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                     variant="ghost" 
+                                     size="icon" 
+                                     className="h-8 w-8 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-full" 
+                                     onClick={() => {
+                                        const settings = selectedFestival?.receipt_settings as any;
+                                        generateReceipt(donation, { 
+                                            ...settings,
+                                            organization_name: currentOrganization?.name,
+                                            sub_title: settings?.sub_title || selectedFestival?.name 
+                                        });
+                                     }}
+                                     title={t('రసీదు', 'Download Receipt')}
+                                  >
+                                     <FileDown className="h-4 w-4" />
+                                  </Button>
+                               </div>
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      );
+                      })}
+                    </TableBody>
                  </Table>
                </div>
 

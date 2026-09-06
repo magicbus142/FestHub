@@ -1,4 +1,5 @@
-import { Home, Receipt, Image, BarChart3, Settings, Vote, Menu } from 'lucide-react';
+import { useState } from 'react';
+import { Home, Receipt, Image, BarChart3, Settings, Vote, Lock, LogOut } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -7,13 +8,15 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { AuthDialog } from '@/components/AuthDialog';
 
 export const SideNavigation = () => {
   const { t } = useLanguage();
-  const { currentOrganization, isAuthenticated, allowedPages } = useOrganization();
+  const { currentOrganization, isAuthenticated, logout, allowedPages } = useOrganization();
   const { selectedFestival } = useFestival();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
 
   const orgPrefix = currentOrganization ? `/org/${currentOrganization.slug}` : '';
 
@@ -173,8 +176,8 @@ export const SideNavigation = () => {
         </div>
       </ScrollArea>
 
-      <div className="p-4 border-t border-border/40 bg-muted/10">
-          <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl p-4 border border-primary/5">
+      <div className="p-4 border-t border-border/40 bg-muted/10 space-y-3">
+          <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl p-3.5 border border-primary/5">
                 <p className="text-xs font-medium text-muted-foreground mb-1">{t('ప్రస్తుత పండుగ', 'Current Festival')}</p>
                 <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -183,6 +186,35 @@ export const SideNavigation = () => {
                     </span>
                 </div>
           </div>
+
+          {isAuthenticated ? (
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 h-11 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 font-bold rounded-xl"
+              onClick={() => {
+                logout();
+                navigate(orgPrefix || '/');
+              }}
+            >
+              <LogOut className="h-5 w-5 text-red-500" />
+              <span>{t('లాగ్‌అవుట్', 'Log Out')}</span>
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              className="w-full justify-start gap-3 h-11 border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-bold shadow-xs rounded-xl"
+              onClick={() => setIsAuthDialogOpen(true)}
+            >
+              <Lock className="h-5 w-5 text-primary" />
+              <span>{t('అడ్మిన్ లాగిన్', 'Admin Login')}</span>
+            </Button>
+          )}
+
+          <AuthDialog
+            isOpen={isAuthDialogOpen}
+            onClose={() => setIsAuthDialogOpen(false)}
+            onSuccess={() => setIsAuthDialogOpen(false)}
+          />
       </div>
     </div>
   );

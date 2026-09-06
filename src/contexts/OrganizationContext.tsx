@@ -22,6 +22,7 @@ interface OrganizationContextType {
   currentOrganization: Organization | null;
   setCurrentOrganization: (org: Organization) => void;
   isAuthenticated: boolean;
+  setAuthenticated: (auth: boolean, orgId?: string) => void;
   authenticate: (passcode: string) => Promise<boolean>;
   logout: () => void;
   allowedPages: string[] | null; // null means all pages allowed
@@ -52,6 +53,20 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       sessionStorage.removeItem('allowedPages');
     }
   }, []);
+
+  const setAuthenticated = useCallback((auth: boolean, orgId?: string) => {
+    setIsAuthenticated(auth);
+    if (auth) {
+      localStorage.setItem('orgAuthenticated', 'true');
+      const targetOrgId = orgId || currentOrganization?.id;
+      if (targetOrgId) {
+        localStorage.setItem('orgAuthId', targetOrgId);
+      }
+    } else {
+      localStorage.removeItem('orgAuthenticated');
+      localStorage.removeItem('orgAuthId');
+    }
+  }, [currentOrganization]);
 
   // Load organization and auth from localStorage
   useEffect(() => {
@@ -94,7 +109,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
     
     if (savedAuth === 'true' && savedOrgId === cleanOrg.id) {
       setIsAuthenticated(true);
-    } else {
+    } else if (savedOrgId && savedOrgId !== cleanOrg.id) {
       setIsAuthenticated(false);
     }
   }, []);
@@ -117,9 +132,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (isValid) {
-        setIsAuthenticated(true);
-        localStorage.setItem('orgAuthenticated', 'true');
-        localStorage.setItem('orgAuthId', currentOrganization.id);
+        setAuthenticated(true, currentOrganization.id);
         return true;
       }
       return false;
@@ -127,23 +140,22 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
       console.error('Authentication error:', error);
       return false;
     }
-  }, [currentOrganization]);
+  }, [currentOrganization, setAuthenticated]);
 
   const logout = useCallback(() => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('orgAuthenticated');
-    localStorage.removeItem('orgAuthId');
-  }, []);
+    setAuthenticated(false);
+  }, [setAuthenticated]);
 
   const value = useMemo(() => ({
       currentOrganization,
       setCurrentOrganization,
       isAuthenticated,
+      setAuthenticated,
       authenticate,
       logout,
       allowedPages,
       setAllowedPages
-  }), [currentOrganization, setCurrentOrganization, isAuthenticated, authenticate, logout, allowedPages, setAllowedPages]);
+  }), [currentOrganization, setCurrentOrganization, isAuthenticated, setAuthenticated, authenticate, logout, allowedPages, setAllowedPages]);
 
   return (
     <OrganizationContext.Provider value={value}>
