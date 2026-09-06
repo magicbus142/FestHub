@@ -15,63 +15,57 @@ export function generateWhatsAppMessage({
 }: WhatsAppShareData): string {
   const fullFestival = festivalYear ? `${festivalName} ${festivalYear}` : festivalName;
   
-  // Format donor name
-  const teluguName = donation.name?.trim() || '';
+  // Format donor name (English preferred, fallback to Telugu)
   const englishName = donation.name_english?.trim() || '';
-  let nameDisplay = teluguName;
-  if (englishName && englishName.toLowerCase() !== teluguName.toLowerCase()) {
-    nameDisplay = teluguName ? `${teluguName} (${englishName})` : englishName;
-  }
-  if (!nameDisplay) nameDisplay = 'భక్తులు / Donor';
+  const teluguName = donation.name?.trim() || '';
+  const nameDisplay = englishName || teluguName || 'Valued Donor';
 
   // Format category & type
   const isSponsorship = donation.category === 'sponsorship';
-  const categoryLabel = isSponsorship ? 'స్పాన్సర్‌షిప్ (Sponsorship)' : 'చందా (Chanda)';
-  const typeDetail = donation.type && donation.type !== 'చందా' ? ` [${donation.type}]` : '';
+  const categoryLabel = isSponsorship ? 'Sponsorship' : 'Chanda';
+  const typeDetail = donation.type && donation.type !== 'చందా' ? ` (${donation.type})` : '';
 
   // Format amount
   const amountStr = donation.amount > 0 
     ? `₹${donation.amount.toLocaleString('en-IN')}`
-    : 'స్పాన్సర్ (Sponsored)';
+    : 'Sponsored';
 
   // Payment mode & status
   const isCash = !donation.donation_mode || donation.donation_mode === 'cash';
   const paymentMethodStr = isCash 
-    ? (donation.payment_method === 'upi' ? 'UPI' : 'నగదు (Cash)')
-    : (donation.donation_mode === 'goods' ? 'వస్తువులు (Goods)' : 'సేవ (Service)');
+    ? (donation.payment_method === 'upi' ? 'UPI' : 'Cash')
+    : (donation.donation_mode === 'goods' ? 'Goods' : 'Service');
 
   const received = donation.received_amount ?? donation.amount;
   let statusStr = '';
   if (donation.amount > 0 && isCash) {
     if (received >= donation.amount) {
-      statusStr = 'నమోదైంది (Received)';
+      statusStr = 'Received';
     } else if (received > 0) {
       const due = donation.amount - received;
-      statusStr = `పాక్షికం (Received: ₹${received.toLocaleString('en-IN')}, Due: ₹${due.toLocaleString('en-IN')})`;
+      statusStr = `Partial (Received: ₹${received.toLocaleString('en-IN')}, Due: ₹${due.toLocaleString('en-IN')})`;
     } else {
-      statusStr = `బాకీ (Pending: ₹${donation.amount.toLocaleString('en-IN')})`;
+      statusStr = `Pending (Due: ₹${donation.amount.toLocaleString('en-IN')})`;
     }
   }
 
-  // Build formatted WhatsApp message text
-  let msg = `🚩 *${organizationName.trim()}* 🚩\n`;
-  msg += `🎉 *${fullFestival.trim()}* 🎉\n\n`;
-  msg += `💐 *విరాళ రశీదు / Donation Receipt* 💐\n`;
-  msg += `━━━━━━━━━━━━━━━━━━━━\n`;
-  msg += `👤 *దాత పేరు / Donor:* ${nameDisplay}\n`;
+  // Build clean English WhatsApp message text with minimal emojis
+  let msg = `*${organizationName.trim().toUpperCase()}*\n`;
+  msg += `*${fullFestival.trim()}*\n\n`;
+  msg += `*DONATION RECEIPT*\n`;
+  msg += `----------------------------------------\n`;
+  msg += `*Donor Name:* ${nameDisplay}\n`;
   if (donation.flat_no) {
-    msg += `🏢 *ఫ్లాట్ నెం / Flat No:* ${donation.flat_no}\n`;
+    msg += `*Flat No:* ${donation.flat_no}\n`;
   }
-  msg += `🏷️ *విభాగం / Category:* ${categoryLabel}${typeDetail}\n`;
-  msg += `💰 *మొత్తం / Amount:* ${amountStr}\n`;
-  msg += `💳 *చెల్లింపు రూపం / Payment:* ${paymentMethodStr}\n`;
+  msg += `*Category:* ${categoryLabel}${typeDetail}\n`;
+  msg += `*Amount:* ${amountStr}\n`;
+  msg += `*Payment Mode:* ${paymentMethodStr}\n`;
   if (statusStr) {
-    msg += `📌 *స్థితి / Status:* ${statusStr}\n`;
+    msg += `*Status:* ${statusStr}\n`;
   }
-  msg += `━━━━━━━━━━━━━━━━━━━━\n\n`;
-  msg += `🙏 *మీ సహాయం మరియు విరాళానికి మనస్ఫూర్తిగా ధన్యవాదాలు!*\n`;
-  msg += `*మీ కుటుంబానికి శ్రీ స్వామివారి దివ్య ఆశీస్సులు ఎల్లప్పుడూ ఉండాలని ఆకాంక్షిస్తున్నాము.* 🙏\n\n`;
-  msg += `_Thank you for your generous contribution!_`;
+  msg += `----------------------------------------\n\n`;
+  msg += `Thank you very much for your generous contribution! May God bless you and your family. 🙏`;
 
   return msg;
 }
