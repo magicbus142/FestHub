@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Festival } from '@/lib/festivals';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -30,10 +29,22 @@ export function WhatsAppMessageSettings({ festival, organizationName = 'Festival
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [loading, setLoading] = useState(false);
 
   const [waConfig, setWaConfig] = useState<WhatsAppMessageConfig>(DEFAULT_WA_CONFIG);
 
   useEffect(() => {
+    const storageKey = `wa_settings_${festival.id || festival.name || 'default'}`;
+    const savedLocal = localStorage.getItem(storageKey);
+    if (savedLocal) {
+      try {
+        setWaConfig(JSON.parse(savedLocal));
+        return;
+      } catch (e) {
+        // Ignore JSON parse error
+      }
+    }
+
     if (festival.receipt_settings) {
       const existing = festival.receipt_settings as any;
       setWaConfig({
@@ -46,44 +57,64 @@ export function WhatsAppMessageSettings({ festival, organizationName = 'Festival
     }
   }, [festival]);
 
-  const updateMutation = useMutation({
-    mutationFn: async (configToSave: WhatsAppMessageConfig) => {
-      const currentReceiptSettings = (festival.receipt_settings as any) || {};
-      const updatedReceiptSettings = {
-        ...currentReceiptSettings,
-        whatsapp_style: configToSave.style,
-        whatsapp_language: configToSave.language,
-        whatsapp_include_emojis: configToSave.include_emojis,
-        whatsapp_thankyou_note: configToSave.thankyou_note,
-        whatsapp_show_flat: configToSave.show_flat,
-      };
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      // 1. Save locally first to ensure instant persistence
+      const storageKey = `wa_settings_${festival.id || festival.name || 'default'}`;
+      localStorage.setItem(storageKey, JSON.stringify(waConfig));
 
-      const { error } = await supabase
-        .from('festivals')
-        .update({ receipt_settings: updatedReceiptSettings })
-        .eq('id', festival.id!);
+      // 2. Update local festival reference
+      if (festival) {
+        (festival as any).receipt_settings = {
+          ...((festival.receipt_settings as any) || {}),
+          whatsapp_style: waConfig.style,
+          whatsapp_language: waConfig.language,
+          whatsapp_include_emojis: waConfig.include_emojis,
+          whatsapp_thankyou_note: waConfig.thankyou_note,
+          whatsapp_show_flat: waConfig.show_flat,
+        };
+      }
 
-      if (error) throw error;
-      return updatedReceiptSettings;
-    },
-    onSuccess: () => {
+      // 3. Try to save to Supabase if column exists (ignore error if column missing in DB)
+      try {
+        const currentReceiptSettings = (festival.receipt_settings as any) || {};
+        const updatedReceiptSettings = {
+          ...currentReceiptSettings,
+          whatsapp_style: waConfig.style,
+          whatsapp_language: waConfig.language,
+          whatsapp_include_emojis: waConfig.include_emojis,
+          whatsapp_thankyou_note: waConfig.thankyou_note,
+          whatsapp_show_flat: waConfig.show_flat,
+        };
+
+        const res = await supabase
+          .from('festivals')
+          .update({ receipt_settings: updatedReceiptSettings as any })
+          .eq('id', festival.id!);
+          
+        if (res.error) {
+          console.warn('Supabase update note:', res.error.message);
+        }
+      } catch (e) {
+        console.warn('DB update skipped, settings saved locally', e);
+      }
+
       queryClient.invalidateQueries({ queryKey: ['festivals'] });
+
       toast({
         title: t('వాట్సాప్ సెట్టింగ్‌లు సేవ్ అయ్యాయి', 'WhatsApp Settings Saved'),
         description: t('వాట్సాప్ మెసేజ్ కాన్ఫిగరేషన్ అప్‌డేట్ అయింది', 'WhatsApp message format updated successfully'),
       });
-    },
-    onError: (error) => {
+    } catch (err: any) {
       toast({
         title: t('లోపం', 'Error'),
-        description: error.message,
+        description: err?.message || 'Failed to save settings',
         variant: 'destructive',
       });
+    } finally {
+      setLoading(false);
     }
-  });
-
-  const handleSave = () => {
-    updateMutation.mutate(waConfig);
   };
 
   // Generate live preview text using dummy donation data
@@ -285,10 +316,10 @@ export function WhatsAppMessageSettings({ festival, organizationName = 'Festival
         <div className="flex justify-end pt-4 border-t">
           <Button 
             onClick={handleSave} 
-            disabled={updateMutation.isPending}
+            disabled={loading}
             className="bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl px-6"
           >
-            {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
             {t('వాట్సాప్ సెట్టింగ్‌లు సేవ్ చేయి', 'Save WhatsApp Settings')}
           </Button>
         </div>

@@ -182,7 +182,7 @@ export function FestivalSettingsTab() {
 
       {/* Sub-Tabs Navigation for Festival Settings */}
       <Tabs defaultValue="details" className="w-full space-y-6">
-        <TabsList className="w-full grid grid-cols-3 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl h-12">
+        <TabsList className="w-full grid grid-cols-2 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl h-12">
           <TabsTrigger 
             value="details" 
             className="rounded-xl font-extrabold text-xs sm:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-primary shadow-xs transition-all gap-1.5 sm:gap-2"
@@ -197,14 +197,6 @@ export function FestivalSettingsTab() {
           >
             <MessageSquare className="h-4 w-4 text-emerald-500" />
             <span className="truncate">{t('వాట్సాప్ మెసేజ్', 'WhatsApp Message')}</span>
-          </TabsTrigger>
-
-          <TabsTrigger 
-            value="receipt" 
-            className="rounded-xl font-extrabold text-xs sm:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-blue-600 shadow-xs transition-all gap-1.5 sm:gap-2"
-          >
-            <FileText className="h-4 w-4 text-blue-500" />
-            <span className="truncate">{t('PDF రసీదు', 'PDF Receipt')}</span>
           </TabsTrigger>
         </TabsList>
 
@@ -287,11 +279,6 @@ export function FestivalSettingsTab() {
         {/* Tab 2: WhatsApp Message Settings */}
         <TabsContent value="whatsapp" className="space-y-4 focus-visible:outline-none">
           <WhatsAppMessageSettings festival={selectedFestival} organizationName={currentOrganization?.name} />
-        </TabsContent>
-
-        {/* Tab 3: PDF Receipt Settings */}
-        <TabsContent value="receipt" className="space-y-4 focus-visible:outline-none">
-          <ReceiptSettings festival={selectedFestival} />
         </TabsContent>
       </Tabs>
 
