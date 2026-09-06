@@ -24,6 +24,15 @@ export const DEFAULT_WA_CONFIG: WhatsAppMessageConfig = {
   show_flat: true
 };
 
+// Helper to remove any emojis from text when emojis are disabled
+export function removeEmojis(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/[\u{1F300}-\u{1F9FF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F1E6}-\u{1F1FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA70}-\u{1FAFF}]/gu, '')
+    .replace(/  +/g, ' ')
+    .trim();
+}
+
 export function getSavedWhatsAppConfig(festivalIdentifier?: string): WhatsAppMessageConfig {
   if (typeof window === 'undefined') return DEFAULT_WA_CONFIG;
   
@@ -65,17 +74,29 @@ export function generateWhatsAppMessage({
 }: WhatsAppShareData): string {
   const fullFestival = festivalYear ? `${festivalName} ${festivalYear}` : festivalName;
   
-  // Merge saved localStorage config + explicit config + DEFAULT_WA_CONFIG
+  // 1. Get saved config from localStorage
   const savedConfig = getSavedWhatsAppConfig(festivalName);
+
+  // 2. Filter out undefined keys from explicit config object to avoid overwriting valid saved booleans
+  const cleanExplicitConfig: WhatsAppMessageConfig = {};
+  if (config) {
+    (Object.keys(config) as (keyof WhatsAppMessageConfig)[]).forEach((k) => {
+      if (config[k] !== undefined && config[k] !== null) {
+        (cleanExplicitConfig as any)[k] = config[k];
+      }
+    });
+  }
+
+  // 3. Merge: DEFAULT -> savedConfig -> cleanExplicitConfig
   const activeConfig: WhatsAppMessageConfig = {
     ...DEFAULT_WA_CONFIG,
     ...savedConfig,
-    ...(config || {})
+    ...cleanExplicitConfig
   };
 
   const style = activeConfig.style || 'decorative';
   const language = activeConfig.language || 'english';
-  const includeEmojis = activeConfig.include_emojis ?? (style === 'decorative');
+  const includeEmojis = activeConfig.include_emojis === true;
   const customThankYou = activeConfig.thankyou_note?.trim() || DEFAULT_WA_CONFIG.thankyou_note!;
 
   // Donor Name
@@ -150,6 +171,10 @@ export function generateWhatsAppMessage({
     msg = `${iconHeader}*${organizationName.trim()}* (${fullFestival.trim()})\n`;
     msg += `Receipt: ${nameDisplay} | ${categoryLabel}${typeDetail} | ${amountStr} (${paymentMethodStr})\n`;
     msg += `${thankYouMsg}${includeEmojis ? ' 🙏' : ''}`;
+    
+    if (!includeEmojis) {
+      return removeEmojis(msg);
+    }
     return msg;
   }
 
@@ -181,6 +206,10 @@ export function generateWhatsAppMessage({
     }
     msg += `━━━━━━━━━━━━━━━━━━━━\n\n`;
     msg += `${thankYouMsg}${prayIcon}`;
+
+    if (!includeEmojis) {
+      return removeEmojis(msg);
+    }
     return msg;
   }
 
@@ -202,6 +231,10 @@ export function generateWhatsAppMessage({
   }
   msg += `----------------------------------------\n\n`;
   msg += `${thankYouMsg}${prayIcon}`;
+
+  if (!includeEmojis) {
+    return removeEmojis(msg);
+  }
 
   return msg;
 }

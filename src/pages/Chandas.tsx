@@ -307,19 +307,11 @@ export default function Chandas() {
   };
 
   const handleShareWhatsApp = (donation: Donation) => {
-    const settings = (selectedFestival?.receipt_settings as any) || {};
     shareOnWhatsApp({
       donation,
       organizationName: currentOrganization?.name,
       festivalName: selectedFestival?.name,
-      festivalYear: selectedFestival?.year,
-      config: {
-        style: settings.whatsapp_style,
-        language: settings.whatsapp_language,
-        include_emojis: settings.whatsapp_include_emojis,
-        thankyou_note: settings.whatsapp_thankyou_note,
-        show_flat: settings.whatsapp_show_flat,
-      }
+      festivalYear: selectedFestival?.year
     });
   };
 
