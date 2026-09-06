@@ -307,16 +307,6 @@ export default function Images() {
                     {filteredImages.length}
                  </span>
               </div>
-
-              {isAuthenticated && (
-                <Button
-                  onClick={() => setIsDialogOpen(true)}
-                  className="hidden sm:flex bg-primary hover:bg-primary/90 text-primary-foreground font-black h-8 rounded-xl px-3 text-xs shadow-sm transition-all active:scale-[0.95] items-center gap-1.5"
-                >
-                  <Upload className="h-3.5 w-3.5" />
-                  {t('అప్‌లోడ్', 'Upload')}
-                </Button>
-              )}
            </div>
 
            <div className="flex flex-col md:flex-row gap-3 items-center pt-1">
