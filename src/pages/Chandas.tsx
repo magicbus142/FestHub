@@ -12,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFestival } from '@/contexts/FestivalContext';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { BarChart3, DollarSign, Plus, ArrowLeft, Lock, TrendingUp, Wallet, CreditCard, Download, Package, HandHelping, ArrowUpRight, Users, Target, LogOut, Edit, Trash2, FileDown } from 'lucide-react';
+import { BarChart3, DollarSign, Plus, ArrowLeft, Lock, TrendingUp, Wallet, CreditCard, Download, Package, HandHelping, ArrowUpRight, Users, Target, LogOut, Edit, Trash2, Share2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -31,6 +31,7 @@ import { useNavigate } from 'react-router-dom';
 import { BackButton } from '@/components/BackButton';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { generateReceipt } from '@/utils/receiptGenerator';
+import { shareOnWhatsApp } from '@/utils/whatsappShare';
 
 export default function Chandas() {
   const { t, language, setLanguage } = useLanguage();
@@ -305,7 +306,14 @@ export default function Chandas() {
     }
   };
 
-  /* Removed local generateReceipt function in favor of utility */
+  const handleShareWhatsApp = (donation: Donation) => {
+    shareOnWhatsApp({
+      donation,
+      organizationName: currentOrganization?.name,
+      festivalName: selectedFestival?.name,
+      festivalYear: selectedFestival?.year
+    });
+  };
 
 
   return (
@@ -638,18 +646,11 @@ export default function Chandas() {
                                   <Button 
                                      variant="ghost" 
                                      size="icon" 
-                                     className="h-8 w-8 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-full" 
-                                     onClick={() => {
-                                        const settings = selectedFestival?.receipt_settings as any;
-                                        generateReceipt(donation, { 
-                                            ...settings,
-                                            organization_name: currentOrganization?.name,
-                                            sub_title: settings?.sub_title || selectedFestival?.name 
-                                        });
-                                     }}
-                                     title={t('రసీదు', 'Download Receipt')}
+                                     className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-full" 
+                                     onClick={() => handleShareWhatsApp(donation)}
+                                     title={t('వాట్సాప్‌లో షేర్ చేయండి', 'Share on WhatsApp')}
                                   >
-                                     <FileDown className="h-4 w-4" />
+                                     <Share2 className="h-4 w-4" />
                                   </Button>
                                </div>
                             </TableCell>
@@ -669,14 +670,7 @@ export default function Chandas() {
                       donation={donation}
                       onEdit={handleEditDonation}
                       onDelete={(id) => setDeletingDonationId(id)}
-                      onReceipt={(d) => {
-                          const settings = selectedFestival?.receipt_settings as any;
-                          generateReceipt(d, { 
-                              ...settings,
-                              organization_name: currentOrganization?.name,
-                              sub_title: settings?.sub_title || selectedFestival?.name 
-                          });
-                      }}
+                      onReceipt={handleShareWhatsApp}
                       onAuthRequired={handleAuthRequired}
                       namePreference={namePreference}
                       className="rounded-2xl border border-slate-100 shadow-sm"

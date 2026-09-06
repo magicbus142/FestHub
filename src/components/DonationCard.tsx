@@ -2,7 +2,7 @@ import { Donation } from '@/lib/database';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, FileDown, Package, HandHelping } from 'lucide-react';
+import { Edit, Trash2, Share2, Package, HandHelping } from 'lucide-react';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -126,15 +126,15 @@ export const DonationCard = ({ donation, onEdit, onDelete, onReceipt, onAuthRequ
           <div className="flex justify-between items-center pt-3 border-t border-slate-100 flex-wrap gap-2">
             <div className="flex items-center gap-1">
               <div className="flex items-center gap-1">
-                  {onReceipt && donation.amount > 0 && (
+                  {onReceipt && (
                       <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => onReceipt(donation)}
-                          className="h-8 w-8 rounded-full hover:bg-blue-50 hover:text-blue-600"
-                          title={t('రసీదు', 'Receipt')}
+                          className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700 transition-colors shadow-2xs"
+                          title={t('వాట్సాప్‌లో షేర్ చేయండి', 'Share on WhatsApp')}
                       >
-                          <FileDown className="h-3.5 w-3.5" />
+                          <Share2 className="h-3.5 w-3.5" />
                       </Button>
                   )}
                   <Button
