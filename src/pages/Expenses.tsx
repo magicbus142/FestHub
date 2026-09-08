@@ -201,11 +201,12 @@ export default function Expenses() {
 
   return (
     <div className="min-h-screen bg-slate-50/50">
-      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-6">
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-6 pb-32">
         
         <PageHeader
           title={t('పండుగ ఖర్చులు', 'Festival Expenses')}
           description={t('వ్యయాలు మరియు ఖర్చుల ట్రాకింగ్', 'Track and manage festival expenditures')}
+          hasFab={isAuthenticated}
           onAuthOpen={() => setIsAuthOpen(true)}
         >
           {isAuthenticated && (
@@ -440,10 +441,10 @@ export default function Expenses() {
         {isAuthenticated && (
           <Button
               onClick={startAddExpense}
-              className="fixed bottom-24 right-6 h-16 w-16 rounded-full shadow-2xl bg-primary hover:bg-primary/90 text-primary-foreground p-0 flex items-center justify-center border-none transition-all active:scale-95 z-50 md:hidden"
+              className="fixed bottom-24 right-5 h-14 w-14 rounded-full shadow-2xl bg-primary hover:bg-primary/90 text-primary-foreground p-0 flex items-center justify-center border-none transition-all active:scale-95 z-50 md:hidden"
               aria-label={t('ఖర్చు జోడించు', 'Add Expense')}
           >
-              <Plus className="h-10 w-10" />
+              <Plus className="h-7 w-7" />
           </Button>
         )}
 

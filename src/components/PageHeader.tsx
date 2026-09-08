@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { LogOut, Lock, ArrowUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { cn } from '@/lib/utils';
 
 interface PageHeaderProps {
   title?: string;
@@ -14,6 +15,7 @@ interface PageHeaderProps {
   showBack?: boolean;
   backTo?: string;
   showActions?: boolean;
+  hasFab?: boolean;
   onAuthOpen?: () => void;
   children?: React.ReactNode;
 }
@@ -26,6 +28,7 @@ export function PageHeader({
   showBack = true,
   backTo,
   showActions = true,
+  hasFab = false,
   onAuthOpen,
   children 
 }: PageHeaderProps) {
@@ -142,7 +145,10 @@ export function PageHeader({
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-24 right-4 z-40 p-3 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 md:hidden"
+          className={cn(
+            "fixed right-5 z-40 h-11 w-11 rounded-full bg-slate-900/95 text-white dark:bg-white dark:text-slate-900 shadow-xl backdrop-blur-md hover:scale-105 active:scale-95 transition-all duration-300 md:hidden flex items-center justify-center border border-white/20 dark:border-slate-800",
+            hasFab ? "bottom-40" : "bottom-24"
+          )}
           aria-label={t('పైకి వెళ్లండి', 'Scroll to top')}
         >
           <ArrowUp className="h-5 w-5" />

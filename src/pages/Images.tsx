@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-import { Upload, Calendar, Trash2, X, Download, Pin, Lock, Edit2, LogOut, Search } from 'lucide-react';
+import { Upload, Calendar, Trash2, X, Download, Pin, Lock, Edit2, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -42,8 +42,6 @@ export default function Images() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({ title: '', description: '' });
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortOption, setSortOption] = useState<string>('newest');
   const itemsPerPage = 12;
 
   const { data: images = [] } = useQuery({
@@ -52,19 +50,9 @@ export default function Images() {
     enabled: !!selectedFestival,
   });
 
-  const filteredImages = images.filter((img) => {
-    if (!searchTerm.trim()) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      img.title?.toLowerCase().includes(term) ||
-      img.description?.toLowerCase().includes(term)
-    );
-  }).sort((a, b) => {
-    if (sortOption === 'oldest') {
-      return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
-    }
-    return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-  });
+  const filteredImages = [...images].sort((a, b) => 
+    new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+  );
 
   const uploadImageMutation = useMutation({
     mutationFn: ({ file, title, description }: { file: File; title: string; description?: string }) =>
@@ -187,11 +175,12 @@ export default function Images() {
 
   return (
     <div className="min-h-screen bg-slate-50/50">
-      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-6">
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-6 pb-32">
         
         <PageHeader
           title={t('పండుగ చిత్రాలు', 'Festival Gallery')}
           description={t('జ్ఞాపకాలను సేవ్ చేయండి', 'Capture and preserve festival memories')}
+          hasFab={isAuthenticated}
           onAuthOpen={() => setIsAuthOpen(true)}
         >
           {isAuthenticated && (
@@ -251,22 +240,17 @@ export default function Images() {
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder={t('చిత్రం వివరణ (ఐచ్ఛికం)', 'Image description (optional)')}
-                  rows={3}
-                  className="rounded-xl border-slate-200 resize-none"
+                  placeholder={t('చిత్రం వివరాలు (ఐచ్ఛికం)', 'Image details (optional)')}
+                  className="rounded-xl border-slate-200"
                 />
               </div>
-              <div className="flex gap-2 pt-4">
-                <Button type="submit" disabled={uploadImageMutation.isPending} className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-bold h-11">
-                  {uploadImageMutation.isPending ? t('అప్‌లోడ్ చేస్తోంది...', 'Uploading...') : t('అప్‌లోడ్', 'Upload')}
-                </Button>
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="rounded-xl border-slate-200 h-11">
-                  {t('రద్దు', 'Cancel')}
-                </Button>
-              </div>
+              <Button type="submit" disabled={uploadImageMutation.isPending} className="w-full font-bold">
+                {uploadImageMutation.isPending ? t('అప్‌లోడ్ అవుతోంది...', 'Uploading...') : t('అప్‌లోడ్ చేయి', 'Upload')}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
+
         {/* Gallery Overview Dashboard Card (Matching Chandas / Expenses style) */}
         <Card className="bg-white shadow-sm border border-slate-100 rounded-3xl overflow-hidden relative group mb-6">
            <CardContent className="p-5 sm:p-6">
@@ -295,71 +279,14 @@ export default function Images() {
            </CardContent>
         </Card>
 
-        {/* Management View: Search + Filter + Photo Count */}
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-6 p-4 sm:p-5">
-           {/* Section Tab Badge */}
-           <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                 <span className="text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 pb-1.5 -mb-3 tracking-tight">
-                   {t('చిత్రాలు', 'Photos')}
-                 </span>
-                 <span className="inline-flex items-center justify-center h-5.5 min-w-[22px] px-2 rounded-full text-xs font-black bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
-                    {filteredImages.length}
-                 </span>
-              </div>
-           </div>
-
-           <div className="flex flex-col md:flex-row gap-3 items-center pt-1">
-              {/* Search */}
-              <div className="relative flex-1 w-full">
-                 <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                    <Search className="h-4 w-4 text-muted-foreground" />
-                 </div>
-                 <input
-                   type="text"
-                   placeholder={t('చిత్రం టైటిల్ లేదా వివరణ ద్వారా శోధించండి...', 'Search photos by title or description...')}
-                   className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-2xl leading-5 bg-white placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm transition-all"
-                   value={searchTerm}
-                   onChange={(e) => {
-                     setSearchTerm(e.target.value);
-                     setCurrentPage(1);
-                   }}
-                 />
-              </div>
-
-              {/* Sort Selector */}
-              <div className="flex items-center gap-2 w-full md:w-auto">
-                 <select 
-                    className="flex-1 md:w-48 bg-white border border-slate-200 text-foreground py-2.5 px-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    value={sortOption}
-                    onChange={(e) => setSortOption(e.target.value)}
-                 >
-                    <option value="newest">{t('కొత్తవి మొదట', 'Newest First')}</option>
-                    <option value="oldest">{t('పాతవి మొదట', 'Oldest First')}</option>
-                 </select>
-              </div>
-           </div>
-        </div>
-
         {/* Images Grid */}
         <div className="max-w-7xl mx-auto mb-24">
-          {images.length === 0 ? (
+          {filteredImages.length === 0 ? (
             <ComingSoon 
               festivalName={selectedFestival.name}
               year={selectedFestival.year}
               message={t('ఈ ఉత్సవానికి ఇంకా చిత్రాలు లేవు. అప్‌లోడ్ చేయండి!', 'No images available for this festival yet. Upload some!')}
             />
-          ) : filteredImages.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-3xl border border-slate-100 shadow-sm">
-              <p className="text-lg font-bold text-slate-600">{t('చిత్రాలు కనుగొనబడలేదు', 'No photos found matching your search')}</p>
-              <Button 
-                variant="link" 
-                onClick={() => setSearchTerm('')}
-                className="text-blue-600 font-bold mt-2"
-              >
-                {t('అన్ని చిత్రాలను చూపించు', 'Show all photos')}
-              </Button>
-            </div>
           ) : (
             <>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6 md:gap-7">
@@ -487,10 +414,10 @@ export default function Images() {
         {isAuthenticated && (
           <Button
               onClick={() => setIsDialogOpen(true)}
-              className="fixed bottom-24 right-6 h-16 w-16 rounded-full shadow-2xl bg-primary hover:bg-primary/90 text-primary-foreground p-0 flex items-center justify-center border-none transition-all active:scale-95 z-50 md:hidden"
+              className="fixed bottom-24 right-5 h-14 w-14 rounded-full shadow-2xl bg-primary hover:bg-primary/90 text-primary-foreground p-0 flex items-center justify-center border-none transition-all active:scale-95 z-50 md:hidden"
               aria-label={t('చిత్రం అప్‌లోడ్ చేయండి', 'Upload Image')}
           >
-              <Upload className="h-10 w-10" />
+              <Upload className="h-7 w-7" />
           </Button>
         )}
 

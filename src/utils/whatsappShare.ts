@@ -20,7 +20,7 @@ export const DEFAULT_WA_CONFIG: WhatsAppMessageConfig = {
   style: 'decorative', // Rich & Decorative as DEFAULT
   language: 'english',
   include_emojis: true,
-  thankyou_note: 'Thank you for supporting our festival celebrations! Warm regards from our committee.', // Preset 3 as DEFAULT
+  thankyou_note: 'Thank you for supporting our festival celebrations! Warm regards from our committee. ', // Preset 3 as DEFAULT
   show_flat: true
 };
 
@@ -35,7 +35,7 @@ export function removeEmojis(str: string): string {
 
 export function getSavedWhatsAppConfig(festivalIdentifier?: string): WhatsAppMessageConfig {
   if (typeof window === 'undefined') return DEFAULT_WA_CONFIG;
-  
+
   if (festivalIdentifier) {
     const keys = [
       `wa_settings_${festivalIdentifier}`,
@@ -73,7 +73,7 @@ export function generateWhatsAppMessage({
   config
 }: WhatsAppShareData): string {
   const fullFestival = festivalYear ? `${festivalName} ${festivalYear}` : festivalName;
-  
+
   // 1. Get saved config from localStorage
   const savedConfig = getSavedWhatsAppConfig(festivalName);
 
@@ -126,7 +126,7 @@ export function generateWhatsAppMessage({
   const typeDetail = donation.type && donation.type !== 'చందా' ? ` (${donation.type})` : '';
 
   // Amount
-  const amountStr = donation.amount > 0 
+  const amountStr = donation.amount > 0
     ? `₹${donation.amount.toLocaleString('en-IN')}`
     : (language === 'telugu' ? 'స్పాన్సర్' : 'Sponsored');
 
@@ -134,15 +134,15 @@ export function generateWhatsAppMessage({
   const isCash = !donation.donation_mode || donation.donation_mode === 'cash';
   let paymentMethodStr = '';
   if (language === 'english') {
-    paymentMethodStr = isCash 
+    paymentMethodStr = isCash
       ? (donation.payment_method === 'upi' ? 'UPI' : 'Cash')
       : (donation.donation_mode === 'goods' ? 'Goods' : 'Service');
   } else if (language === 'telugu') {
-    paymentMethodStr = isCash 
+    paymentMethodStr = isCash
       ? (donation.payment_method === 'upi' ? 'UPI' : 'నగదు')
       : (donation.donation_mode === 'goods' ? 'వస్తువులు' : 'సేవ');
   } else {
-    paymentMethodStr = isCash 
+    paymentMethodStr = isCash
       ? (donation.payment_method === 'upi' ? 'UPI' : 'నగదు (Cash)')
       : (donation.donation_mode === 'goods' ? 'వస్తువులు (Goods)' : 'సేవ (Service)');
   }
@@ -171,7 +171,7 @@ export function generateWhatsAppMessage({
     msg = `${iconHeader}*${organizationName.trim()}* (${fullFestival.trim()})\n`;
     msg += `Receipt: ${nameDisplay} | ${categoryLabel}${typeDetail} | ${amountStr} (${paymentMethodStr})\n`;
     msg += `${thankYouMsg}${includeEmojis ? ' 🙏' : ''}`;
-    
+
     if (!includeEmojis) {
       return removeEmojis(msg);
     }

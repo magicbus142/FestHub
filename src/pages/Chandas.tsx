@@ -318,10 +318,11 @@ export default function Chandas() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-6">
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-6 pb-32">
         <PageHeader
           title={t('పండుగ ఆర్థికం', 'Festival Finances')}
           description={t('నిధులు మరియు స్పాన్సర్‌షిప్‌ల నిర్వహణ', 'Manage collections and sponsorships')}
+          hasFab={isAuthenticated}
           onAuthOpen={() => setIsAuthDialogOpen(true)}
         >
           {isAuthenticated && (
@@ -787,10 +788,10 @@ export default function Chandas() {
         {isAuthenticated && (
           <Button
               onClick={handleAddDonation}
-              className="fixed bottom-24 right-6 h-14 w-14 rounded-full shadow-2xl bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white p-0 flex items-center justify-center border-none transition-all active:scale-95 z-50 md:hidden"
+              className="fixed bottom-24 right-5 h-14 w-14 rounded-full shadow-2xl bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white p-0 flex items-center justify-center border-none transition-all active:scale-95 z-50 md:hidden"
               aria-label={t('చందా జోడించు', 'Add Donation')}
           >
-              <Plus className="h-8 w-8" />
+              <Plus className="h-7 w-7" />
           </Button>
         )}
       </div>
